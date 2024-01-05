@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:my_kanji_app/data/user.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/pages/home.dart';
+import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/login_animated.dart';
 
 class Login extends StatefulWidget {
@@ -91,7 +91,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                 animation: _animacaoBlur!,
                 builder: (context, widget) {
                   return Container(
-                    height: 500,
+                    height: 475,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/images/fundo.png"),
@@ -149,13 +149,25 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                           child: Container(
                             padding: const EdgeInsets.only(left: 8, right: 8),
                             child: TextField(
+                              onChanged: (String str) {
+                                if (str == "") {
+                                  setState(() {
+                                    _notValid = false;
+                                  });
+                                }
+                              },
                               controller: apiInput,
                               obscureText: !obscure,
                               decoration: InputDecoration(
                                 hoverColor: null,
                                 errorText: _notValid ? "Invalid API key" : null,
                                 icon: const Icon(Icons.key),
-                                border: InputBorder.none,
+                                border: _notValid
+                                    ? const OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.red),
+                                      )
+                                    : InputBorder.none,
                                 hintText: 'Your Wanikani API key',
                                 hintStyle: const TextStyle(
                                   color: Colors.grey,
@@ -211,14 +223,9 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   login() async {
     // Do stuff
 
-    String url = "https://api.wanikani.com/v2/user";
+    apiInput.text = "1dce059b-8e56-49e4-b759-445d8104c0bf";
 
-    Map<String, String> header = {
-      "Wanikani-Revision": "20170710",
-      "Authorization": "Bearer ${apiInput.text}",
-    };
-
-    final response = await http.get(Uri.parse(url), headers: header);
+    final response = await getUser(apiInput.text);
 
     var body = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -227,8 +234,6 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
       user.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-
-      print(user.userData.toJson());
 
       Navigator.push(context, toHome());
     } else {
@@ -247,7 +252,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 Route toHome() {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => const Home(),
-    transitionDuration: const Duration(milliseconds: 700),
+    transitionDuration: const Duration(milliseconds: 900),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 10.0);
       const end = Offset.zero;

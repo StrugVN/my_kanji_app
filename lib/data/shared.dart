@@ -44,3 +44,11 @@ class Readings {
     return data;
   }
 }
+
+class SubjectItem<T>{
+  T? subjectItem;
+  bool? isRevealed;
+  bool? isCorrect;
+
+  SubjectItem({this.subjectItem, this.isRevealed});
+}

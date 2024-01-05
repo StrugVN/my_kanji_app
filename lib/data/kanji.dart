@@ -1,5 +1,68 @@
 import 'package:my_kanji_app/data/shared.dart';
 
+class KanjiResponse {
+  String? object;
+  String? url;
+  Pages? pages;
+  int? totalCount;
+  String? dataUpdatedAt;
+  List<Kanji>? data;
+
+  KanjiResponse(
+      {this.object, this.url, this.pages, this.totalCount, this.dataUpdatedAt, this.data});
+
+  KanjiResponse.fromJson(Map<String, dynamic> json) {
+    object = json['object'];
+    url = json['url'];
+    pages = json['pages'] != null ? new Pages.fromJson(json['pages']) : null;
+    totalCount = json['total_count'];
+    dataUpdatedAt = json['data_updated_at'];
+    if (json['data'] != null) {
+      data = <Kanji>[];
+      json['data'].forEach((v) {
+        data!.add(Kanji.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['object'] = this.object;
+    data['url'] = this.url;
+    if (this.pages != null) {
+      data['pages'] = this.pages!.toJson();
+    }
+    data['total_count'] = this.totalCount;
+    data['data_updated_at'] = this.dataUpdatedAt;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Pages {
+  int? perPage;
+  String? nextUrl;
+  String? previousUrl;
+
+  Pages({this.perPage, this.nextUrl, this.previousUrl});
+
+  Pages.fromJson(Map<String, dynamic> json) {
+    perPage = json['per_page'];
+    nextUrl = json['next_url'];
+    previousUrl = json['previous_url'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['per_page'] = this.perPage;
+    data['next_url'] = this.nextUrl;
+    data['previous_url'] = this.previousUrl;
+    return data;
+  }
+}
+
 class Kanji {
   int? id;
   String? object;

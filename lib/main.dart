@@ -13,25 +13,3 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(home: Login());
   }
 }
-
-/*
-Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: Center(child: Text("My app")),
-        backgroundColor: Colors.blue,
-      ),
-      body: const SafeArea(
-        child: SingleChildScrollView (
-          child: Column(
-            children: <Widget>[
-              DropdownMenuExample(maxLevel: 25),
-              ExpansionPanelListExample(),
-            ],
-          ),
-        ),
-      ),
-    ));
-  }
-*/

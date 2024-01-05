@@ -1,29 +1,68 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/component/list.dart';
+import 'package:my_kanji_app/component/selector.dart';
+import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/user.dart';
+import 'package:my_kanji_app/pages/dashboard.dart';
+import 'package:my_kanji_app/pages/review.dart';
+import 'package:my_kanji_app/pages/stuff.dart';
+import 'package:my_kanji_app/service/api.dart';
+import 'package:unofficial_jisho_api/api.dart' as jisho;
+import 'package:http/http.dart' as http;
 
-import '../component/selector.dart';
-
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  late int pageIndex;
+
+  List<Widget> pageList = <Widget>[
+    const Dashboard(),
+    const Review(),
+    const Stuff(),
+  ];
+
+  final User user = User();
+
+  @override
+  void initState() {
+    super.initState();
+
+    pageIndex = 0;
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text("My app")),
-        backgroundColor: Colors.blue,
-      ),
-      body: const SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              DropdownMenuExample(maxLevel: 25),
-              ExpansionPanelListExample(),
-            ],
-          ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Center(child: Text("My app")),
+          backgroundColor: Colors.blue,
+        ),
+        body: IndexedStack(
+          index: pageIndex,
+          children: pageList,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: pageIndex,
+          onTap: (value) {
+            setState(() {
+              pageIndex = value;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
+            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
+          ],
         ),
       ),
-    ));
+    );
   }
 }
