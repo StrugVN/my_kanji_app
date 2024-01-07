@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/shared.dart';
 
 class QuestionCard extends StatelessWidget {
   const QuestionCard({super.key, required this.item, required this.isToEN});
 
   final bool isToEN;
 
-  final Kanji item;
+  final Subject item;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 400,
-      height: 400,
+      height: 500,
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 15,
@@ -44,15 +44,15 @@ class QuestionCard extends StatelessWidget {
   getFrontBaseOnTranslation() {
     if (isToEN) {
       return Text(
-        item.data?.slug ?? "N/A",
-        style: const TextStyle(
-          fontSize: 108,
+        item.getData()?.data.slug ?? "N/A",
+        style: TextStyle(
+          fontSize: item.isKanji ? 108 : 56,
         ),
         textAlign: TextAlign.center,
       );
     } else {
       return Text(
-        item.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+        item.getData()?.data.meanings!.map((e) => e.meaning).join(", ") ?? "N/A",
         style: const TextStyle(
           fontSize: 21,
         ),

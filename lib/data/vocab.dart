@@ -1,5 +1,46 @@
 import 'package:my_kanji_app/data/shared.dart';
 
+class VocabResponse {
+  String? object;
+  String? url;
+  Pages? pages;
+  int? totalCount;
+  String? dataUpdatedAt;
+  List<Vocab>? data;
+
+  VocabResponse(
+      {this.object, this.url, this.pages, this.totalCount, this.dataUpdatedAt, this.data});
+
+  VocabResponse.fromJson(Map<String, dynamic> json) {
+    object = json['object'];
+    url = json['url'];
+    pages = json['pages'] != null ? Pages.fromJson(json['pages']) : null;
+    totalCount = json['total_count'];
+    dataUpdatedAt = json['data_updated_at'];
+    if (json['data'] != null) {
+      data = <Vocab>[];
+      json['data'].forEach((v) {
+        data!.add(Vocab.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['object'] = object;
+    data['url'] = url;
+    if (pages != null) {
+      data['pages'] = pages!.toJson();
+    }
+    data['total_count'] = totalCount;
+    data['data_updated_at'] = dataUpdatedAt;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
 class Vocab {
   int? id;
   String? object;
@@ -93,8 +134,8 @@ class VocabData {
         readings!.add(Readings.fromJson(v));
       });
     }
-    partsOfSpeech = json['parts_of_speech'].cast<String>();
-    componentSubjectIds = json['component_subject_ids'].cast<int>();
+    partsOfSpeech = json['parts_of_speech']?.cast<String>();
+    componentSubjectIds = json['component_subject_ids']?.cast<int>();
     meaningMnemonic = json['meaning_mnemonic'];
     readingMnemonic = json['reading_mnemonic'];
     if (json['context_sentences'] != null) {

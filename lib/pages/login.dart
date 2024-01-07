@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/user.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/pages/home.dart';
@@ -91,7 +92,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                 animation: _animacaoBlur!,
                 builder: (context, widget) {
                   return Container(
-                    height: 475,
+                    height: 650,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/images/fundo.png"),
@@ -222,6 +223,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
   login() async {
     // Do stuff
+    showLoaderDialog(context, "Signing in...");
 
     apiInput.text = "1dce059b-8e56-49e4-b759-445d8104c0bf";
 
@@ -234,6 +236,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
       user.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+
+      Navigator.pop(context);
 
       Navigator.push(context, toHome());
     } else {

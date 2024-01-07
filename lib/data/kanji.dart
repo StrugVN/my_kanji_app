@@ -14,7 +14,7 @@ class KanjiResponse {
   KanjiResponse.fromJson(Map<String, dynamic> json) {
     object = json['object'];
     url = json['url'];
-    pages = json['pages'] != null ? new Pages.fromJson(json['pages']) : null;
+    pages = json['pages'] != null ? Pages.fromJson(json['pages']) : null;
     totalCount = json['total_count'];
     dataUpdatedAt = json['data_updated_at'];
     if (json['data'] != null) {
@@ -26,39 +26,17 @@ class KanjiResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['object'] = this.object;
-    data['url'] = this.url;
-    if (this.pages != null) {
-      data['pages'] = this.pages!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['object'] = object;
+    data['url'] = url;
+    if (pages != null) {
+      data['pages'] = pages!.toJson();
     }
-    data['total_count'] = this.totalCount;
-    data['data_updated_at'] = this.dataUpdatedAt;
+    data['total_count'] = totalCount;
+    data['data_updated_at'] = dataUpdatedAt;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    return data;
-  }
-}
-
-class Pages {
-  int? perPage;
-  String? nextUrl;
-  String? previousUrl;
-
-  Pages({this.perPage, this.nextUrl, this.previousUrl});
-
-  Pages.fromJson(Map<String, dynamic> json) {
-    perPage = json['per_page'];
-    nextUrl = json['next_url'];
-    previousUrl = json['previous_url'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['per_page'] = this.perPage;
-    data['next_url'] = this.nextUrl;
-    data['previous_url'] = this.previousUrl;
     return data;
   }
 }

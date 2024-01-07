@@ -137,7 +137,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,11 +145,28 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                 Row(
                   children: [
                     DropdownMenu<SourceTypeLabel>(
+                      width: 150,
                       initialSelection: SourceTypeLabel.Wanikani,
                       controller: sourceTypeController,
                       onSelected: (SourceTypeLabel? type) {
                         setState(() {
                           sourceTypeLabel = type;
+                          if(sourceTypeLabel != SourceTypeLabel.Wanikani){
+                            modeController.text = ModeLabel.kanji.label;
+                            selectedMode = ModeLabel.kanji;
+                          }
+                          switch (sourceTypeLabel) {
+                            case SourceTypeLabel.JLPT:
+                              nonWaniLevel = JlptLevelLabel.n5.label;
+                              break;
+                            case SourceTypeLabel.Joyo:
+                              nonWaniLevel = JoyoLevelLabel.joyo1.label;
+                              break;
+                            case SourceTypeLabel.Frequency:
+                              nonWaniLevel = FrequencyLevelLabel.m500.label;
+                              break;
+                            default:
+                          }
                         });
                       },
                       requestFocusOnTap: true,
@@ -171,6 +188,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                       width: 18,
                     ),
                     DropdownMenu<TranslationTypeLabel>(
+                      width: 220,
                       initialSelection: TranslationTypeLabel.toEn,
                       controller: translationController,
                       requestFocusOnTap: true,
@@ -197,41 +215,48 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                 ),
                 const Gap(10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const SizedBox(width: 18),
-                    // DropdownMenu<ModeLabel>(
-                    //   initialSelection: ModeLabel.kanji,
-                    //   controller: modeController,
-                    //   requestFocusOnTap: true,
-                    //   label: const Text('Mode'),
-                    //   onSelected: (ModeLabel? mode) {
-                    //     setState(() {
-                    //       selectedMode = mode;
-                    //     });
-                    //   },
-                    //   dropdownMenuEntries: ModeLabel.values
-                    //       .map<DropdownMenuEntry<ModeLabel>>((ModeLabel color) {
-                    //     return DropdownMenuEntry<ModeLabel>(
-                    //       value: color,
-                    //       label: color.label,
-                    //       enabled: color.label != 'Grey',
-                    //       style: MenuItemButton.styleFrom(
-                    //         foregroundColor: color.color,
-                    //       ),
-                    //     );
-                    //   }).toList(),
-                    // ),
-                    // const SizedBox(width: 18),
-
+                    DropdownMenu<ModeLabel>(
+                      
+                      width: 150,
+                      initialSelection: ModeLabel.kanji,
+                      controller: modeController,
+                      requestFocusOnTap: true,
+                      label: const Text('Mode'),
+                      onSelected: (ModeLabel? mode) {
+                        setState(() {
+                          selectedMode = mode;
+                        });
+                      },
+                      dropdownMenuEntries: ModeLabel.values
+                          .map<DropdownMenuEntry<ModeLabel>>((ModeLabel item) {
+                        return DropdownMenuEntry<ModeLabel>(
+                          value: item,
+                          label: item.label,
+                          enabled: sourceTypeLabel != SourceTypeLabel.Wanikani ? item == ModeLabel.kanji : true,
+                          style: MenuItemButton.styleFrom(
+                            foregroundColor: item.color,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(
+                      width: 18,
+                    ),
                     getLevelSelector(),
-
-                    const SizedBox(width: 18),
-                    SizedBox(
-                      width: 100,
+                  ],
+                ),
+                const Gap(10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10,),
+                    child: SizedBox(
                       height: 45,
-                      child: ElevatedButton(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.create),
                         style: ElevatedButton.styleFrom(
+                          //backgroundColor: const Color.fromARGB(255, 133, 255, 103),
                           shape: ContinuousRectangleBorder(
                               borderRadius: BorderRadius.circular(30)),
                         ),
@@ -240,13 +265,13 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                             selectedLevel!,
                             selectedType == TranslationTypeLabel.toEn,
                             nonWaniLevel),
-                        child: const Text(
+                        label: const Text(
                           "Create",
                           style: TextStyle(color: Colors.black, fontSize: 16),
                         ),
                       ),
-                    )
-                  ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -260,6 +285,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
     switch (sourceTypeLabel) {
       case SourceTypeLabel.Wanikani:
         return DropdownMenu<int>(
+          width: 220,
           initialSelection: selectedLevel,
           controller: levelController,
           requestFocusOnTap: true,
@@ -280,6 +306,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
 
       case SourceTypeLabel.JLPT:
         return DropdownMenu<JlptLevelLabel>(
+          width: 220,
           initialSelection: JlptLevelLabel.n5,
           controller: nonWaniController,
           requestFocusOnTap: true,
@@ -310,6 +337,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
 
       case SourceTypeLabel.Joyo:
         return DropdownMenu<JoyoLevelLabel>(
+          width: 220,
           initialSelection: JoyoLevelLabel.joyo1,
           controller: nonWaniController,
           requestFocusOnTap: true,
@@ -340,6 +368,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
 
       case SourceTypeLabel.Frequency:
         return DropdownMenu<FrequencyLevelLabel>(
+          width: 220,
           initialSelection: FrequencyLevelLabel.m500,
           controller: nonWaniController,
           requestFocusOnTap: true,
@@ -356,7 +385,8 @@ class _ReviewCreatorState extends State<ReviewCreator> {
             });
           },
           dropdownMenuEntries: FrequencyLevelLabel.values
-              .map<DropdownMenuEntry<FrequencyLevelLabel>>((FrequencyLevelLabel color) {
+              .map<DropdownMenuEntry<FrequencyLevelLabel>>(
+                  (FrequencyLevelLabel color) {
             return DropdownMenuEntry<FrequencyLevelLabel>(
               value: color,
               label: color.label,

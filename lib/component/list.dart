@@ -7,10 +7,17 @@ import 'package:gap/gap.dart';
 import 'package:my_kanji_app/data/shared.dart';
 
 class SubjectList extends StatefulWidget {
-  SubjectList({super.key, this.data, this.isToEN});
+  SubjectList(
+      {super.key,
+      this.data,
+      this.isToEN,
+      this.isKanji,
+      required this.dataCheckCallback});
 
-  List<SubjectItem<Kanji>>? data;
+  List<SubjectItem>? data;
+  bool? isKanji;
   bool? isToEN;
+  final void Function() dataCheckCallback;
 
   @override
   State<SubjectList> createState() => _SubjectListState();
@@ -31,11 +38,11 @@ class _SubjectListState extends State<SubjectList> {
   Widget _buildPanel() {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 500,
+        height: 600,
         enableInfiniteScroll: false,
       ),
       items: [
-        for (SubjectItem<Kanji> item
+        for (SubjectItem item
             in widget.data?.where((element) => element.isCorrect == null) ?? [])
           Column(
             children: [
@@ -51,11 +58,22 @@ class _SubjectListState extends State<SubjectList> {
 
   getCard(SubjectItem item) {
     if (item.isRevealed!) {
-      return KanjiInfoCard(
-        item: item.subjectItem!,
-      );
+        if(widget.isKanji!){
+          return KanjiInfoCard(
+            item: item.subjectItem!,
+          );
+        }
+        else{
+          return const Text("To be implement: Vocab Card");
+        }
     } else {
-      return QuestionCard(item: item.subjectItem!, isToEN: widget.isToEN!,);
+      return QuestionCard(
+        item: Subject(
+            kanji: widget.isKanji! ? item.subjectItem! : null,
+            vocab: !widget.isKanji! ? item.subjectItem! : null,
+            isKanji: widget.isKanji!),
+        isToEN: widget.isToEN!,
+      );
     }
   }
 
@@ -63,46 +81,58 @@ class _SubjectListState extends State<SubjectList> {
     if (item.isRevealed!) {
       // ------ Item is revealed
       return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                item.isCorrect = false;
-              });
-            },
-            child: RichText(
-              text: const TextSpan(
-                children: <TextSpan>[
-                  TextSpan(
-                    text: 'Mark as ',
-                  ),
-                  TextSpan(
-                    text: 'fogotten',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ],
+          SizedBox(
+            width: 130,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  item.isCorrect = false;
+                  widget.dataCheckCallback();
+                });
+              },
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: const TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Mark as ',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'fogotten',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                item.isCorrect = true;
-              });
-            },
-            child: RichText(
-              text: const TextSpan(
-                children: <TextSpan>[
-                  TextSpan(
-                    text: 'Mark as ',
-                  ),
-                  TextSpan(
-                    text: 'remembered',
-                    style: TextStyle(color: Colors.green),
-                  ),
-                ],
+          SizedBox(
+            width: 130,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  item.isCorrect = true;
+                  widget.dataCheckCallback();
+                });
+              },
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: const TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Mark as ',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: 'remembered',
+                      style: TextStyle(color: Colors.green),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -125,6 +155,7 @@ class _SubjectListState extends State<SubjectList> {
               ),
               TextSpan(
                 text: 'item',
+                style: TextStyle(color: Colors.black),
               ),
             ],
           ),

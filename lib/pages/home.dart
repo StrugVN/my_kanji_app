@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:my_kanji_app/component/list.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/user.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
 import 'package:my_kanji_app/pages/review.dart';
@@ -35,34 +37,60 @@ class _HomeState extends State<Home> {
     super.initState();
 
     pageIndex = 0;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Center(child: Text("My app")),
-          backgroundColor: Colors.blue,
-        ),
-        body: IndexedStack(
-          index: pageIndex,
-          children: pageList,
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: pageIndex,
-          onTap: (value) {
-            setState(() {
-              pageIndex = value;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
-            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
-          ],
+    return PopScope(
+      canPop: false,
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            title: const Center(child: Text("My app")),
+            backgroundColor: Colors.blue,
+          ),
+          body: IndexedStack(
+            index: pageIndex,
+            children: pageList,
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: pageIndex,
+            onTap: (value) {
+              setState(() {
+                pageIndex = value;
+              });
+            },
+            items: const [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.home), label: "Dashboard"),
+              BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
+              BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  void initData() async {
+    // showLoaderDialog(context, "Loading data");
+
+    var getKanji = getAllSubject("kanji");
+    var getVocab = getAllSubject("vocabulary");
+    var getKanaVocab = getAllSubject("kana_vocabulary");
+
+    user.allKanjiData = await getKanji;
+    user.allVocabData = await getVocab + await getKanaVocab;
+
+    print(user.allKanjiData!.length);
+    print(user.allVocabData!.length);
+    
+    // Navigator.pop(context);
+  }
+
+  
 }

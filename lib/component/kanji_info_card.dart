@@ -17,11 +17,10 @@ class KanjiInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // var jishoData = await getJishoData(item.data!.slug!);
 
     return Container(
       width: 400,
-      height: 400,
+      height: 500,
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 15,
@@ -54,22 +53,16 @@ class KanjiInfoCard extends StatelessWidget {
                   fontSize: 96,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 40,
-                ),
-                child: Container(
-                  alignment: Alignment.center,
-                  width: 200,
-                  child: Center(
-                    child: Text(
-                      item.data?.meanings!.map((e) => e.meaning).join(", ") ??
-                          "",
-                      style: const TextStyle(
-                        fontSize: 21,
-                      ),
-                      textAlign: TextAlign.center,
+              Container(
+                alignment: Alignment.center,
+                width: 190,
+                child: Center(
+                  child: Text(
+                    item.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                    style: const TextStyle(
+                      fontSize: 21,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -80,7 +73,9 @@ class KanjiInfoCard extends StatelessWidget {
               children: <TextSpan>[
                 const TextSpan(
                   text: 'On: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 TextSpan(
                   text: item.data?.readings
@@ -91,6 +86,7 @@ class KanjiInfoCard extends StatelessWidget {
               ],
               style: const TextStyle(
                 fontSize: 18,
+                color: Colors.black,
               ),
             ),
           ),
@@ -100,7 +96,9 @@ class KanjiInfoCard extends StatelessWidget {
               children: <TextSpan>[
                 const TextSpan(
                   text: 'Kun: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 TextSpan(
                   text: item.data?.readings
@@ -111,6 +109,7 @@ class KanjiInfoCard extends StatelessWidget {
               ],
               style: const TextStyle(
                 fontSize: 18,
+                color: Colors.black,
               ),
             ),
           ),
