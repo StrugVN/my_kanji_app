@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:ffi';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:my_kanji_app/component/list.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/user.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
@@ -77,17 +80,31 @@ class _HomeState extends State<Home> {
   }
 
   void initData() async {
+    const String pitchJson = "assets/pitch_json/term_meta_bank_1.json";
+
+    String data = await DefaultAssetBundle.of(context).loadString(pitchJson);
+    final jsonS = jsonDecode(data);
+
+    List<PitchData>? pitchData = [];
+    for (var item in jsonS){
+      pitchData.add(PitchData.fromData(item));
+    }
+
+    print(pitchData[0].toJson());
+    print(pitchData[1].toJson());
+    print(pitchData[2].toJson());
+
     // showLoaderDialog(context, "Loading data");
 
-    var getKanji = getAllSubject("kanji");
-    var getVocab = getAllSubject("vocabulary");
-    var getKanaVocab = getAllSubject("kana_vocabulary");
+    // var getKanji = getAllSubject("kanji");
+    // var getVocab = getAllSubject("vocabulary");
+    // var getKanaVocab = getAllSubject("kana_vocabulary");
 
-    user.allKanjiData = await getKanji;
-    user.allVocabData = await getVocab + await getKanaVocab;
+    // user.allKanjiData = await getKanji;
+    // user.allVocabData = await getVocab + await getKanaVocab;
 
-    print(user.allKanjiData!.length);
-    print(user.allVocabData!.length);
+    // print(user.allKanjiData!.length);
+    // print(user.allVocabData!.length);
     
     // Navigator.pop(context);
   }

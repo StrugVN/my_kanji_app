@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:my_kanji_app/component/kanji_info_card.dart';
 import 'package:my_kanji_app/component/question_card.dart';
+import 'package:my_kanji_app/component/vocab_info_card.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:gap/gap.dart';
 import 'package:my_kanji_app/data/shared.dart';
@@ -58,14 +59,15 @@ class _SubjectListState extends State<SubjectList> {
 
   getCard(SubjectItem item) {
     if (item.isRevealed!) {
-        if(widget.isKanji!){
-          return KanjiInfoCard(
-            item: item.subjectItem!,
-          );
-        }
-        else{
-          return const Text("To be implement: Vocab Card");
-        }
+      if (widget.isKanji!) {
+        return KanjiInfoCard(
+          item: item.subjectItem!,
+        );
+      } else {
+        return VocabInfoCard(
+          item: item.subjectItem!,
+        );
+      }
     } else {
       return QuestionCard(
         item: Subject(

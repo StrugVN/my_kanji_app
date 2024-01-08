@@ -17,7 +17,6 @@ class KanjiInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       width: 400,
       height: 500,
@@ -30,14 +29,15 @@ class KanjiInfoCard extends StatelessWidget {
         top: 5,
       ),
       decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 197, 217, 255),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: const [
-            BoxShadow(
-                color: Color.fromARGB(255, 181, 181, 181),
-                blurRadius: 20,
-                spreadRadius: 5)
-          ]),
+        color: const Color.fromARGB(255, 197, 217, 255),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
+          BoxShadow(
+              color: Color.fromARGB(255, 181, 181, 181),
+              blurRadius: 20,
+              spreadRadius: 5)
+        ],
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,

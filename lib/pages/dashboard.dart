@@ -11,7 +11,12 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
-    return const Text("Dashboard");
+    return const Column(
+      children: [
+        Text("Dashboard"),
+        Image(image: AssetImage("assets/pitch_json/card.png"))
+      ],
+    );
   }
 
   

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+final kanaRegEx = RegExp(r'[ぁ-ゔゞァ-・ヽヾ゛゜ー]+');
+
 class Pages {
   int? perPage;
   String? nextUrl;
