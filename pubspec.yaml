@@ -41,6 +41,10 @@ dependencies:
   collection: ^1.18.0
   unofficial_jisho_api: ^3.0.0
   flutter_svg: ^2.0.9
+  syncfusion_flutter_charts: ^24.1.44+1
+  audioplayers: ^5.2.1
+  string_similarity: ^2.0.0
+  kana_kit: ^2.0.0
 
 dev_dependencies:
   flutter_test:

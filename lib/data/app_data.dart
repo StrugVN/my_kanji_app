@@ -1,13 +1,27 @@
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 
-class User {
-  static final User _singleton = User._internal();
+class AppData {
+  static final AppData _singleton = AppData._internal();
 
   String? _apiKey;
   List<Kanji>? _allKanjiData;
-  List<Vocab>? allVocabData;  
+  List<Vocab>? _allVocabData;
+  List<PitchData>? _pitchData;
+
+  List<PitchData>? get pitchData => _pitchData;
+
+  set pitchData(List<PitchData>? value) {
+    _pitchData = value;
+  }
+
+  List<Vocab>? get allVocabData => _allVocabData;
+
+  set allVocabData(List<Vocab>? value) {
+    _allVocabData = value;
+  }  
 
   UserData _userData = UserData();
 
@@ -29,11 +43,11 @@ class User {
     _apiKey = value;
   }
 
-  factory User() {
+  factory AppData() {
     return _singleton;
   }
 
-  User._internal();
+  AppData._internal();
 
   void removeKey(){
     _apiKey = null;

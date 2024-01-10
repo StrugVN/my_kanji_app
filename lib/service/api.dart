@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:my_kanji_app/data/kanji.dart';
-import 'package:my_kanji_app/data/user.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/service/endpoints.dart';
 
-final user = User();
+final appData = AppData();
 
 const String freeApiKey = "4bd7a48c-681f-4aad-9039-04556b53bc90";
 
@@ -23,7 +23,7 @@ Future<Response> getUser(String apiKey) {
 Future<Response> getSubject(SubjectQueryParam param){
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
-    "Authorization": user.apiKey!,
+    "Authorization": appData.apiKey!,
   };
 
   final uri =

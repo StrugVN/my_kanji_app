@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/shared.dart';
-import 'package:my_kanji_app/data/user.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/service/api.dart';
@@ -22,7 +22,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   Animation<double>? _animacaoSize;
 
   final apiInput = TextEditingController();
-  final User user = User();
+  final AppData appData = AppData();
   late bool obscure;
   late bool _notValid;
   late String _errorMessage;
@@ -162,7 +162,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                               decoration: InputDecoration(
                                 hoverColor: null,
                                 errorText: _notValid ? "Invalid API key" : null,
-                                icon: const Icon(Icons.key),
+                                prefixIcon: const Icon(Icons.key),
                                 border: _notValid
                                     ? const OutlineInputBorder(
                                         borderSide:
@@ -232,9 +232,9 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     var body = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode == 200) {
-      user.apiKey = "Bearer ${apiInput.text}";
+      appData.apiKey = "Bearer ${apiInput.text}";
 
-      user.userData =
+      appData.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
 
       Navigator.pop(context);
@@ -246,7 +246,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
         _errorMessage = body["error"];
       });
-
+      Navigator.pop(context);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(response.body)));
     }

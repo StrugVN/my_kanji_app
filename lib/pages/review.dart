@@ -5,7 +5,7 @@ import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/shared.dart';
-import 'package:my_kanji_app/data/user.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'dart:convert';
@@ -22,8 +22,9 @@ class _ReviewState extends State<Review> {
   List<SubjectItem>? dataListResult;
   bool? isKanji;
   bool? isToEN;
+  bool? kanjiOnFront;
 
-  final User user = User();
+  final AppData appData = AppData();
 
   late bool reviewInProgress;
 
@@ -45,6 +46,7 @@ class _ReviewState extends State<Review> {
               data: dataList,
               isToEN: isToEN,
               isKanji: isKanji,
+              kanjiOnFront: kanjiOnFront,
               dataCheckCallback: dataCallback,
             ),
           ],
@@ -53,13 +55,12 @@ class _ReviewState extends State<Review> {
     );
   }
 
-  getReview(String types, int levels, bool toEn, String? nonWani) async {
+  getReview(String types, int levels, bool toEn, String? nonWani, String? frontVocabSetting) async {
     late Response response, response2;
 
     if (types != "kanji") {
       types = "vocabulary";
     }
-    ;
 
     if (nonWani == null) {
       response = await getSubject(
@@ -90,6 +91,7 @@ class _ReviewState extends State<Review> {
           dataList?.shuffle();
           isKanji = true;
           reviewInProgress = true;
+          kanjiOnFront = true;
         });
       } else {
         response2 = await getSubject(SubjectQueryParam(
@@ -116,6 +118,11 @@ class _ReviewState extends State<Review> {
           dataList?.shuffle();
           isKanji = false;
           reviewInProgress = true;
+          kanjiOnFront = (frontVocabSetting == "Show Kanji");
+          print("------------------------");
+          print(frontVocabSetting);
+          print(kanjiOnFront);
+
         });
       }
     } else {
@@ -128,10 +135,10 @@ class _ReviewState extends State<Review> {
   getSelector() {
     if (reviewInProgress) {
       return ExpansionTile(
-        title: const Center(
+        title: Center(
           child: Text(
-            "Review in progress",
-            style: TextStyle(
+            "${isKanji! ? "Kanji" : "Vocab" } review in progress",
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 20,
             ),
@@ -264,7 +271,7 @@ class _ReviewState extends State<Review> {
         initiallyExpanded: true,
         children: [
           ReviewCreator(
-            maxLevel: user.userData.data?.level ?? 60,
+            maxLevel: appData.userData.data?.level ?? 60,
             onPressedCallback: getReview,
           ),
         ],

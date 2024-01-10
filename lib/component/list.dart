@@ -13,11 +13,13 @@ class SubjectList extends StatefulWidget {
       this.data,
       this.isToEN,
       this.isKanji,
+      this.kanjiOnFront,
       required this.dataCheckCallback});
 
   List<SubjectItem>? data;
   bool? isKanji;
   bool? isToEN;
+  bool? kanjiOnFront;
   final void Function() dataCheckCallback;
 
   @override
@@ -74,7 +76,7 @@ class _SubjectListState extends State<SubjectList> {
             kanji: widget.isKanji! ? item.subjectItem! : null,
             vocab: !widget.isKanji! ? item.subjectItem! : null,
             isKanji: widget.isKanji!),
-        isToEN: widget.isToEN!,
+        isToEN: widget.isToEN!, kanjiOnFront: widget.kanjiOnFront!,
       );
     }
   }

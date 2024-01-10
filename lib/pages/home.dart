@@ -1,21 +1,14 @@
 import 'dart:convert';
-import 'dart:ffi';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:my_kanji_app/component/list.dart';
-import 'package:my_kanji_app/component/selector.dart';
-import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/shared.dart';
-import 'package:my_kanji_app/data/user.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
 import 'package:my_kanji_app/pages/review.dart';
 import 'package:my_kanji_app/pages/stuff.dart';
 import 'package:my_kanji_app/service/api.dart';
-import 'package:unofficial_jisho_api/api.dart' as jisho;
-import 'package:http/http.dart' as http;
+import 'package:collection/collection.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -33,7 +26,7 @@ class _HomeState extends State<Home> {
     const Stuff(),
   ];
 
-  final User user = User();
+  final AppData appData = AppData();
 
   @override
   void initState() {
@@ -80,7 +73,27 @@ class _HomeState extends State<Home> {
   }
 
   void initData() async {
-    const String pitchJson = "assets/pitch_json/term_meta_bank_1.json";
+    // showLoaderDialog(context, "Loading data");
+
+    // var getKanji = getAllSubject("kanji");
+    // var getVocab = getAllSubject("vocabulary");
+    // var getKanaVocab = getAllSubject("kana_vocabulary");
+    var getPitchData = loadPitchData();
+
+    // appData.allKanjiData = await getKanji;
+    // appData.allVocabData = await getVocab + await getKanaVocab;
+
+    // print(appData.allKanjiData!.length);
+    // print(appData.allVocabData!.length);
+
+    appData.pitchData = await getPitchData;
+    print(" -- Pitch data loaded: ${appData.pitchData?.length}");
+    
+    // Navigator.pop(context);
+  }
+
+  Future<List<PitchData>> loadPitchDataPart(int partNum) async {
+    String pitchJson = "assets/pitch_json/term_meta_bank_$partNum.json";
 
     String data = await DefaultAssetBundle.of(context).loadString(pitchJson);
     final jsonS = jsonDecode(data);
@@ -89,25 +102,22 @@ class _HomeState extends State<Home> {
     for (var item in jsonS){
       pitchData.add(PitchData.fromData(item));
     }
-
-    print(pitchData[0].toJson());
-    print(pitchData[1].toJson());
-    print(pitchData[2].toJson());
-
-    // showLoaderDialog(context, "Loading data");
-
-    // var getKanji = getAllSubject("kanji");
-    // var getVocab = getAllSubject("vocabulary");
-    // var getKanaVocab = getAllSubject("kana_vocabulary");
-
-    // user.allKanjiData = await getKanji;
-    // user.allVocabData = await getVocab + await getKanaVocab;
-
-    // print(user.allKanjiData!.length);
-    // print(user.allVocabData!.length);
-    
-    // Navigator.pop(context);
+    print("  -- Loaded: $pitchJson");
+    return pitchData;
   }
 
-  
+  Future<List<PitchData>> loadPitchData() async {
+    List<Future<List<PitchData>>> taskList = [];
+
+    for (int i=1; i<=13; i++){
+      taskList.add(loadPitchDataPart(i));
+    }
+
+    List<PitchData> data = [];
+    for (var task in taskList){
+      data = data + await task;
+    }
+
+    return data;
+  }
 }

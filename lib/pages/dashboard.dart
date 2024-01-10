@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,13 +11,12 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        Text("Dashboard"),
-        Image(image: AssetImage("assets/pitch_json/card.png"))
+        const Text("Dashboard"),
       ],
     );
   }
-
-  
 }
+
+

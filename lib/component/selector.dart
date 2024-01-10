@@ -31,6 +31,15 @@ enum TranslationTypeLabel {
   final Color color;
 }
 
+enum QuestionTypeLabel {
+  kanJi("Show Kanji", Colors.pink),
+  kana("Show Kana", Colors.blue);
+
+  const QuestionTypeLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
 enum JlptLevelLabel {
   n5("JLPT N5", Colors.blue),
   n4("JLPT N4", Colors.green),
@@ -77,7 +86,7 @@ class ReviewCreator extends StatefulWidget {
   const ReviewCreator(
       {super.key, required this.maxLevel, required this.onPressedCallback});
 
-  final void Function(String, int, bool, String?) onPressedCallback;
+  final void Function(String, int, bool, String?, String?) onPressedCallback;
 
   @override
   State<ReviewCreator> createState() => _ReviewCreatorState(
@@ -95,13 +104,14 @@ class _ReviewCreatorState extends State<ReviewCreator> {
   final TextEditingController sourceTypeController = TextEditingController();
   ModeLabel? selectedMode;
   TranslationTypeLabel? selectedType;
+  QuestionTypeLabel? questionTypeLabel = QuestionTypeLabel.kanJi;
   SourceTypeLabel? sourceTypeLabel;
   int? selectedLevel;
   String? nonWaniLevel;
 
   late List<DropdownMenuEntry<int>> levelList;
 
-  final void Function(String, int, bool, String?) onPressedCallback;
+  final void Function(String, int, bool, String?, String?) onPressedCallback;
 
   _ReviewCreatorState(
       {required this.maxLevel, required this.onPressedCallback});
@@ -151,7 +161,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                       onSelected: (SourceTypeLabel? type) {
                         setState(() {
                           sourceTypeLabel = type;
-                          if(sourceTypeLabel != SourceTypeLabel.Wanikani){
+                          if (sourceTypeLabel != SourceTypeLabel.Wanikani) {
                             modeController.text = ModeLabel.kanji.label;
                             selectedMode = ModeLabel.kanji;
                           }
@@ -217,7 +227,6 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                 Row(
                   children: <Widget>[
                     DropdownMenu<ModeLabel>(
-                      
                       width: 150,
                       initialSelection: ModeLabel.kanji,
                       controller: modeController,
@@ -233,7 +242,9 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                         return DropdownMenuEntry<ModeLabel>(
                           value: item,
                           label: item.label,
-                          enabled: sourceTypeLabel != SourceTypeLabel.Wanikani ? item == ModeLabel.kanji : true,
+                          enabled: sourceTypeLabel != SourceTypeLabel.Wanikani
+                              ? item == ModeLabel.kanji
+                              : true,
                           style: MenuItemButton.styleFrom(
                             foregroundColor: item.color,
                           ),
@@ -247,10 +258,13 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                   ],
                 ),
                 const Gap(10),
+                getVocabSetting(),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 10,),
+                    padding: const EdgeInsets.only(
+                      right: 10,
+                    ),
                     child: SizedBox(
                       height: 45,
                       child: ElevatedButton.icon(
@@ -264,7 +278,8 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                             selectedMode!.label.toLowerCase(),
                             selectedLevel!,
                             selectedType == TranslationTypeLabel.toEn,
-                            nonWaniLevel),
+                            nonWaniLevel,
+                            questionTypeLabel?.label ?? "Show Kanji"),
                         label: const Text(
                           "Create",
                           style: TextStyle(color: Colors.black, fontSize: 16),
@@ -279,6 +294,66 @@ class _ReviewCreatorState extends State<ReviewCreator> {
         ],
       ),
     );
+  }
+
+  getVocabSetting() {
+    if (selectedMode == ModeLabel.vocab) {
+      return Column(
+        children: [
+          const Row(children: <Widget>[
+            Text(
+              "Vocab card front setting",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+            Expanded(child: Divider()),
+          ]),
+          Row(
+            children: [
+              Flexible(
+                child: RadioListTile(
+                  title: Text(
+                    QuestionTypeLabel.kanJi.label,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                    ),
+                  ),
+                  value: QuestionTypeLabel.kanJi,
+                  groupValue: questionTypeLabel,
+                  onChanged: (QuestionTypeLabel? value) {
+                    setState(() {
+                      questionTypeLabel = value;
+                    });
+                  },
+                ),
+              ),
+              Flexible(
+                child: RadioListTile(
+                  title: Text(
+                    QuestionTypeLabel.kana.label,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                    ),
+                  ),
+                  value: QuestionTypeLabel.kana,
+                  groupValue: questionTypeLabel,
+                  onChanged: (QuestionTypeLabel? value) {
+                    setState(() {
+                      questionTypeLabel = value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    return const Gap(0);
   }
 
   getLevelSelector() {
