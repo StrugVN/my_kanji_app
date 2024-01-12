@@ -161,10 +161,10 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                       onSelected: (SourceTypeLabel? type) {
                         setState(() {
                           sourceTypeLabel = type;
-                          if (sourceTypeLabel != SourceTypeLabel.Wanikani) {
-                            modeController.text = ModeLabel.kanji.label;
-                            selectedMode = ModeLabel.kanji;
-                          }
+                          // if (sourceTypeLabel != SourceTypeLabel.Wanikani) {
+                          //   modeController.text = ModeLabel.kanji.label;
+                          //   selectedMode = ModeLabel.kanji;
+                          // }
                           switch (sourceTypeLabel) {
                             case SourceTypeLabel.JLPT:
                               nonWaniLevel = JlptLevelLabel.n5.label;
@@ -242,9 +242,6 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                         return DropdownMenuEntry<ModeLabel>(
                           value: item,
                           label: item.label,
-                          enabled: sourceTypeLabel != SourceTypeLabel.Wanikani
-                              ? item == ModeLabel.kanji
-                              : true,
                           style: MenuItemButton.styleFrom(
                             foregroundColor: item.color,
                           ),

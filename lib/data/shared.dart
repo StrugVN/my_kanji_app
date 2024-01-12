@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 final kanaRegEx = RegExp(r'[ぁ-ゔゞァ-・ヽヾ゛゜ー]+');
 
+const String smallKana = "ゃょゅャョュ";
+
 class Pages {
   int? perPage;
   String? nextUrl;
@@ -76,7 +78,7 @@ class SubjectItem<T>{
   bool? isRevealed;
   bool? isCorrect;
 
-  SubjectItem({this.subjectItem, this.isRevealed});
+  SubjectItem({this.subjectItem, this.isRevealed, this.isCorrect});
 }
 
 class Subject<Kanji, Vocab> {

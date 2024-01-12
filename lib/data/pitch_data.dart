@@ -5,6 +5,15 @@ class PitchData{
 
   PitchData({this.characters, this.reading, this.pitches});
 
+  PitchData.fromJson(Map<String, dynamic> json){
+    characters = json["characters"];
+    reading = json["reading"];
+    pitches = [];
+    for (var item in json["pitches"]){
+      pitches!.add(Pitch.fromJson(item));
+    }
+  }
+
   PitchData.fromData(dynamic data){
     characters = data[0];
     reading = data[2]["reading"];

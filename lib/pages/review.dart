@@ -9,6 +9,8 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
 
 class Review extends StatefulWidget {
   const Review({super.key});
@@ -28,11 +30,17 @@ class _ReviewState extends State<Review> {
 
   late bool reviewInProgress;
 
+  late SharedPreferences sharedPreferences;
+
   @override
   void initState() {
     super.initState();
 
     reviewInProgress = false;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadPreviousReview();
+    });
   }
 
   @override
@@ -55,7 +63,9 @@ class _ReviewState extends State<Review> {
     );
   }
 
-  getReview(String types, int levels, bool toEn, String? nonWani, String? frontVocabSetting) async {
+  @Deprecated("Use getReviewFromLocal instead")
+  getReview(String types, int levels, bool toEn, String? nonWani,
+      String? frontVocabSetting) async {
     late Response response, response2;
 
     if (types != "kanji") {
@@ -119,10 +129,6 @@ class _ReviewState extends State<Review> {
           isKanji = false;
           reviewInProgress = true;
           kanjiOnFront = (frontVocabSetting == "Show Kanji");
-          print("------------------------");
-          print(frontVocabSetting);
-          print(kanjiOnFront);
-
         });
       }
     } else {
@@ -132,12 +138,83 @@ class _ReviewState extends State<Review> {
     }
   }
 
+  getReviewFromLocal(String types, int levels, bool toEn, String? nonWani,
+      String? frontVocabSetting) {
+    if (types != "kanji") {
+      types = "vocabulary";
+    }
+
+    if (types == "kanji") {
+      List<Kanji> temp;
+      if (nonWani == null) {
+        temp = appData.getListKanjiFromLocal(
+            ids: null, levels: [levels], slugs: null);
+      } else {
+        String? set = kanjiSet[nonWani];
+        if (set != null) {
+          temp = appData.getListKanjiFromLocal(
+              ids: null, levels: null, slugs: set.split(""));
+        } else {
+          return;
+        }
+      }
+
+      setState(() {
+        dataList = temp
+            ?.map((e) => SubjectItem<Kanji>(subjectItem: e, isRevealed: false))
+            .toList();
+
+        isToEN = toEn;
+
+        dataList?.shuffle();
+        isKanji = true;
+        reviewInProgress = true;
+        kanjiOnFront = true;
+      });
+    } else {
+      List<Vocab> temp;
+      if (nonWani == null) {
+        temp = appData.getListVocabFromLocal(
+            ids: null, levels: [levels], slugs: null);
+      } else {
+        String? set = kanjiSet[nonWani];
+        if (set != null) {
+          temp = appData.getListVocabFromLocalByKanji(set.split(""));
+        } else {
+          return;
+        }
+      }
+
+      setState(() {
+        dataList = temp
+            .map((e) => SubjectItem<Vocab>(subjectItem: e, isRevealed: false))
+            .toList();
+
+        isToEN = toEn;
+
+        dataList?.shuffle();
+        isKanji = false;
+        reviewInProgress = true;
+        kanjiOnFront = (frontVocabSetting == "Show Kanji");
+      });
+    }
+  }
+
+  getReviewCallback(String types, int levels, bool toEn, String? nonWani,
+      String? frontVocabSetting) {
+    showLoaderDialog(context, "Creating set");
+
+    getReviewFromLocal(types, levels, toEn, nonWani, frontVocabSetting);
+
+    Navigator.pop(context);
+  }
+
   getSelector() {
     if (reviewInProgress) {
       return ExpansionTile(
         title: Center(
           child: Text(
-            "${isKanji! ? "Kanji" : "Vocab" } review in progress",
+            "${isKanji! ? "Kanji" : "Vocab"} review in progress",
             style: const TextStyle(
               color: Colors.black,
               fontSize: 20,
@@ -272,7 +349,7 @@ class _ReviewState extends State<Review> {
         children: [
           ReviewCreator(
             maxLevel: appData.userData.data?.level ?? 60,
-            onPressedCallback: getReview,
+            onPressedCallback: getReviewFromLocal,
           ),
         ],
       );
@@ -291,11 +368,98 @@ class _ReviewState extends State<Review> {
     });
   }
 
-  dataCallback() {
-    setState(() {
+  dataCallback() async {
+    setState(() async {
+      await saveReview();
       if (dataList!.where((element) => element.isCorrect == null).isEmpty) {
         closeSection();
       }
     });
+  }
+
+  loadPreviousReview() async {
+    showLoaderDialog(context, "Loading review data");
+    print("------0");
+
+    sharedPreferences = await SharedPreferences.getInstance();
+    print("------1");
+    try {
+      final List<String>? items = sharedPreferences.getStringList('dataList');
+
+      if (items == null) {
+        Navigator.pop(context);
+        return;
+      }
+
+      isKanji = sharedPreferences.getBool('isKanji');
+      isToEN = sharedPreferences.getBool('isToEN');
+      kanjiOnFront = sharedPreferences.getBool('kanjiOnFront');
+
+      if (isKanji == null) {
+        Navigator.pop(context);
+        return;
+      }
+      print("------2");
+      dataList = [];
+      for (var s in items) {
+        var json = jsonDecode(s) as Map<String, dynamic>;
+
+        if (isKanji!) {
+          Kanji? item = appData.allKanjiData!
+              .firstWhereOrNull((element) => element.id == json["itemId"]);
+
+          if (item != null) {
+            dataList!.add(SubjectItem(
+                subjectItem: item,
+                isRevealed: json["isRevealed"],
+                isCorrect: json["isCorrect"]));
+          }
+        } else {
+          Vocab? item = appData.allVocabData!
+              .firstWhereOrNull((element) => element.id == json["itemId"]);
+
+          if (item != null) {
+            dataList!.add(SubjectItem(
+                subjectItem: item,
+                isRevealed: json["isRevealed"],
+                isCorrect: json["isCorrect"]));
+          }
+        }
+        print("------3");
+      }
+
+      setState(() {
+        reviewInProgress = true;
+      });
+    } on Exception catch (e) {
+      print(e);
+    }
+
+    Navigator.pop(context);
+
+  }
+
+  saveReview() async {
+    if (dataList == null ||
+        isKanji == null ||
+        isToEN == null ||
+        kanjiOnFront == null) {
+      return;
+    }
+
+    var toSave = dataList!
+        .map((e) => jsonEncode({
+              "isRevealed": e.isRevealed,
+              "isCorrect": e.isCorrect,
+              "itemId": e.subjectItem.id,
+            }))
+        .toList();
+
+    print(toSave);
+
+    await sharedPreferences.setStringList('dataList', toSave);
+    await sharedPreferences.setBool('isKanji', isKanji!);
+    await sharedPreferences.setBool('isToEN', isToEN!);
+    await sharedPreferences.setBool('kanjiOnFront', kanjiOnFront!);
   }
 }

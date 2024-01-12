@@ -1,15 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:collection/collection.dart';
+import 'package:my_kanji_app/data/vocab.dart';
 import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:unofficial_jisho_api/api.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:collection/src/iterable_extensions.dart';
 
 class KanjiInfoCard extends StatelessWidget {
   KanjiInfoCard({
     super.key,
     required this.item,
-  }) : kanjiInfo = jisho.searchForKanji(item.data!.slug!);
+  }) : kanjiInfo = jisho.searchForKanji(item.data!.characters!);
 
   final Kanji item;
 
@@ -47,7 +52,7 @@ class KanjiInfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                item.data?.slug ?? "N/A",
+                item.data?.characters ?? "N/A",
                 style: const TextStyle(
                   color: Colors.black,
                   fontSize: 96,
@@ -116,78 +121,289 @@ class KanjiInfoCard extends StatelessWidget {
 
           const Divider(color: Colors.black),
           // Jisho info
-          FutureBuilder<KanjiResult>(
-            future: kanjiInfo, // a previously-obtained Future
-            builder:
-                (BuildContext context, AsyncSnapshot<KanjiResult> snapshot) {
-              List<Widget> children;
-              if (snapshot.hasData) {
-                children = <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Stroke order:",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FutureBuilder<KanjiResult>(
+                    future: kanjiInfo, // a previously-obtained Future
+                    builder: (BuildContext context,
+                        AsyncSnapshot<KanjiResult> snapshot) {
+                      List<Widget> children;
+                      if (snapshot.hasData) {
+                        children = <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Stroke order:",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    SvgPicture.network(
+                                      snapshot.data!.data!.strokeOrderSvgUri,
+                                      height: 130,
+                                      width: 130,
+                                    ),
+                                    Image(
+                                      width: 130,
+                                      height: 130,
+                                      image: NetworkImage(snapshot
+                                          .data!.data!.strokeOrderGifUri),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
+                        ];
+                      } else if (snapshot.hasError) {
+                        children = <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text(
+                                'Error: Cannot load stroke order "${snapshot.error}"'),
+                          ),
+                        ];
+                      } else {
+                        children = const <Widget>[
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 2),
+                            child: Text('Fetching data...'),
+                          ),
+                        ];
+                      }
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: children,
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            SvgPicture.network(
-                              snapshot.data!.data!.strokeOrderSvgUri,
-                              height: 130,
-                              width: 130,
-                            ),
-                            Image(
-                              width: 130,
-                              height: 130,
-                              image: NetworkImage(
-                                  snapshot.data!.data!.strokeOrderGifUri),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                ];
-              } else if (snapshot.hasError) {
-                children = <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                        'Error: Cannot load stroke order "${snapshot.error}"'),
-                  ),
-                ];
-              } else {
-                children = const <Widget>[
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Text('Fetching data...'),
-                  ),
-                ];
-              }
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: children,
-                ),
-              );
-            },
+                  getVisualySimilar(),
+                  getRelatedVocab(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget getRelatedVocab() {
+    var relatedIds = item.data?.amalgamationSubjectIds;
+
+    if (relatedIds == null || relatedIds.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Vocab>? relatedVocab = AppData()
+        .allVocabData
+        ?.where((element) => relatedIds.contains(element.id))
+        .toList();
+
+    if (relatedVocab == null || relatedVocab.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(
+      const Divider(color: Colors.black),
+    );
+    widgets.add(
+      const Text(
+        "Used in:",
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    for (var vocab in relatedVocab) {
+      widgets.add(
+        Container(
+          margin: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade600,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    vocab.data?.characters ?? "N/A",
+                    style: const TextStyle(
+                      fontSize: 32,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                Flexible (
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        vocab.data?.readings
+                                ?.firstWhereOrNull((item) => item.primary == true)
+                                ?.reading ??
+                            "N/A",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        vocab.data?.meanings
+                                ?.firstWhereOrNull((item) => item.primary == true)
+                                ?.meaning ??
+                            "N/A",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  Widget getVisualySimilar() {
+    var visualySimilarId = item.data?.visuallySimilarSubjectIds;
+
+    if (visualySimilarId == null || visualySimilarId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Kanji>? similarKanji = AppData()
+        .allKanjiData
+        ?.where((element) => visualySimilarId.contains(element.id))
+        .toList();
+
+    if (similarKanji == null || similarKanji.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(
+      const Divider(color: Colors.black),
+    );
+    widgets.add(
+      const Text(
+        "Visually similar:",
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    var gridList = <Widget>[];
+
+    for (var kanji in similarKanji) {
+      gridList.add(
+        Container(
+          margin: const EdgeInsets.all(5.0),
+          // padding: const EdgeInsets.all(3.0),
+          decoration: BoxDecoration(
+            color: Colors.red.shade500,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                kanji.data?.characters ?? "N/A",
+                style: const TextStyle(
+                  fontSize: 42,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.readings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.reading ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.meanings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.meaning ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    widgets.add(
+      GridView(
+        padding: const EdgeInsets.only(left: 10.0),
+        shrinkWrap: true,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          childAspectRatio: 1,
+          crossAxisCount: 2,
+        ),
+        physics: const NeverScrollableScrollPhysics(),
+        children: gridList,
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
     );
   }
 }

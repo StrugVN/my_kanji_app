@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:audioplayers/audioplayers.dart';
+
 
 class VocabInfoCard extends StatelessWidget {
   VocabInfoCard({super.key, required this.item});
@@ -39,85 +41,91 @@ class VocabInfoCard extends StatelessWidget {
                 spreadRadius: 5)
           ],
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: item.data?.slug ?? "N/A",
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                  style: const TextStyle(
-                    fontSize: 56,
-                  ),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          children: [
+            RichText(
+              text: TextSpan(
                 children: [
-                  Center(
-                    child: getTextOfVocab(),
-                  ),
-                  const Divider(color: Colors.black),
-
-                  ///
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Meaning:",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          "(${item.data?.partsOfSpeech?.join(", ")})",
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text(
-                      item.data?.meanings!.map((e) => e.meaning).join(", ") ??
-                          "",
-                      style: const TextStyle(
-                        fontSize: 18,
-                      ),
+                  TextSpan(
+                    text: item.data?.characters ?? "N/A",
+                    style: const TextStyle(
+                      color: Colors.black,
                     ),
                   ),
-                  const Divider(color: Colors.black),
-
-                  ///
-                  getAudio(),
-                  const Divider(color: Colors.black),
-
-                  ///
-                  const Text(
-                    "Example:",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  getExample(),
                 ],
+                style: const TextStyle(
+                  fontSize: 56,
+                ),
               ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: getTextOfVocab(),
+                    ),
+                    const Divider(color: Colors.black),
+
+                    ///
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Meaning:",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            "(${item.data?.partsOfSpeech?.join(", ")})",
+                            style: const TextStyle(
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text(
+                        item.data?.meanings!.map((e) => e.meaning).join(", ") ??
+                            "",
+                        style: const TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+
+                    ///
+
+                    getUsedKanji(),
+                    const Divider(color: Colors.black),
+
+                    ///
+                    getAudio(),
+                    const Divider(color: Colors.black),
+
+                    ///
+                    const Text(
+                      "Example:",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    getExample(),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ));
   }
 
@@ -187,13 +195,20 @@ class VocabInfoCard extends StatelessWidget {
         return noData;
       }
     }
-    ;
+
+    var smallKanaCount = smallKana
+        .split("")
+        .map((e) => e.allMatches(reading).length)
+        .toList()
+        .sum;
 
     List<Widget> widgetList = [];
     for (var pitch in pitchData.pitches!) {
       if (pitch.position == null) continue;
-      List<int> pitchArr =
-          List<int>.filled(reading.length + 1, 0, growable: true);
+
+      List<int> pitchArr = List<int>.filled(
+          reading.length + 1 - smallKanaCount, 0,
+          growable: true);
 
       if (pitch.position == 0) {
         pitchArr = pitchArr.map((e) => 1).toList();
@@ -224,18 +239,25 @@ class VocabInfoCard extends StatelessWidget {
 
     List<PitchLineData> pitchDataLine = [];
 
-    for (int i = 0; i < characters.length; i++) {
+    for (int i = 0, j = 0; i < characters.length; i++, j++) {
+      var char = characters[i];
+
+      if (i + 1 < characters.length && smallKana.contains(characters[i + 1])) {
+        char = char + characters[i + 1];
+        i += 1;
+      }
+
       // Handle duplicated char for graph drawing
-      int nDup = i > 0
-          ? characters[i].allMatches(characters.substring(0, i - 1)).length
+      int nDup = i > 0 && i < characters.length
+          ? char.allMatches(characters.substring(0, i)).length
           : 0;
-      String char = List.filled(nDup, " ").join() + characters[i];
+      char = List.filled(nDup, " ").join() + char;
       //
 
       pitchDataLine.add(PitchLineData(
           char,
-          pitchData[i],
-          pitchData[i] == 1 && pitchData[i + 1] == 0
+          pitchData[j],
+          pitchData[j] == 1 && pitchData[j + 1] == 0
               ? Colors.grey
               : Colors.black));
     }
@@ -353,6 +375,106 @@ class VocabInfoCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: list,
+    );
+  }
+
+  Widget getUsedKanji() {
+    var usedKanjiIds = item.data?.componentSubjectIds;
+
+    if (usedKanjiIds == null || usedKanjiIds.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Kanji>? similarKanji = AppData()
+        .allKanjiData
+        ?.where((element) => usedKanjiIds.contains(element.id))
+        .toList();
+
+    if (similarKanji == null || similarKanji.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(
+      const Divider(color: Colors.black),
+    );
+    widgets.add(
+      const Text(
+        "Used kanji:",
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    var gridList = <Widget>[];
+
+    for (var kanji in similarKanji) {
+      gridList.add(
+        Container(
+          margin: const EdgeInsets.all(5.0),
+          // padding: const EdgeInsets.all(3.0),
+          decoration: BoxDecoration(
+            color: Colors.red.shade500,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                kanji.data?.characters ?? "N/A",
+                style: const TextStyle(
+                  fontSize: 42,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.readings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.reading ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.meanings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.meaning ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    widgets.add(
+      GridView(
+        padding: const EdgeInsets.only(left: 10.0),
+        shrinkWrap: true,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          childAspectRatio: 1,
+          crossAxisCount: 2,
+        ),
+        physics: const NeverScrollableScrollPhysics(),
+        children: gridList,
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
     );
   }
 }
