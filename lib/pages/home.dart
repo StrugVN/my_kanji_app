@@ -68,7 +68,7 @@ class _HomeState extends State<Home> {
   }
 
   void initData() async {
-    // showLoaderDialog(context, "Loading data");
+    showLoaderDialog(context, "Loading data");
 
     try {
       await appData.loadDataFromAsset();
@@ -76,6 +76,6 @@ class _HomeState extends State<Home> {
       print(e);
     }
 
-    // Navigator.pop(context);
+    Navigator.of(context, rootNavigator: true).pop(true);
   }
 }

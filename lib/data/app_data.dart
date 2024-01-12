@@ -14,6 +14,7 @@ class AppData {
   List<Kanji>? _allKanjiData;
   List<Vocab>? _allVocabData;
   List<PitchData>? _pitchData;
+  bool dataIsLoaded = false;
 
   List<PitchData>? get pitchData => _pitchData;
 
@@ -57,8 +58,14 @@ class AppData {
     _apiKey = null;
   }
 
+  Future<void> assertDataIsLoaded() async{
+    while (dataIsLoaded == false){
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
   
   Future<void> loadDataFromAsset() async {
+    dataIsLoaded = false;
     final kanjiDataF = rootBundle.loadString('assets/kanjidata.json');
     final pitchDataF = rootBundle.loadString('assets/pitchdata.json');
     final vocabDataF = rootBundle.loadString('assets/vocabdata.json');
@@ -81,6 +88,7 @@ class AppData {
     print(_allKanjiData!.length);
     print(_allVocabData!.length);
     print(" -- Pitch data loaded: ${_pitchData?.length}");
+    dataIsLoaded = true;
   }
 
 

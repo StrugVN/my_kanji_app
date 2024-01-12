@@ -369,8 +369,8 @@ class _ReviewState extends State<Review> {
   }
 
   dataCallback() async {
-    setState(() async {
-      await saveReview();
+    await saveReview();
+    setState(() {
       if (dataList!.where((element) => element.isCorrect == null).isEmpty) {
         closeSection();
       }
@@ -378,16 +378,14 @@ class _ReviewState extends State<Review> {
   }
 
   loadPreviousReview() async {
-    showLoaderDialog(context, "Loading review data");
-    print("------0");
+    showLoaderDialog(context, "Loading data");
 
     sharedPreferences = await SharedPreferences.getInstance();
-    print("------1");
     try {
       final List<String>? items = sharedPreferences.getStringList('dataList');
 
       if (items == null) {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop(true);
         return;
       }
 
@@ -396,10 +394,12 @@ class _ReviewState extends State<Review> {
       kanjiOnFront = sharedPreferences.getBool('kanjiOnFront');
 
       if (isKanji == null) {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop(true);
         return;
       }
-      print("------2");
+
+      await appData.assertDataIsLoaded();
+
       dataList = [];
       for (var s in items) {
         var json = jsonDecode(s) as Map<String, dynamic>;
@@ -425,7 +425,6 @@ class _ReviewState extends State<Review> {
                 isCorrect: json["isCorrect"]));
           }
         }
-        print("------3");
       }
 
       setState(() {
@@ -434,9 +433,7 @@ class _ReviewState extends State<Review> {
     } on Exception catch (e) {
       print(e);
     }
-
-    Navigator.pop(context);
-
+    Navigator.of(context, rootNavigator: true).pop(true);
   }
 
   saveReview() async {
@@ -454,8 +451,6 @@ class _ReviewState extends State<Review> {
               "itemId": e.subjectItem.id,
             }))
         .toList();
-
-    print(toSave);
 
     await sharedPreferences.setStringList('dataList', toSave);
     await sharedPreferences.setBool('isKanji', isKanji!);
