@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 final kanaRegEx = RegExp(r'[ぁ-ゔゞァ-・ヽヾ゛゜ー]+');
@@ -73,7 +75,7 @@ class Readings {
   }
 }
 
-class SubjectItem<T>{
+class SubjectItem<T> {
   T? subjectItem;
   bool? isRevealed;
   bool? isCorrect;
@@ -88,8 +90,8 @@ class Subject<Kanji, Vocab> {
 
   Subject({required this.kanji, required this.vocab, required this.isKanji});
 
-  getData(){
-    if(isKanji) {
+  getData() {
+    if (isKanji) {
       return kanji;
     } else {
       return vocab;
@@ -98,20 +100,27 @@ class Subject<Kanji, Vocab> {
 }
 
 showLoaderDialog(BuildContext context, String? loadingText) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Row(
-            children: [
-              const CircularProgressIndicator(),
-              Container(
-                  margin: const EdgeInsets.only(left: 10),
-                  child: Text(loadingText ?? " ... ")),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            Container(
+                margin: const EdgeInsets.only(left: 10),
+                child: Text(loadingText ?? " ... ")),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+const String _chars =
+    'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+final Random _rnd = Random();
+
+String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
+    length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));

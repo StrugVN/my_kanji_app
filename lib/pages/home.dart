@@ -44,9 +44,14 @@ class _HomeState extends State<Home> {
             title: const Center(child: Text("My app")),
             backgroundColor: Colors.blue,
           ),
-          body: IndexedStack(
-            index: pageIndex,
-            children: pageList,
+          body: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: IndexedStack(
+              index: pageIndex,
+              children: pageList,
+            ),
           ),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: pageIndex,

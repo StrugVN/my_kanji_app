@@ -12,17 +12,19 @@ import 'package:my_kanji_app/data/shared.dart';
 class SubjectList extends StatefulWidget {
   SubjectList(
       {super.key,
-      this.data,
-      this.isToEN,
-      this.isKanji,
-      this.kanjiOnFront,
+      required this.data,
+      required this.isToEN,
+      required this.isKanji,
+      required this.kanjiOnFront,
+      required this.isAudio,
       required this.dataCheckCallback});
 
   List<SubjectItem>? data;
   bool? isKanji;
   bool? isToEN;
   bool? kanjiOnFront;
-  final void Function() dataCheckCallback;
+  bool? isAudio;
+  final void Function(bool) dataCheckCallback;
 
   @override
   State<SubjectList> createState() => _SubjectListState();
@@ -43,7 +45,7 @@ class _SubjectListState extends State<SubjectList> {
   Widget _buildPanel() {
     return CarouselSlider(
       options: CarouselOptions(
-        height: widget.data == null || widget.data!.isEmpty ? 0 : 580,
+        height: widget.data == null || widget.data!.isEmpty ? 0 : 570,
         enableInfiniteScroll: false,
       ),
       items: [
@@ -51,14 +53,15 @@ class _SubjectListState extends State<SubjectList> {
             in widget.data?.where((element) => element.isCorrect == null) ?? [])
           Column(
             children: [
-              const Gap(10),
+              const Gap(5),
               buttonControl(item),
-              const Gap(10),
+              const Gap(5),
               TwoSideCard(
                 item: item,
                 isKanji: widget.isKanji,
                 isToEN: widget.isToEN,
                 kanjiOnFront: widget.kanjiOnFront,
+                flipItemCallback: widget.dataCheckCallback, isAudio: widget.isAudio,
               )
             ],
           )
@@ -77,12 +80,12 @@ class _SubjectListState extends State<SubjectList> {
         children: [
           SizedBox(
             width: 130,
-            height: 48,
+            height: 45,
             child: ElevatedButton(
               onPressed: () {
                 setState(() {
                   item.isCorrect = false;
-                  widget.dataCheckCallback();
+                  widget.dataCheckCallback(true);
                 });
               },
               child: RichText(
@@ -105,12 +108,12 @@ class _SubjectListState extends State<SubjectList> {
           const SizedBox(width: 10,),
           SizedBox(
             width: 130,
-            height: 48,
+            height: 45,
             child: ElevatedButton(
               onPressed: () {
                 setState(() {
                   item.isCorrect = true;
-                  widget.dataCheckCallback();
+                  widget.dataCheckCallback(true);
                 });
               },
               child: RichText(

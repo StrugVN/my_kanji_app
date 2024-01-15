@@ -11,12 +11,16 @@ class TwoSideCard extends StatelessWidget {
       required this.item,
       required this.isKanji,
       required this.isToEN,
-      required this.kanjiOnFront});
+      required this.kanjiOnFront,
+      required this.flipItemCallback, required this.isAudio,
+      });
 
-  SubjectItem item;
-  bool? isKanji;
-  bool? isToEN;
-  bool? kanjiOnFront;
+  final SubjectItem item;
+  final bool? isKanji;
+  final bool? isToEN;
+  final bool? kanjiOnFront;
+  final bool? isAudio;
+  void Function(bool) flipItemCallback;
 
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
@@ -32,7 +36,7 @@ class TwoSideCard extends StatelessWidget {
             vocab: !isKanji! ? item.subjectItem! : null,
             isKanji: isKanji!),
         isToEN: isToEN!,
-        kanjiOnFront: kanjiOnFront!, flipCallback: flip,
+        kanjiOnFront: kanjiOnFront!, flipCallback: flip, isAudio: isAudio ?? false,
       ),
       back: isKanji!
           ? KanjiInfoCard(
@@ -47,7 +51,7 @@ class TwoSideCard extends StatelessWidget {
 
   flip() async {
     cardKey.currentState?.toggleCard();
-    await Future.delayed(const Duration(milliseconds: 700));
     item.isRevealed = true;
+    flipItemCallback(false);
   }
 }

@@ -22,7 +22,7 @@ class VocabInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         width: 400,
-        height: 500,
+        height: 460,
         padding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 15,
@@ -316,7 +316,7 @@ class VocabInfoCard extends StatelessWidget {
         fontWeight: FontWeight.bold,
       ),
     ));
-
+    
     for (var data in audioData) {
       list.add(TextButton.icon(
         onPressed: () async {

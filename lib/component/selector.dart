@@ -33,7 +33,8 @@ enum TranslationTypeLabel {
 
 enum QuestionTypeLabel {
   kanJi("Show Kanji", Colors.pink),
-  kana("Show Kana", Colors.blue);
+  kana("Show Kana", Colors.blue),
+  audio("Audio", Colors.green);
 
   const QuestionTypeLabel(this.label, this.color);
   final String label;
@@ -152,110 +153,118 @@ class _ReviewCreatorState extends State<ReviewCreator> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    DropdownMenu<SourceTypeLabel>(
-                      width: 150,
-                      initialSelection: SourceTypeLabel.Wanikani,
-                      controller: sourceTypeController,
-                      onSelected: (SourceTypeLabel? type) {
-                        setState(() {
-                          sourceTypeLabel = type;
-                          // if (sourceTypeLabel != SourceTypeLabel.Wanikani) {
-                          //   modeController.text = ModeLabel.kanji.label;
-                          //   selectedMode = ModeLabel.kanji;
-                          // }
-                          switch (sourceTypeLabel) {
-                            case SourceTypeLabel.JLPT:
-                              nonWaniLevel = JlptLevelLabel.n5.label;
-                              break;
-                            case SourceTypeLabel.Joyo:
-                              nonWaniLevel = JoyoLevelLabel.joyo1.label;
-                              break;
-                            case SourceTypeLabel.Frequency:
-                              nonWaniLevel = FrequencyLevelLabel.m500.label;
-                              break;
-                            default:
-                          }
-                        });
-                      },
-                      requestFocusOnTap: true,
-                      label: const Text('Source'),
-                      dropdownMenuEntries: SourceTypeLabel.values
-                          .map<DropdownMenuEntry<SourceTypeLabel>>(
-                              (SourceTypeLabel color) {
-                        return DropdownMenuEntry<SourceTypeLabel>(
-                          value: color,
-                          label: color.label,
-                          enabled: color.label != 'Grey',
-                          style: MenuItemButton.styleFrom(
-                            foregroundColor: color.color,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Column(
+                        children: [
+                          DropdownMenu<SourceTypeLabel>(
+                            width: 150,
+                            initialSelection: SourceTypeLabel.Wanikani,
+                            controller: sourceTypeController,
+                            onSelected: (SourceTypeLabel? type) {
+                              setState(() {
+                                sourceTypeLabel = type;
+                                // if (sourceTypeLabel != SourceTypeLabel.Wanikani) {
+                                //   modeController.text = ModeLabel.kanji.label;
+                                //   selectedMode = ModeLabel.kanji;
+                                // }
+                                switch (sourceTypeLabel) {
+                                  case SourceTypeLabel.JLPT:
+                                    nonWaniLevel = JlptLevelLabel.n5.label;
+                                    break;
+                                  case SourceTypeLabel.Joyo:
+                                    nonWaniLevel = JoyoLevelLabel.joyo1.label;
+                                    break;
+                                  case SourceTypeLabel.Frequency:
+                                    nonWaniLevel =
+                                        FrequencyLevelLabel.m500.label;
+                                    break;
+                                  default:
+                                }
+                              });
+                            },
+                            requestFocusOnTap: true,
+                            label: const Text('Source'),
+                            dropdownMenuEntries: SourceTypeLabel.values
+                                .map<DropdownMenuEntry<SourceTypeLabel>>(
+                                    (SourceTypeLabel color) {
+                              return DropdownMenuEntry<SourceTypeLabel>(
+                                value: color,
+                                label: color.label,
+                                enabled: color.label != 'Grey',
+                                style: MenuItemButton.styleFrom(
+                                  foregroundColor: color.color,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(
-                      width: 18,
-                    ),
-                    DropdownMenu<TranslationTypeLabel>(
-                      width: 220,
-                      initialSelection: TranslationTypeLabel.toEn,
-                      controller: translationController,
-                      requestFocusOnTap: true,
-                      label: const Text('Type'),
-                      onSelected: (TranslationTypeLabel? type) {
-                        setState(() {
-                          selectedType = type;
-                        });
-                      },
-                      dropdownMenuEntries: TranslationTypeLabel.values
-                          .map<DropdownMenuEntry<TranslationTypeLabel>>(
-                              (TranslationTypeLabel color) {
-                        return DropdownMenuEntry<TranslationTypeLabel>(
-                          value: color,
-                          label: color.label,
-                          enabled: color.label != 'Grey',
-                          style: MenuItemButton.styleFrom(
-                            foregroundColor: color.color,
+                          const Gap(10),
+                          DropdownMenu<ModeLabel>(
+                            width: 150,
+                            initialSelection: ModeLabel.kanji,
+                            controller: modeController,
+                            requestFocusOnTap: true,
+                            label: const Text('Mode'),
+                            onSelected: (ModeLabel? mode) {
+                              setState(() {
+                                selectedMode = mode;
+                              });
+                            },
+                            dropdownMenuEntries: ModeLabel.values
+                                .map<DropdownMenuEntry<ModeLabel>>(
+                                    (ModeLabel item) {
+                              return DropdownMenuEntry<ModeLabel>(
+                                value: item,
+                                label: item.label,
+                                style: MenuItemButton.styleFrom(
+                                  foregroundColor: item.color,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-                const Gap(10),
-                Row(
-                  children: <Widget>[
-                    DropdownMenu<ModeLabel>(
-                      width: 150,
-                      initialSelection: ModeLabel.kanji,
-                      controller: modeController,
-                      requestFocusOnTap: true,
-                      label: const Text('Mode'),
-                      onSelected: (ModeLabel? mode) {
-                        setState(() {
-                          selectedMode = mode;
-                        });
-                      },
-                      dropdownMenuEntries: ModeLabel.values
-                          .map<DropdownMenuEntry<ModeLabel>>((ModeLabel item) {
-                        return DropdownMenuEntry<ModeLabel>(
-                          value: item,
-                          label: item.label,
-                          style: MenuItemButton.styleFrom(
-                            foregroundColor: item.color,
+                        ],
+                      ),
+                      const SizedBox(
+                        width: 18,
+                      ),
+                      Column(
+                        children: [
+                          DropdownMenu<TranslationTypeLabel>(
+                            width: 220,
+                            initialSelection: TranslationTypeLabel.toEn,
+                            controller: translationController,
+                            requestFocusOnTap: true,
+                            label: const Text('Type'),
+                            onSelected: (TranslationTypeLabel? type) {
+                              setState(() {
+                                selectedType = type;
+                              });
+                            },
+                            dropdownMenuEntries: TranslationTypeLabel.values
+                                .map<DropdownMenuEntry<TranslationTypeLabel>>(
+                                    (TranslationTypeLabel color) {
+                              return DropdownMenuEntry<TranslationTypeLabel>(
+                                value: color,
+                                label: color.label,
+                                enabled: color.label != 'Grey',
+                                style: MenuItemButton.styleFrom(
+                                  foregroundColor: color.color,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(
-                      width: 18,
-                    ),
-                    getLevelSelector(),
-                  ],
+                          const Gap(10),
+                          getLevelSelector(),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 const Gap(10),
                 getVocabSetting(),
+                const Gap(10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
@@ -294,7 +303,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
   }
 
   getVocabSetting() {
-    if (selectedMode == ModeLabel.vocab) {
+    if (selectedMode == ModeLabel.vocab && selectedType == TranslationTypeLabel.toEn) {
       return Column(
         children: [
           const Row(children: <Widget>[
@@ -337,6 +346,28 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                     ),
                   ),
                   value: QuestionTypeLabel.kana,
+                  groupValue: questionTypeLabel,
+                  onChanged: (QuestionTypeLabel? value) {
+                    setState(() {
+                      questionTypeLabel = value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Flexible(
+                child: RadioListTile(
+                  title: Text(
+                    QuestionTypeLabel.audio.label,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                    ),
+                  ),
+                  value: QuestionTypeLabel.audio,
                   groupValue: questionTypeLabel,
                   onChanged: (QuestionTypeLabel? value) {
                     setState(() {

@@ -25,6 +25,7 @@ class _ReviewState extends State<Review> {
   bool? isKanji;
   bool? isToEN;
   bool? kanjiOnFront;
+  bool? isAudio;
 
   final AppData appData = AppData();
 
@@ -37,10 +38,10 @@ class _ReviewState extends State<Review> {
     super.initState();
 
     reviewInProgress = false;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadPreviousReview();
-    });
+    loadPreviousReview();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   loadPreviousReview();
+    // });
   }
 
   @override
@@ -55,6 +56,7 @@ class _ReviewState extends State<Review> {
               isToEN: isToEN,
               isKanji: isKanji,
               kanjiOnFront: kanjiOnFront,
+              isAudio: isAudio,
               dataCheckCallback: dataCallback,
             ),
           ],
@@ -102,6 +104,7 @@ class _ReviewState extends State<Review> {
           isKanji = true;
           reviewInProgress = true;
           kanjiOnFront = true;
+          isAudio = false;
         });
       } else {
         response2 = await getSubject(SubjectQueryParam(
@@ -129,6 +132,7 @@ class _ReviewState extends State<Review> {
           isKanji = false;
           reviewInProgress = true;
           kanjiOnFront = (frontVocabSetting == "Show Kanji");
+          isAudio = (frontVocabSetting == "Audio");
         });
       }
     } else {
@@ -170,6 +174,7 @@ class _ReviewState extends State<Review> {
         isKanji = true;
         reviewInProgress = true;
         kanjiOnFront = true;
+        isAudio = false;
       });
     } else {
       List<Vocab> temp;
@@ -196,6 +201,8 @@ class _ReviewState extends State<Review> {
         isKanji = false;
         reviewInProgress = true;
         kanjiOnFront = (frontVocabSetting == "Show Kanji");
+        print(frontVocabSetting);
+        isAudio = (frontVocabSetting == "Audio");
       });
     }
   }
@@ -360,6 +367,11 @@ class _ReviewState extends State<Review> {
     dataListResult = dataList;
     dataList = [];
     reviewInProgress = false;
+
+    sharedPreferences.remove('dataList');
+    sharedPreferences.remove('isKanji');
+    sharedPreferences.remove('isToEN');
+    sharedPreferences.remove('kanjiOnFront');
   }
 
   revealAll() {
@@ -368,16 +380,20 @@ class _ReviewState extends State<Review> {
     });
   }
 
-  dataCallback() async {
+  dataCallback(bool toSetState) async {
     await saveReview();
-    setState(() {
-      if (dataList!.where((element) => element.isCorrect == null).isEmpty) {
-        closeSection();
-      }
-    });
+    if (toSetState) {
+      setState(() {
+        if (dataList!.where((element) => element.isCorrect == null).isEmpty) {
+          closeSection();
+        }
+      });
+    }
   }
 
   loadPreviousReview() async {
+    await appData.assertDataIsLoaded();
+
     showLoaderDialog(context, "Loading data");
 
     sharedPreferences = await SharedPreferences.getInstance();
@@ -392,13 +408,12 @@ class _ReviewState extends State<Review> {
       isKanji = sharedPreferences.getBool('isKanji');
       isToEN = sharedPreferences.getBool('isToEN');
       kanjiOnFront = sharedPreferences.getBool('kanjiOnFront');
+      isAudio = sharedPreferences.getBool('isAudio');
 
       if (isKanji == null) {
         Navigator.of(context, rootNavigator: true).pop(true);
         return;
       }
-
-      await appData.assertDataIsLoaded();
 
       dataList = [];
       for (var s in items) {
@@ -456,5 +471,6 @@ class _ReviewState extends State<Review> {
     await sharedPreferences.setBool('isKanji', isKanji!);
     await sharedPreferences.setBool('isToEN', isToEN!);
     await sharedPreferences.setBool('kanjiOnFront', kanjiOnFront!);
+    await sharedPreferences.setBool('isAudio', isAudio!);
   }
 }

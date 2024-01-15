@@ -1,8 +1,12 @@
+import 'dart:math';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
+import 'package:my_kanji_app/data/vocab.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 class QuestionCard extends StatefulWidget {
@@ -11,11 +15,14 @@ class QuestionCard extends StatefulWidget {
       required this.item,
       required this.isToEN,
       required this.kanjiOnFront,
-      required this.flipCallback});
+      required this.flipCallback,
+      required this.isAudio});
 
   final bool isToEN;
 
   final bool kanjiOnFront;
+
+  bool isAudio;
 
   final Subject item;
 
@@ -41,11 +48,39 @@ class _QuestionCardState extends State<QuestionCard> {
 
   final kanaKit = const KanaKit();
 
+  List<VocabPronunciationAudios>? maleAudio;
+  List<VocabPronunciationAudios>? femaleAudio;
+
+  AudioPlayer audioPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    if (widget.isAudio) {
+      List<VocabPronunciationAudios>? audioData =
+          widget.item.getData().data?.pronunciationAudios;
+
+      if (audioData == null) {
+        widget.isAudio = false;
+        return;
+      }
+
+      maleAudio = audioData
+          .where((element) => element.metadata?.gender == "male")
+          .toList();
+      femaleAudio = audioData
+          .where((element) => element.metadata?.gender == "female")
+          .toList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 400,
-      height: 500,
+      height: 460,
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 15,
@@ -70,7 +105,7 @@ class _QuestionCardState extends State<QuestionCard> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          getFrontBaseOnTranslation(),
+          getFrontBaseOnSetting(),
           getAnswerField(),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -106,7 +141,7 @@ class _QuestionCardState extends State<QuestionCard> {
     );
   }
 
-  getFrontBaseOnTranslation() {
+  getFrontBaseOnSetting() {
     var reading = widget.item.getData().data.readings;
     String characters;
 
@@ -117,15 +152,46 @@ class _QuestionCardState extends State<QuestionCard> {
     }
 
     if (widget.isToEN) {
-      return FittedBox(
-        child: Text(
-          characters,
-          style: const TextStyle(
-            fontSize: 108,
+      if (widget.isAudio) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            maleAudio!.isNotEmpty
+                ? TextButton.icon(
+                    onPressed: () async { await playAudio(true); },
+                    label: const Text(""),
+                    icon: const Icon(
+                      size: 70,
+                      Icons.volume_up,
+                      color: Colors.blue,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            femaleAudio!.isNotEmpty
+                ? TextButton.icon(
+                    onPressed: () async { await playAudio(false); },
+                    label: const Text(""),
+                    icon: const Icon(
+                      size: 70,
+                      Icons.volume_up,
+                      color: Colors.pink,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
+        );
+      } else {
+        return FittedBox(
+          child: Text(
+            characters,
+            style: const TextStyle(
+              fontSize: 108,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-      );
+        );
+      }
     } else {
       return Text(
         widget.item
@@ -238,7 +304,8 @@ class _QuestionCardState extends State<QuestionCard> {
           ];
     }
 
-    if (widget.kanjiOnFront && widget.item.getData().data.readings != null) {
+    if ((widget.kanjiOnFront && widget.item.getData().data.readings != null) ||
+        widget.isAudio) {
       widgets = widgets +
           [
             SizedBox(
@@ -319,5 +386,18 @@ class _QuestionCardState extends State<QuestionCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widgets,
     );
+  }
+
+  playAudio(bool male) async {
+    final _random = Random();
+    if (male) {
+      var url = maleAudio![_random.nextInt(maleAudio!.length)].url!;
+      await audioPlayer
+          .play(UrlSource(url));
+    } else {
+      var url = femaleAudio![_random.nextInt(femaleAudio!.length)].url!;
+      await audioPlayer.play(
+          UrlSource(url));
+    }
   }
 }
