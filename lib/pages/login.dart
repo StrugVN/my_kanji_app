@@ -92,10 +92,10 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                 animation: _animacaoBlur!,
                 builder: (context, widget) {
                   return Container(
-                    height: 600,
+                    height: MediaQuery.of(context).size.height * 0.75,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage("assets/images/fundo.png"),
+                        image: AssetImage("assets/images/login_bg.png"),
                         fit: BoxFit.fill,
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/data/shared.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class Dashboard extends StatefulWidget {
@@ -9,6 +10,14 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -18,5 +27,3 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 }
-
-

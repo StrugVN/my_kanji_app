@@ -33,21 +33,32 @@ class _ReviewState extends State<Review> {
 
   late SharedPreferences sharedPreferences;
 
+  final scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
 
     reviewInProgress = false;
-    loadPreviousReview();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   loadPreviousReview();
-    // });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadPreviousReview();
+    });
+
+    // scrollController.jumpTo(0.0);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
+    return SingleChildScrollView(
+      controller: scrollController,
+      physics: const NeverScrollableScrollPhysics(),
+      
+      child: NotificationListener<ScrollUpdateNotification>(
+        onNotification: (notification) {
+          scrollController.jumpTo(0.0); // Reset scroll position
+          return true;
+        },
         child: Column(
           children: <Widget>[
             getSelector(),
@@ -59,6 +70,7 @@ class _ReviewState extends State<Review> {
               isAudio: isAudio,
               dataCheckCallback: dataCallback,
             ),
+            const Text("TEST"),
           ],
         ),
       ),

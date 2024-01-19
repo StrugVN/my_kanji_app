@@ -35,34 +35,31 @@ class _SubjectListState extends State<SubjectList> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        child: _buildPanel(),
-      ),
-    );
+    return _buildPanel();
   }
 
   Widget _buildPanel() {
     return CarouselSlider(
       options: CarouselOptions(
-        height: widget.data == null || widget.data!.isEmpty ? 0 : 570,
+        height: MediaQuery.of(context).size.height * 0.8,
         enableInfiniteScroll: false,
+        viewportFraction: 0.8,
+        enlargeCenterPage: true,
       ),
       items: [
         for (SubjectItem item
             in widget.data?.where((element) => element.isCorrect == null) ?? [])
           Column(
+            
             children: [
-              const Gap(5),
-              buttonControl(item),
-              const Gap(5),
+              // buttonControl(item),
               TwoSideCard(
                 item: item,
                 isKanji: widget.isKanji,
                 isToEN: widget.isToEN,
                 kanjiOnFront: widget.kanjiOnFront,
                 flipItemCallback: widget.dataCheckCallback, isAudio: widget.isAudio,
-              )
+              ),
             ],
           )
       ],
@@ -71,94 +68,5 @@ class _SubjectListState extends State<SubjectList> {
 
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
-  buttonControl(SubjectItem item) {
-    // if (item.isRevealed!) {
-      // ------ Item is revealed
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 130,
-            height: 45,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  item.isCorrect = false;
-                  widget.dataCheckCallback(true);
-                });
-              },
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: const TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'Mark as ',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: 'forgot',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10,),
-          SizedBox(
-            width: 130,
-            height: 45,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  item.isCorrect = true;
-                  widget.dataCheckCallback(true);
-                });
-              },
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: const TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'Mark as ',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: 'remembered',
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    // } else {
-    //   return const SizedBox(width: 130, height: 48,);
-      // ------ Item is NOT revealed
-      // return ElevatedButton(
-      //   onPressed: () {
-      //     setState(() {
-      //       item.isRevealed = true;
-      //     });
-      //   },
-      //   child: RichText(
-      //     text: const TextSpan(
-      //       children: <TextSpan>[
-      //         TextSpan(
-      //           text: 'Reveal ',
-      //           style: TextStyle(color: Colors.blue),
-      //         ),
-      //         TextSpan(
-      //           text: 'item',
-      //           style: TextStyle(color: Colors.black),
-      //         ),
-      //       ],
-      //     ),
-      //   ),
-      // );
-    // }
-  }
+  
 }

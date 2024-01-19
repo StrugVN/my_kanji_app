@@ -23,8 +23,8 @@ class KanjiInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 400,
-      height: 460,
+      width: MediaQuery.of(context).size.width * 0.8,
+      height: MediaQuery.of(context).size.height * 0.55,
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 15,
@@ -58,16 +58,18 @@ class KanjiInfoCard extends StatelessWidget {
                   fontSize: 96,
                 ),
               ),
-              Container(
-                alignment: Alignment.center,
-                width: 190,
-                child: Center(
-                  child: Text(
-                    item.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
-                    style: const TextStyle(
-                      fontSize: 21,
+              Flexible(
+                child: Container(
+                  alignment: Alignment.center,
+                  width: 190,
+                  child: Center(
+                    child: Text(
+                      item.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                      style: const TextStyle(
+                        fontSize: 21,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -153,12 +155,12 @@ class KanjiInfoCard extends StatelessWidget {
                                   children: [
                                     SvgPicture.network(
                                       snapshot.data!.data!.strokeOrderSvgUri,
-                                      height: 130,
-                                      width: 130,
+                                      height: MediaQuery.of(context).size.width * 0.3,
+                                      width: MediaQuery.of(context).size.width * 0.3,
                                     ),
                                     Image(
-                                      width: 130,
-                                      height: 130,
+                                      width: MediaQuery.of(context).size.width * 0.3,
+                                      height: MediaQuery.of(context).size.width * 0.3,
                                       image: NetworkImage(snapshot
                                           .data!.data!.strokeOrderGifUri),
                                     ),

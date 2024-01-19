@@ -2,85 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:my_kanji_app/service/api.dart';
 
-enum ModeLabel {
-  kanji('Kanji', Colors.pink),
-  vocab('Vocab', Colors.blue);
-
-  const ModeLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum SourceTypeLabel {
-  Wanikani("Wanikani", Colors.blue),
-  JLPT("JLPT", Colors.red),
-  Joyo("Joyo", Colors.yellow),
-  Frequency("Frequency", Colors.pink);
-
-  const SourceTypeLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum TranslationTypeLabel {
-  toJp("Translate to JP", Colors.pink),
-  toEn("Translate to EN", Colors.blue);
-
-  const TranslationTypeLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum QuestionTypeLabel {
-  kanJi("Show Kanji", Colors.pink),
-  kana("Show Kana", Colors.blue),
-  audio("Audio", Colors.green);
-
-  const QuestionTypeLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum JlptLevelLabel {
-  n5("JLPT N5", Colors.blue),
-  n4("JLPT N4", Colors.green),
-  n3("JLPT N3", Colors.yellow),
-  n2("JLPT N2", Colors.red),
-  n1("JLPT N1", Colors.black),
-  ;
-
-  const JlptLevelLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum JoyoLevelLabel {
-  joyo1("Joyo Grade 1", Colors.blue),
-  joyo2("Joyo Grade 2", Color.fromARGB(255, 33, 236, 243)),
-  joyo3("Joyo Grade 3", Color.fromARGB(255, 33, 243, 156)),
-  joyo4("Joyo Grade 4", Color.fromARGB(255, 89, 243, 33)),
-  joyo5("Joyo Grade 5", Color.fromARGB(255, 177, 243, 33)),
-  joyo6("Joyo Grade 6", Color.fromARGB(255, 243, 215, 33)),
-  joyo9("Joyo Grade 9", Colors.red),
-  ;
-
-  const JoyoLevelLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
-enum FrequencyLevelLabel {
-  m500("Most used 500", Colors.blue),
-  m1000("500 - 1000", Colors.green),
-  m1500("1000 - 1500", Colors.yellow),
-  m2000("1500 - 2000", Colors.red),
-  ;
-
-  const FrequencyLevelLabel(this.label, this.color);
-  final String label;
-  final Color color;
-}
-
 class ReviewCreator extends StatefulWidget {
   final int maxLevel;
 
@@ -159,6 +80,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                     children: [
                       Column(
                         children: [
+                          const Gap(3),
                           DropdownMenu<SourceTypeLabel>(
                             width: 150,
                             initialSelection: SourceTypeLabel.Wanikani,
@@ -231,6 +153,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                       ),
                       Column(
                         children: [
+                          
                           DropdownMenu<TranslationTypeLabel>(
                             width: 220,
                             initialSelection: TranslationTypeLabel.toEn,
@@ -257,6 +180,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                           ),
                           const Gap(10),
                           getLevelSelector(),
+                          const Gap(3),
                         ],
                       ),
                     ],
@@ -512,4 +436,84 @@ Iterable<int> get positiveIntegers sync* {
   while (true) {
     yield i++;
   }
+}
+
+
+enum ModeLabel {
+  kanji('Kanji', Colors.pink),
+  vocab('Vocab', Colors.blue);
+
+  const ModeLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum SourceTypeLabel {
+  Wanikani("Wanikani", Colors.blue),
+  JLPT("JLPT", Colors.red),
+  Joyo("Joyo", Colors.yellow),
+  Frequency("Frequency", Colors.pink);
+
+  const SourceTypeLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum TranslationTypeLabel {
+  toJp("Translate to JP", Colors.pink),
+  toEn("Translate to EN", Colors.blue);
+
+  const TranslationTypeLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum QuestionTypeLabel {
+  kanJi("Show Kanji", Colors.pink),
+  kana("Show Kana", Colors.blue),
+  audio("Audio", Colors.green);
+
+  const QuestionTypeLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum JlptLevelLabel {
+  n5("JLPT N5", Colors.blue),
+  n4("JLPT N4", Colors.green),
+  n3("JLPT N3", Colors.yellow),
+  n2("JLPT N2", Colors.red),
+  n1("JLPT N1", Colors.black),
+  ;
+
+  const JlptLevelLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum JoyoLevelLabel {
+  joyo1("Joyo Grade 1", Colors.blue),
+  joyo2("Joyo Grade 2", Color.fromARGB(255, 33, 236, 243)),
+  joyo3("Joyo Grade 3", Color.fromARGB(255, 33, 243, 156)),
+  joyo4("Joyo Grade 4", Color.fromARGB(255, 89, 243, 33)),
+  joyo5("Joyo Grade 5", Color.fromARGB(255, 177, 243, 33)),
+  joyo6("Joyo Grade 6", Color.fromARGB(255, 243, 215, 33)),
+  joyo9("Joyo Grade 9", Colors.red),
+  ;
+
+  const JoyoLevelLabel(this.label, this.color);
+  final String label;
+  final Color color;
+}
+
+enum FrequencyLevelLabel {
+  m500("Most used 500", Colors.blue),
+  m1000("500 - 1000", Colors.green),
+  m1500("1000 - 1500", Colors.yellow),
+  m2000("1500 - 2000", Colors.red),
+  ;
+
+  const FrequencyLevelLabel(this.label, this.color);
+  final String label;
+  final Color color;
 }
