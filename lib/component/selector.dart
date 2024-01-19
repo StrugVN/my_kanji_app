@@ -107,7 +107,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                                 }
                               });
                             },
-                            requestFocusOnTap: true,
+                            // requestFocusOnTap: true,
                             label: const Text('Source'),
                             dropdownMenuEntries: SourceTypeLabel.values
                                 .map<DropdownMenuEntry<SourceTypeLabel>>(
@@ -127,7 +127,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                             width: 150,
                             initialSelection: ModeLabel.kanji,
                             controller: modeController,
-                            requestFocusOnTap: true,
+                            // requestFocusOnTap: true,
                             label: const Text('Mode'),
                             onSelected: (ModeLabel? mode) {
                               setState(() {
@@ -158,7 +158,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
                             width: 220,
                             initialSelection: TranslationTypeLabel.toEn,
                             controller: translationController,
-                            requestFocusOnTap: true,
+                            // requestFocusOnTap: true,
                             label: const Text('Type'),
                             onSelected: (TranslationTypeLabel? type) {
                               setState(() {
@@ -315,7 +315,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
           width: 220,
           initialSelection: selectedLevel,
           controller: levelController,
-          requestFocusOnTap: true,
+          // requestFocusOnTap: true,
           leadingIcon: const Icon(Icons.school),
           label: const Text('Level'),
           menuHeight: 300,
@@ -336,7 +336,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
           width: 220,
           initialSelection: JlptLevelLabel.n5,
           controller: nonWaniController,
-          requestFocusOnTap: true,
+          // requestFocusOnTap: true,
           leadingIcon: const Icon(Icons.school),
           label: const Text('Level'),
           menuHeight: 300,
@@ -367,7 +367,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
           width: 220,
           initialSelection: JoyoLevelLabel.joyo1,
           controller: nonWaniController,
-          requestFocusOnTap: true,
+          // requestFocusOnTap: true,
           leadingIcon: const Icon(Icons.school),
           label: const Text('Level'),
           menuHeight: 300,
@@ -398,7 +398,7 @@ class _ReviewCreatorState extends State<ReviewCreator> {
           width: 220,
           initialSelection: FrequencyLevelLabel.m500,
           controller: nonWaniController,
-          requestFocusOnTap: true,
+          // requestFocusOnTap: true,
           leadingIcon: const Icon(Icons.school),
           label: const Text('Level'),
           menuHeight: 300,

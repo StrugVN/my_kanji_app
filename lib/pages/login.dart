@@ -92,7 +92,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                 animation: _animacaoBlur!,
                 builder: (context, widget) {
                   return Container(
-                    height: MediaQuery.of(context).size.height * 0.75,
+                    height: MediaQuery.of(context).size.height * 0.7,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/images/login_bg.png"),
@@ -169,7 +169,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                                             BorderSide(color: Colors.red),
                                       )
                                     : InputBorder.none,
-                                hintText: 'Your Wanikani API key',
+                                hintText: ' Wanikani API key',
                                 hintStyle: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,

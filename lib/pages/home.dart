@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
       child: MaterialApp(
         home: Scaffold(
           appBar: AppBar(
-            title: const Center(child: Text("My app")),
+            title: const Center(child: Text("📚上手に出来る様になる📖")),
             backgroundColor: Colors.blue,
           ),
           body: GestureDetector(

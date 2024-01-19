@@ -34,6 +34,8 @@ class _ReviewState extends State<Review> {
   late SharedPreferences sharedPreferences;
 
   final scrollController = ScrollController();
+  
+  bool vocabDisclaim = false;
 
   @override
   void initState() {
@@ -53,7 +55,6 @@ class _ReviewState extends State<Review> {
     return SingleChildScrollView(
       controller: scrollController,
       physics: const NeverScrollableScrollPhysics(),
-      
       child: NotificationListener<ScrollUpdateNotification>(
         onNotification: (notification) {
           scrollController.jumpTo(0.0); // Reset scroll position
@@ -197,6 +198,7 @@ class _ReviewState extends State<Review> {
         String? set = kanjiSet[nonWani];
         if (set != null) {
           temp = appData.getListVocabFromLocalByKanji(set.split(""));
+          vocabDisclaim = true;
         } else {
           return;
         }
@@ -240,115 +242,121 @@ class _ReviewState extends State<Review> {
             ),
           ),
         ),
-        leading: const Icon(Icons.bookmark_outline),
+        leading: const Icon(Icons.bookmark),
         initiallyExpanded: true,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Builder(builder: (context) {
-                      if (dataList
-                              ?.where((element) => element.isRevealed == false)
-                              .isNotEmpty ??
-                          false) {
-                        return Row(
-                          children: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 103, 174, 255),
-                                shape: ContinuousRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  revealAll();
-                                });
-                              },
-                              child: RichText(
-                                text: const TextSpan(
-                                  children: <TextSpan>[
-                                    TextSpan(
-                                      text: 'Reveal all ',
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                    TextSpan(
-                                      text: 'item',
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                                  ],
-                                ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Builder(builder: (context) {
+                    if (dataList
+                            ?.where((element) => element.isRevealed == false)
+                            .isNotEmpty ??
+                        false) {
+                      return Row(
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 103, 174, 255),
+                              shape: ContinuousRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                revealAll();
+                              });
+                            },
+                            child: RichText(
+                              text: const TextSpan(
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: 'Reveal all ',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  TextSpan(
+                                    text: 'item',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 10),
-                          ],
-                        );
-                      } else {
-                        return const SizedBox(
-                          width: 0,
-                        );
-                      }
-                    }),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 255, 103, 103),
-                        shape: ContinuousRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          closeSection();
-                        });
-                      },
-                      child: RichText(
-                        text: const TextSpan(
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: 'End ',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            TextSpan(
-                              text: 'section',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: RichText(
-                    text: TextSpan(
-                      children: <TextSpan>[
-                        TextSpan(
-                          text:
-                              "${dataList?.where((element) => element.isCorrect == null).toList().length}",
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        const TextSpan(
-                          text: ' item remained',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ],
-                      style: const TextStyle(fontSize: 16),
+                          const SizedBox(width: 10),
+                        ],
+                      );
+                    } else {
+                      return const SizedBox(
+                        width: 0,
+                      );
+                    }
+                  }),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color.fromARGB(255, 255, 103, 103),
+                      shape: ContinuousRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        closeSection();
+                      });
+                    },
+                    child: RichText(
+                      text: const TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: 'End ',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          TextSpan(
+                            text: 'section',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: RichText(
+                  text: TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text:
+                            "${dataList?.where((element) => element.isCorrect == null).toList().length}",
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: ' item remained',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
-              ],
-            ),
+              ),
+              !isKanji! && vocabDisclaim
+                  ? const Center(
+                    child: Text(
+                        "Disclaimer: These vocab is selected from wanikani data only",
+                        style: TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.w100),
+                      ),
+                  )
+                  : const SizedBox.shrink(),
+            ],
           )
         ],
       );
@@ -379,6 +387,7 @@ class _ReviewState extends State<Review> {
     dataListResult = dataList;
     dataList = [];
     reviewInProgress = false;
+    vocabDisclaim = false;
 
     sharedPreferences.remove('dataList');
     sharedPreferences.remove('isKanji');
