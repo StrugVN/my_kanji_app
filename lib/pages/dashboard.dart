@@ -20,10 +20,12 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text("Dashboard"),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const Text("Dashboard"),
+        ],
+      ),
     );
   }
 }

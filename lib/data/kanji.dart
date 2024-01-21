@@ -1,4 +1,6 @@
 import 'package:my_kanji_app/data/shared.dart';
+import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 
 class KanjiResponse {
   String? object;
@@ -9,7 +11,12 @@ class KanjiResponse {
   List<Kanji>? data;
 
   KanjiResponse(
-      {this.object, this.url, this.pages, this.totalCount, this.dataUpdatedAt, this.data});
+      {this.object,
+      this.url,
+      this.pages,
+      this.totalCount,
+      this.dataUpdatedAt,
+      this.data});
 
   KanjiResponse.fromJson(Map<String, dynamic> json) {
     object = json['object'];
@@ -48,6 +55,10 @@ class Kanji {
   String? dataUpdatedAt;
   KanjiData? data;
 
+  // ===
+  WkReviewStatData? reviewData;
+  WkSrsStatData? srsData;
+
   Kanji({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
 
   Kanji.fromJson(Map<String, dynamic> json) {
@@ -67,6 +78,14 @@ class Kanji {
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
+
+    if (reviewData != null) {
+      data['reviewData'] = reviewData?.toJson();
+    }
+    if (srsData != null) {
+      data['srsData'] = srsData?.toJson();
+    }
+
     return data;
   }
 }
@@ -178,4 +197,3 @@ class KanjiData {
     return data;
   }
 }
-

@@ -1,14 +1,14 @@
 import 'package:my_kanji_app/data/shared.dart';
 
-class WaniStat {
+class WkReviewStatRespone {
   String? object;
   String? url;
   Pages? pages;
   int? totalCount;
   String? dataUpdatedAt;
-  List<WakiStatData>? data;
+  List<WkReviewStatData>? data;
 
-  WaniStat(
+  WkReviewStatRespone(
       {this.object,
       this.url,
       this.pages,
@@ -16,16 +16,16 @@ class WaniStat {
       this.dataUpdatedAt,
       this.data});
 
-  WaniStat.fromJson(Map<String, dynamic> json) {
+  WkReviewStatRespone.fromJson(Map<String, dynamic> json) {
     object = json['object'];
     url = json['url'];
     pages = json['pages'] != null ? Pages.fromJson(json['pages']) : null;
     totalCount = json['total_count'];
     dataUpdatedAt = json['data_updated_at'];
     if (json['data'] != null) {
-      data = <WakiStatData>[];
+      data = <WkReviewStatData>[];
       json['data'].forEach((v) {
-        data!.add(WakiStatData.fromJson(v));
+        data!.add(WkReviewStatData.fromJson(v));
       });
     }
   }
@@ -46,21 +46,21 @@ class WaniStat {
   }
 }
 
-class WakiStatData {
+class WkReviewStatData {
   int? id;
   String? object;
   String? url;
   String? dataUpdatedAt;
-  Assignment? data;
+  SubjectReviewStat? data;
 
-  WakiStatData({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
+  WkReviewStatData({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
 
-  WakiStatData.fromJson(Map<String, dynamic> json) {
+  WkReviewStatData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     object = json['object'];
     url = json['url'];
     dataUpdatedAt = json['data_updated_at'];
-    data = json['data'] != null ? Assignment.fromJson(json['data']) : null;
+    data = json['data'] != null ? SubjectReviewStat.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -76,43 +76,49 @@ class WakiStatData {
   }
 }
 
-class Assignment {
+class SubjectReviewStat {
   String? createdAt;
   int? subjectId;
   String? subjectType;
-  int? srsStage;
-  String? unlockedAt;
-  String? startedAt;
-  String? passedAt;
-  String? burnedAt;
-  String? availableAt;
-  String? resurrectedAt;
+  int? meaningCorrect;
+  int? meaningIncorrect;
+  int? meaningMaxStreak;
+  int? meaningCurrentStreak;
+  int? readingCorrect;
+  int? readingIncorrect;
+  int? readingMaxStreak;
+  int? readingCurrentStreak;
+  int? percentageCorrect;
   bool? hidden;
 
-  Assignment(
+  SubjectReviewStat(
       {this.createdAt,
       this.subjectId,
       this.subjectType,
-      this.srsStage,
-      this.unlockedAt,
-      this.startedAt,
-      this.passedAt,
-      this.burnedAt,
-      this.availableAt,
-      this.resurrectedAt,
+      this.meaningCorrect,
+      this.meaningIncorrect,
+      this.meaningMaxStreak,
+      this.meaningCurrentStreak,
+      this.readingCorrect,
+      this.readingIncorrect,
+      this.readingMaxStreak,
+      this.readingCurrentStreak,
+      this.percentageCorrect,
       this.hidden});
 
-  Assignment.fromJson(Map<String, dynamic> json) {
+  SubjectReviewStat.fromJson(Map<String, dynamic> json) {
     createdAt = json['created_at'];
     subjectId = json['subject_id'];
     subjectType = json['subject_type'];
-    srsStage = json['srs_stage'];
-    unlockedAt = json['unlocked_at'];
-    startedAt = json['started_at'];
-    passedAt = json['passed_at'];
-    burnedAt = json['burned_at'];
-    availableAt = json['available_at'];
-    resurrectedAt = json['resurrected_at'];
+    meaningCorrect = json['meaning_correct'];
+    meaningIncorrect = json['meaning_incorrect'];
+    meaningMaxStreak = json['meaning_max_streak'];
+    meaningCurrentStreak = json['meaning_current_streak'];
+    readingCorrect = json['reading_correct'];
+    readingIncorrect = json['reading_incorrect'];
+    readingMaxStreak = json['reading_max_streak'];
+    readingCurrentStreak = json['reading_current_streak'];
+    percentageCorrect = json['percentage_correct'];
     hidden = json['hidden'];
   }
 
@@ -121,13 +127,15 @@ class Assignment {
     data['created_at'] = createdAt;
     data['subject_id'] = subjectId;
     data['subject_type'] = subjectType;
-    data['srs_stage'] = srsStage;
-    data['unlocked_at'] = unlockedAt;
-    data['started_at'] = startedAt;
-    data['passed_at'] = passedAt;
-    data['burned_at'] = burnedAt;
-    data['available_at'] = availableAt;
-    data['resurrected_at'] = resurrectedAt;
+    data['meaning_correct'] = meaningCorrect;
+    data['meaning_incorrect'] = meaningIncorrect;
+    data['meaning_max_streak'] = meaningMaxStreak;
+    data['meaning_current_streak'] = meaningCurrentStreak;
+    data['reading_correct'] = readingCorrect;
+    data['reading_incorrect'] = readingIncorrect;
+    data['reading_max_streak'] = readingMaxStreak;
+    data['reading_current_streak'] = readingCurrentStreak;
+    data['percentage_correct'] = percentageCorrect;
     data['hidden'] = hidden;
     return data;
   }

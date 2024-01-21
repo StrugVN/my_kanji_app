@@ -5,48 +5,23 @@ import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/api.dart';
+import 'package:collection/collection.dart';
 
 class AppData {
   static final AppData _singleton = AppData._internal();
 
-  String? _apiKey;
-  List<Kanji>? _allKanjiData;
-  List<Vocab>? _allVocabData;
-  List<PitchData>? _pitchData;
+  String? apiKey;
+  List<Kanji>? allKanjiData;
+  List<Vocab>? allVocabData;
+  List<PitchData>? pitchData;
+  List<WkSrsStatData>? allSrsData;
+  List<WkReviewStatData>? allReviewData;
   bool dataIsLoaded = false;
 
-  List<PitchData>? get pitchData => _pitchData;
-
-  set pitchData(List<PitchData>? value) {
-    _pitchData = value;
-  }
-
-  List<Vocab>? get allVocabData => _allVocabData;
-
-  set allVocabData(List<Vocab>? value) {
-    _allVocabData = value;
-  }  
-
-  UserData _userData = UserData();
-
-  UserData get userData => _userData;
-
-  List<Kanji>? get allKanjiData => _allKanjiData;
-
-  set allKanjiData(List<Kanji>? value) {
-    _allKanjiData = value;
-  }
-
-  set userData(UserData value) {
-    _userData = value;
-  }
-
-  String? get apiKey => _apiKey;
-
-  set apiKey(String? value) {
-    _apiKey = value;
-  }
+  UserData userData = UserData();
 
   factory AppData() {
     return _singleton;
@@ -54,84 +29,167 @@ class AppData {
 
   AppData._internal();
 
-  void removeKey(){
-    _apiKey = null;
+  void removeKey() {
+    apiKey = null;
   }
 
-  Future<void> assertDataIsLoaded() async{
-    while (dataIsLoaded == false){
+  Future<void> assertDataIsLoaded() async {
+    while (dataIsLoaded == false) {
       await Future.delayed(const Duration(milliseconds: 500));
     }
   }
-  
+
   Future<void> loadDataFromAsset() async {
     dataIsLoaded = false;
-    final kanjiDataF = rootBundle.loadString('assets/kanjidata.json');
-    final pitchDataF = rootBundle.loadString('assets/pitchdata.json');
-    final vocabDataF = rootBundle.loadString('assets/vocabdata.json');
 
-    _allKanjiData = [];
-    for (var json in jsonDecode(await kanjiDataF)) {
-      _allKanjiData!.add(Kanji.fromJson(json));
+    var loadKanji = loadKanjiData();
+    var loadVocab = loadVocabData();
+    var loadPitch = loadVocabPitchData();
+    var getSrs = getSrsData();
+    var getReview = getReviewStatData();
+
+    print("  -- Data loading initialized --");
+
+    await loadKanji;
+    await loadVocab;
+    await loadPitch;
+    await getSrs;
+    await getReview;
+
+    for(var element in allKanjiData!){
+      var srs = allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+      var review = allReviewData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+
+      if(srs != null){
+        element.srsData = srs;
+      }
+
+      if(review != null){
+        element.reviewData = review;
+      }
     }
 
-    _pitchData = [];
-    for (var json in jsonDecode(await pitchDataF)) {
-      _pitchData!.add(PitchData.fromJson(json));
+    for(var element in allVocabData!){
+      var srs = allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+      var review = allReviewData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+
+      if(srs != null){
+        element.srsData = srs;
+      }
+
+      if(review != null){
+        element.reviewData = review;
+      }
     }
 
-    _allVocabData = [];
-    for (var json in jsonDecode(await vocabDataF)) {
-      _allVocabData!.add(Vocab.fromJson(json));
-    }
-
-    print(_allKanjiData!.length);
-    print(_allVocabData!.length);
-    print(" -- Pitch data loaded: ${_pitchData?.length}");
     dataIsLoaded = true;
   }
 
+  Future<void> loadKanjiData() async {
+    final kanjiDataF = rootBundle.loadString('assets/kanjidata.json');
 
-  List<Kanji> getListKanjiFromLocal({List<int>? ids, List<int>? levels, List<String>? slugs}){
-    if(_allKanjiData == null) return [];
+    allKanjiData = [];
+    for (var json in jsonDecode(await kanjiDataF)) {
+      allKanjiData!.add(Kanji.fromJson(json));
+    }
 
-    return _allKanjiData!.where((element) => kanjiFilter(element, ids: ids, levels: levels, slugs: slugs)).toList();
+    print("  Kanji count: ${allKanjiData!.length}");
   }
 
-  bool kanjiFilter(Kanji kanji, {List<int>? ids, List<int>? levels, List<String>? slugs}){
-    return true 
-      && ids != null ? ids.contains(kanji.id) : true
-      && levels != null ? levels.contains(kanji.data?.level) : true
-      && slugs != null ? slugs.contains(kanji.data?.slug) : true; 
+  Future<void> loadVocabData() async {
+    final vocabDataF = rootBundle.loadString('assets/vocabdata.json');
+
+    allVocabData = [];
+    for (var json in jsonDecode(await vocabDataF)) {
+      allVocabData!.add(Vocab.fromJson(json));
+    }
+
+    print("  Vocab count: ${allVocabData!.length}");
   }
 
-  List<Vocab> getListVocabFromLocal({List<int>? ids, List<int>? levels, List<String>? slugs}){
-    if(_allVocabData == null) return [];
+  Future<void> loadVocabPitchData() async {
+    final pitchDataF = rootBundle.loadString('assets/pitchdata.json');
 
-    return _allVocabData!.where((element) => vocabFilter(element, ids: ids, levels: levels, slugs: slugs)).toList();
+    pitchData = [];
+    for (var json in jsonDecode(await pitchDataF)) {
+      pitchData!.add(PitchData.fromJson(json));
+    }
+
+    print("  Pitch count: ${pitchData!.length}");
   }
 
-  bool vocabFilter(Vocab kanji, {List<int>? ids, List<int>? levels, List<String>? slugs}){
-    return true 
-      && ids != null ? ids.contains(kanji.id) : true
-      && levels != null ? levels.contains(kanji.data?.level) : true
-      && slugs != null ? slugs.contains(kanji.data?.slug) : true; 
+  // For WK user only
+  Future<void> getSrsData() async {
+    allSrsData = await getAllSrsStat();
+
+    print("  SRS data count: ${allSrsData!.length}");
   }
 
+  // For WK user only
+  Future<void> getReviewStatData() async {
+    allReviewData = await getAllReviewStat();
 
-  List<Vocab> getListVocabFromLocalByKanji(List<String> usedKanji){
-    if(_allVocabData == null) {
+    print("  Review data count: ${allReviewData!.length}");
+  }
+
+  List<Kanji> getListKanjiFromLocal(
+      {List<int>? ids, List<int>? levels, List<String>? slugs}) {
+    if (allKanjiData == null) return [];
+
+    return allKanjiData!
+        .where((element) =>
+            kanjiFilter(element, ids: ids, levels: levels, slugs: slugs))
+        .toList();
+  }
+
+  bool kanjiFilter(Kanji kanji,
+      {List<int>? ids, List<int>? levels, List<String>? slugs}) {
+    return true && ids != null
+        ? ids.contains(kanji.id)
+        : true && levels != null
+            ? levels.contains(kanji.data?.level)
+            : true && slugs != null
+                ? slugs.contains(kanji.data?.slug)
+                : true;
+  }
+
+  List<Vocab> getListVocabFromLocal(
+      {List<int>? ids, List<int>? levels, List<String>? slugs}) {
+    if (allVocabData == null) return [];
+
+    return allVocabData!
+        .where((element) =>
+            vocabFilter(element, ids: ids, levels: levels, slugs: slugs))
+        .toList();
+  }
+
+  bool vocabFilter(Vocab kanji,
+      {List<int>? ids, List<int>? levels, List<String>? slugs}) {
+    return true && ids != null
+        ? ids.contains(kanji.id)
+        : true && levels != null
+            ? levels.contains(kanji.data?.level)
+            : true && slugs != null
+                ? slugs.contains(kanji.data?.slug)
+                : true;
+  }
+
+  List<Vocab> getListVocabFromLocalByKanji(List<String> usedKanji) {
+    if (allVocabData == null) {
       return [];
     }
-    
-    return _allVocabData!.where((e) => isVocabContain(e, usedKanji)).toList();
+
+    return allVocabData!.where((e) => isVocabContain(e, usedKanji)).toList();
   }
 
-  List<String> allKanjiInVocab(Vocab vocab){
-    return getListKanjiFromLocal(ids:vocab.data?.componentSubjectIds, levels: null, slugs: null).map((e) => e.data?.slug ?? "").toList();
+  List<String> allKanjiInVocab(Vocab vocab) {
+    return getListKanjiFromLocal(
+            ids: vocab.data?.componentSubjectIds, levels: null, slugs: null)
+        .map((e) => e.data?.slug ?? "")
+        .toList();
   }
 
-  bool isVocabContain(Vocab vocab, List<String> usedKanji){
+  bool isVocabContain(Vocab vocab, List<String> usedKanji) {
     Set<String> componentSet = {...allKanjiInVocab(vocab)};
     Set<String> usedKanjiSet = {...usedKanji};
 
@@ -144,17 +202,17 @@ class AppData {
     var getKanaVocab = getAllSubject("kana_vocabulary");
     final pitchDataF = rootBundle.loadString('assets/pitchdata.json');
 
-    _allKanjiData = await getKanji;
-    _pitchData = [];
+    allKanjiData = await getKanji;
+    pitchData = [];
     for (var json in jsonDecode(await pitchDataF)) {
-      _pitchData!.add(PitchData.fromJson(json));
+      pitchData!.add(PitchData.fromJson(json));
     }
-    _allVocabData = await getVocab + await getKanaVocab;
-    
-    print(_allKanjiData!.length);
-    print(_allVocabData!.length);
+    allVocabData = await getVocab + await getKanaVocab;
 
-    print(" -- Pitch data loaded: ${_pitchData?.length}");
+    print(allKanjiData!.length);
+    print(allVocabData!.length);
+
+    print(" -- Pitch data loaded: ${pitchData?.length}");
   }
 
   @Deprecated("Use load from local")
@@ -165,7 +223,7 @@ class AppData {
     final jsonS = jsonDecode(data);
 
     List<PitchData>? pitchData = [];
-    for (var item in jsonS){
+    for (var item in jsonS) {
       pitchData.add(PitchData.fromData(item));
     }
     print("  -- Loaded: $pitchJson");
@@ -173,15 +231,15 @@ class AppData {
   }
 
   @Deprecated("Use load from local")
-  Future<List<PitchData>> loadPitchData() async {
+  Future<List<PitchData>> loadPitchDataFromParts() async {
     List<Future<List<PitchData>>> taskList = [];
 
-    for (int i=1; i<=13; i++){
+    for (int i = 1; i <= 13; i++) {
       taskList.add(loadPitchDataPart(i));
     }
 
     List<PitchData> data = [];
-    for (var task in taskList){
+    for (var task in taskList) {
       data = data + await task;
     }
 

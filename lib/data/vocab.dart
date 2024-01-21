@@ -1,4 +1,6 @@
 import 'package:my_kanji_app/data/shared.dart';
+import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 
 class VocabResponse {
   String? object;
@@ -9,7 +11,12 @@ class VocabResponse {
   List<Vocab>? data;
 
   VocabResponse(
-      {this.object, this.url, this.pages, this.totalCount, this.dataUpdatedAt, this.data});
+      {this.object,
+      this.url,
+      this.pages,
+      this.totalCount,
+      this.dataUpdatedAt,
+      this.data});
 
   VocabResponse.fromJson(Map<String, dynamic> json) {
     object = json['object'];
@@ -48,6 +55,10 @@ class Vocab {
   String? dataUpdatedAt;
   VocabData? data;
 
+  // ====
+  WkReviewStatData? reviewData;
+  WkSrsStatData? srsData;
+
   Vocab({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
 
   Vocab.fromJson(Map<String, dynamic> json) {
@@ -66,6 +77,12 @@ class Vocab {
     data['data_updated_at'] = dataUpdatedAt;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
+    }
+    if (reviewData != null) {
+      data['reviewData'] = reviewData?.toJson();
+    }
+    if (srsData != null) {
+      data['srsData'] = srsData?.toJson();
     }
     return data;
   }
@@ -186,6 +203,7 @@ class VocabData {
     }
     data['lesson_position'] = lessonPosition;
     data['spaced_repetition_system_id'] = spacedRepetitionSystemId;
+    
     return data;
   }
 }

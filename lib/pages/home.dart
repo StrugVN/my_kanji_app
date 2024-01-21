@@ -4,6 +4,8 @@ import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
 import 'package:my_kanji_app/pages/review.dart';
 import 'package:my_kanji_app/pages/stuff.dart';
+import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -77,6 +79,14 @@ class _HomeState extends State<Home> {
 
     try {
       await appData.loadDataFromAsset();
+
+      // TEST
+      var x = appData.allKanjiData!.firstWhereOrNull((element) => element.id == 648);
+      // var x = appData.allReviewData!.firstWhereOrNull((element) => element.data?.subjectId == 648);
+
+      print(x?.reviewData!.toJson());
+      print(x?.srsData!.toJson());
+      
     } on Exception catch (e) {
       print(e);
     }

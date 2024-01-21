@@ -5,6 +5,8 @@ import 'package:http/http.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/endpoints.dart';
 
 final appData = AppData();
@@ -20,14 +22,13 @@ Future<Response> getUser(String apiKey) {
   return http.get(Uri.parse(userEndpoint), headers: header);
 }
 
-Future<Response> getSubject(SubjectQueryParam param){
+Future<Response> getSubject(SubjectQueryParam param) {
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
     "Authorization": appData.apiKey!,
   };
 
-  final uri =
-    Uri.https(authority, subjectPath, param.toMap());
+  final uri = Uri.https(wkAuthority, wkSubjectPath, param.toMap());
 
   return http.get(uri, headers: header);
 }
@@ -38,60 +39,130 @@ Future getAllSubject(types) async {
     "Authorization": "Bearer $freeApiKey",
   };
 
-  final uri =
-    Uri.https(authority, subjectPath, {"types": types,});
+  final uri = Uri.https(wkAuthority, wkSubjectPath, {
+    "types": types,
+  });
 
   var response = await http.get(uri, headers: header);
 
   print(uri);
 
   if (types == 'kanji') {
-    var data = KanjiResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    var data = KanjiResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
 
     var resultList = data.data;
-    
-    while (data.pages?.nextUrl != null){
+
+    while (data.pages?.nextUrl != null) {
       var next_url = data.pages!.nextUrl;
 
       print(Uri.parse(next_url!));
       response = await http.get(Uri.parse(next_url), headers: header);
 
-      data = KanjiResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      data = KanjiResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      resultList = (resultList! + data.data!);
+    }
+
+    return resultList;
+  } else if (types == "vocabulary" || types == "kana_vocabulary") {
+    var data = VocabResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+
+    var resultList = data.data;
+
+    while (data.pages?.nextUrl != null) {
+      var next_url = data.pages!.nextUrl;
+
+      print(Uri.parse(next_url!));
+      response = await http.get(Uri.parse(next_url), headers: header);
+
+      data = VocabResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
 
       resultList = (resultList! + data.data!);
     }
 
     return resultList;
   }
-  else if (types == "vocabulary" || types == "kana_vocabulary"){
-    var data = VocabResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
 
-    var resultList = data.data;
-    
-    while (data.pages?.nextUrl != null){
-      var next_url = data.pages!.nextUrl;
-
-      print(Uri.parse(next_url!));
-      response = await http.get(Uri.parse(next_url), headers: header);
-
-      data = VocabResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-
-      resultList = (resultList! + data.data!);
-    }
-
-    return resultList;
-  }
-  
   return null;
 }
 
-class SubjectQueryParam{
+Future<List<WkSrsStatData>> getAllSrsStat() async {
+  Map<String, String> header = {
+    "Wanikani-Revision": "20170710",
+    "Authorization": appData.apiKey!,
+  };
+
+  final uri = Uri.https(wkAuthority, wkSrsStatistics,
+      {"subject_type": "kanji,vocabulary,kana_vocabulary"});
+
+  var response = await http.get(uri, headers: header);
+
+  print(uri);
+
+  var data = WkSrsStatResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>);
+
+  List<WkSrsStatData> resultList = data.data ?? [];
+
+  while (data.pages?.nextUrl != null) {
+    var next_url = data.pages!.nextUrl;
+
+    print(Uri.parse(next_url!));
+    response = await http.get(Uri.parse(next_url), headers: header);
+
+    data = WkSrsStatResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+
+    resultList = (resultList + (data.data ?? []));
+  }
+
+  return resultList;
+}
+
+Future<List<WkReviewStatData>> getAllReviewStat() async {
+  Map<String, String> header = {
+    "Wanikani-Revision": "20170710",
+    "Authorization": appData.apiKey!,
+  };
+
+  final uri = Uri.https(wkAuthority, wkReviewStatistics,
+      {"subject_type": "kanji,vocabulary,kana_vocabulary"});
+
+  var response = await http.get(uri, headers: header);
+
+  print(uri);
+
+  var data = WkReviewStatRespone.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>);
+
+  List<WkReviewStatData> resultList = data.data ?? [];
+
+  while (data.pages?.nextUrl != null) {
+    var next_url = data.pages!.nextUrl;
+
+    print(Uri.parse(next_url!));
+    response = await http.get(Uri.parse(next_url), headers: header);
+
+    data = WkReviewStatRespone.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+
+    resultList = (resultList + (data.data ?? []));
+  }
+
+  return resultList;
+}
+
+class SubjectQueryParam {
   List<String>? ids;
   List<String>? levels;
   List<String>? types;
   List<String>? slugs;
-  
-  SubjectQueryParam({this.ids, this.levels, this.types, this.slugs}) ;
+
+  SubjectQueryParam({this.ids, this.levels, this.types, this.slugs});
 
   Map<String, dynamic> toMap() {
     return {
