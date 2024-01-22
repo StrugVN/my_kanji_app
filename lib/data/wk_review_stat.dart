@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:my_kanji_app/data/shared.dart';
 
 class WkReviewStatRespone {
@@ -53,14 +55,16 @@ class WkReviewStatData {
   String? dataUpdatedAt;
   SubjectReviewStat? data;
 
-  WkReviewStatData({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
+  WkReviewStatData(
+      {this.id, this.object, this.url, this.dataUpdatedAt, this.data});
 
   WkReviewStatData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     object = json['object'];
     url = json['url'];
     dataUpdatedAt = json['data_updated_at'];
-    data = json['data'] != null ? SubjectReviewStat.fromJson(json['data']) : null;
+    data =
+        json['data'] != null ? SubjectReviewStat.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -91,6 +95,11 @@ class SubjectReviewStat {
   int? percentageCorrect;
   bool? hidden;
 
+  //
+  double? meaningScore;
+  double? readingScore;
+  double? memoryScore;
+
   SubjectReviewStat(
       {this.createdAt,
       this.subjectId,
@@ -120,6 +129,29 @@ class SubjectReviewStat {
     readingCurrentStreak = json['reading_current_streak'];
     percentageCorrect = json['percentage_correct'];
     hidden = json['hidden'];
+
+    /*
+    int correct = data['correct'];
+    int incorrect = data['incorrect'];
+    int maxStreak = data['max_streak'];
+    int currentStreak = data['current_streak'];
+    */
+
+    meaningScore = calculateMemoryScore({
+      "correct": meaningCorrect,
+      "incorrect": meaningIncorrect,
+      "max_streak": meaningMaxStreak,
+      "current_streak": meaningCurrentStreak,
+    });
+
+    readingScore = calculateMemoryScore({
+      "correct": readingCorrect,
+      "incorrect": readingIncorrect,
+      "max_streak": readingMaxStreak,
+      "current_streak": readingCurrentStreak,
+    });
+
+    memoryScore = min(meaningScore!, readingScore!);
   }
 
   Map<String, dynamic> toJson() {
@@ -137,6 +169,36 @@ class SubjectReviewStat {
     data['reading_current_streak'] = readingCurrentStreak;
     data['percentage_correct'] = percentageCorrect;
     data['hidden'] = hidden;
+    data['meaningScore'] = meaningScore;
+    data['readingScore'] = readingScore;
+    data['memoryScore'] = memoryScore;
     return data;
+  }
+
+  /// This function calculates a score ranging from -1 to 1.
+  /// A score closer to 1 indicates better memory, while closer to -1 suggests frequent forgetting.
+  /// It considers:
+  ///  - Accuracy: Base score based on correct/incorrect ratio.
+  ///  - Streak Performance: Penalties for low current streak and high incorrect/correct ratio.
+  double calculateMemoryScore(Map<String, dynamic> data) {
+    // Extract data points
+    int correct = data['correct'];
+    int incorrect = data['incorrect'];
+    int maxStreak = data['max_streak'];
+    int currentStreak = data['current_streak'];
+
+    // Base score based on correct/incorrect ratio
+    double baseScore = correct / (correct + incorrect);
+
+    // Penalty for low current streak relative to max streak
+    double streakPenalty = 1 - (currentStreak / maxStreak);
+
+    // Penalty for high incorrect/correct ratio
+    double incorrectPenalty = incorrect / (correct + 1);
+
+    // Combine penalties with base score
+    double memoryScore = baseScore * (1 - streakPenalty - incorrectPenalty);
+
+    return memoryScore;
   }
 }

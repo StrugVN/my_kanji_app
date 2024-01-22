@@ -47,6 +47,7 @@ dependencies:
   kana_kit: ^2.0.0
   flip_card: ^0.7.0
   intl: ^0.19.0
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:
