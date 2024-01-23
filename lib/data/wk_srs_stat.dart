@@ -146,7 +146,7 @@ class Assignment {
 
   String? getNextReviewAsLocalTime() {
     if (availableAt != null) {
-      return DateFormat('dd/MM/yyyy HH:mm:ss')
+      return DateFormat('dd/MM/yyyy hh:mm:ss a')
           .format((DateTime.parse(availableAt!).toLocal()));
     }
     return null;

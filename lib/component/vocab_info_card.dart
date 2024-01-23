@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-
 class VocabInfoCard extends StatelessWidget {
   VocabInfoCard({super.key, required this.item});
 
@@ -22,7 +21,7 @@ class VocabInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
         width: MediaQuery.of(context).size.width * 0.8,
-      height: MediaQuery.of(context).size.height * 0.55,
+        height: MediaQuery.of(context).size.height * 0.55,
         padding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 15,
@@ -267,34 +266,35 @@ class VocabInfoCard extends StatelessWidget {
       width: 250,
       height: 100,
       child: SfCartesianChart(
-          primaryXAxis: const CategoryAxis(
-            borderWidth: 0,
-            axisLine: AxisLine(
-              width: 0,
-            ),
-            labelStyle: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              // fontWeight: FontWeight.w500
-            ),
-            majorGridLines: MajorGridLines(
-              width: 0,
-            ),
+        primaryXAxis: const CategoryAxis(
+          borderWidth: 0,
+          axisLine: AxisLine(
+            width: 0,
           ),
-          primaryYAxis: const NumericAxis(
-            borderWidth: 0,
-            isVisible: false,
+          labelStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            // fontWeight: FontWeight.w500
           ),
-          series: <CartesianSeries>[
-            // Renders line chart
-            LineSeries<PitchLineData, String>(
-              dataSource: pitchDataLine,
-              xValueMapper: (PitchLineData data, _) => data.char,
-              yValueMapper: (PitchLineData data, _) => data.pitch,
-              pointColorMapper: (PitchLineData data, _) => data.color,
-              markerSettings: const MarkerSettings(isVisible: true),
-            ),
-          ]),
+          majorGridLines: MajorGridLines(
+            width: 0,
+          ),
+        ),
+        primaryYAxis: const NumericAxis(
+          borderWidth: 0,
+          isVisible: false,
+        ),
+        series: <CartesianSeries>[
+          // Renders line chart
+          LineSeries<PitchLineData, String>(
+            dataSource: pitchDataLine,
+            xValueMapper: (PitchLineData data, _) => data.char,
+            yValueMapper: (PitchLineData data, _) => data.pitch,
+            pointColorMapper: (PitchLineData data, _) => data.color,
+            markerSettings: const MarkerSettings(isVisible: true),
+          ),
+        ],
+      ),
     );
   }
 
@@ -316,7 +316,7 @@ class VocabInfoCard extends StatelessWidget {
         fontWeight: FontWeight.bold,
       ),
     ));
-    
+
     for (var data in audioData) {
       list.add(TextButton.icon(
         onPressed: () async {
