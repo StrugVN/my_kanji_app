@@ -3,10 +3,13 @@ import 'package:intl/intl.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/api.dart';
+import 'package:my_kanji_app/utility/paralax.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:core';
 import 'package:collection/collection.dart';
+import 'package:flutter/rendering.dart';
+import 'package:animated_background/animated_background.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -15,73 +18,92 @@ class Dashboard extends StatefulWidget {
   State<Dashboard> createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard> {
+class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
   }
 
+  ScrollController _secondScrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     var scheduleTask = schedule();
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/blue_bg.jpg"),
-            fit: BoxFit.fill,
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          // ignore: sized_box_for_whitespace
+          controller: _secondScrollController,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 2,
+            child: Image.asset(
+              "assets/images/blue_bg.jpg",
+              fit: BoxFit.fill,
+            ),
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              //
-              greeting(),
+        NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            final offset = notification.metrics.pixels * 0.5;
+            _secondScrollController.jumpTo(offset); // Exact synchronization
+            _secondScrollController.animateTo(offset,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.ease);
+            return true;
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                //
+                greeting(),
 
-              FutureBuilder<Widget>(
-                future: scheduleTask, // a previously-obtained Future
-                builder:
-                    (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                  List<Widget> children;
-                  if (snapshot.hasData) {
-                    children = <Widget>[
-                      snapshot.data!,
-                    ];
-                  } else if (snapshot.hasError) {
-                    children = <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Text(
-                            'Error: Cannot load schedule "${snapshot.error}"'),
+                FutureBuilder<Widget>(
+                  future: scheduleTask, // a previously-obtained Future
+                  builder:
+                      (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+                    List<Widget> children;
+                    if (snapshot.hasData) {
+                      children = <Widget>[
+                        snapshot.data!,
+                      ];
+                    } else if (snapshot.hasError) {
+                      children = <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                              'Error: Cannot load schedule "${snapshot.error}"'),
+                        ),
+                      ];
+                    } else {
+                      children = const <Widget>[
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Text('Fetching data...'),
+                        ),
+                      ];
+                    }
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: children,
                       ),
-                    ];
-                  } else {
-                    children = const <Widget>[
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 2),
-                        child: Text('Fetching data...'),
-                      ),
-                    ];
-                  }
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: children,
-                    ),
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -116,8 +138,8 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
           Container(
-            padding: EdgeInsets.all(10),
-            margin: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.lightBlue,
               borderRadius: BorderRadius.circular(8),
@@ -139,7 +161,50 @@ class _DashboardState extends State<Dashboard> {
   Future<Widget> schedule() async {
     await appData.assertDataIsLoaded();
 
-    return getForecastOfDate(0);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: Column(
+          children: [
+            const Text(
+              'Review schedule',
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            ),
+            ExpansionTile(
+              title: Text(
+                  '${DateTime.now().toLocal().formatWeekdayName('EEEE')} (today)'),
+              children: [
+                getForecastOfDate(0),
+              ],
+            ),
+            ExpansionTile(
+              title: Text(DateTime.now()
+                  .add(const Duration(days: 1))
+                  .toLocal()
+                  .formatWeekdayName('EEEE')),
+              children: [
+                getForecastOfDate(1),
+              ],
+            ),
+            ExpansionTile(
+              title: Text(DateTime.now()
+                  .add(const Duration(days: 2))
+                  .toLocal()
+                  .formatWeekdayName('EEEE')),
+              children: [
+                getForecastOfDate(2),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Container getForecastOfDate(int day) {
@@ -149,9 +214,20 @@ class _DashboardState extends State<Dashboard> {
         .map((entry) => {"Date": entry.key, "count": entry.value})
         .toList();
 
+    int accumulate = 0;
+    for (var item in formattedData) {
+      accumulate += item["count"] as int;
+      item["accumulate"] = accumulate;
+    }
+
+    formattedData = formattedData.reversed.toList();
+
     return Container(
+      height: (formattedData.length / 3) *
+          MediaQuery.of(context).size.height *
+          0.19,
       decoration: BoxDecoration(
-        color: Colors.black12,
+        color: Colors.white70,
         borderRadius: BorderRadius.circular(30),
       ),
       padding: const EdgeInsets.all(10),
@@ -174,16 +250,40 @@ class _DashboardState extends State<Dashboard> {
           borderWidth: 0,
           isVisible: true,
         ),
+        axes: const <ChartAxis>[
+          CategoryAxis(
+            isVisible: true,
+            name: 'secondaryXAxis',
+            opposedPosition: true,
+            labelStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+            ),
+            title: AxisTitle(text: 'Accumulate'),
+          ),
+          NumericAxis(
+            name: 'secondaryYAxis',
+            opposedPosition: true,
+            isVisible: false,
+          )
+        ],
         series: <BarSeries<Map<String, dynamic>, String>>[
-          // Renders line chart
           BarSeries<Map<String, dynamic>, String>(
             dataSource: formattedData,
             xValueMapper: (Map<String, dynamic> data, _) => data["Date"],
             yValueMapper: (Map<String, dynamic> data, _) => data["count"],
             dataLabelSettings: const DataLabelSettings(
-              isVisible: true, // Set to true to display data labels
-              labelAlignment: ChartDataLabelAlignment.outer,
+              isVisible: true,
+              labelAlignment: ChartDataLabelAlignment.auto,
             ),
+          ),
+          BarSeries<Map<String, dynamic>, String>(
+            dataSource: formattedData,
+            xValueMapper: (Map<String, dynamic> data, _) =>
+                data["accumulate"].toString(),
+            yValueMapper: (Map<String, dynamic> data, _) => 0,
+            xAxisName: 'secondaryXAxis',
+            yAxisName: 'secondaryYAxis',
           ),
         ],
       ),
@@ -192,7 +292,6 @@ class _DashboardState extends State<Dashboard> {
 
   Map<String, int> getReviewForecast(int forecastDays) {
     var timeStampList = getListTimeStamp(forecastDays);
-    timeStampList = timeStampList.reversed.toList();
 
     Map<String, int> countByTimeMap = {};
 
@@ -228,6 +327,17 @@ class _DashboardState extends State<Dashboard> {
       // } else {
       //   key = "${" " * dateCount}${key.substring(6)}";
       // }
+      if (forecastDays == 0) {
+        countByTimeMap["now"] = appData.allSrsData!
+            .where((element) {
+              var nextReview = element.data?.getNextReviewAsDateTime();
+              return nextReview == null
+                  ? false
+                  : nextReview.toLocal().isBefore(now);
+            })
+            .toList()
+            .length;
+      }
 
       countByTimeMap[key] = appData.allSrsData!
           .where((element) {
@@ -239,11 +349,6 @@ class _DashboardState extends State<Dashboard> {
           .toList()
           .length;
     }
-
-    countByTimeMap["now"] = appData.allSrsData!
-        .where((element) => element.data!.getNextReviewAsDateTime() == now)
-        .toList()
-        .length;
 
     countByTimeMap.removeWhere((key, value) => value == 0 && key != "now");
 
@@ -271,6 +376,12 @@ class _DashboardState extends State<Dashboard> {
     }
 
     return dateTimeList;
+  }
+}
+
+extension DateTimeFormatting on DateTime {
+  String formatWeekdayName(String formatString) {
+    return DateFormat(formatString).format(this);
   }
 }
 
