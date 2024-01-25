@@ -139,13 +139,15 @@ class _DashboardState extends State<Dashboard> {
   Future<Widget> schedule() async {
     await appData.assertDataIsLoaded();
 
-    var groupedData = getReviewForecast(1);
+    return getForecastOfDate(0);
+  }
+
+  Container getForecastOfDate(int day) {
+    var groupedData = getReviewForecast(day);
 
     List<Map<String, dynamic>> formattedData = groupedData.entries
         .map((entry) => {"Date": entry.key, "count": entry.value})
         .toList();
-
-    print(formattedData);
 
     return Container(
       decoration: BoxDecoration(
@@ -172,14 +174,16 @@ class _DashboardState extends State<Dashboard> {
           borderWidth: 0,
           isVisible: true,
         ),
-        series: <CartesianSeries>[
+        series: <BarSeries<Map<String, dynamic>, String>>[
           // Renders line chart
-          ColumnSeries<Map<String, dynamic>, String>(
+          BarSeries<Map<String, dynamic>, String>(
             dataSource: formattedData,
             xValueMapper: (Map<String, dynamic> data, _) => data["Date"],
             yValueMapper: (Map<String, dynamic> data, _) => data["count"],
-            // pointColorMapper: (Map<String, dynamic> data, _) => data.color,
-            // markerSettings: const MarkerSettings(isVisible: true),
+            dataLabelSettings: const DataLabelSettings(
+              isVisible: true, // Set to true to display data labels
+              labelAlignment: ChartDataLabelAlignment.outer,
+            ),
           ),
         ],
       ),
@@ -188,6 +192,7 @@ class _DashboardState extends State<Dashboard> {
 
   Map<String, int> getReviewForecast(int forecastDays) {
     var timeStampList = getListTimeStamp(forecastDays);
+    timeStampList = timeStampList.reversed.toList();
 
     Map<String, int> countByTimeMap = {};
 
@@ -198,60 +203,71 @@ class _DashboardState extends State<Dashboard> {
       Duration(
           minutes: now.minute,
           seconds: now.second,
-          milliseconds: now.millisecond),
+          milliseconds: now.millisecond,
+          microseconds: now.microsecond),
     );
 
-    countByTimeMap["now"] = appData.allSrsData!
-        .where(
-            (element) => element.data!.getNextReviewAsDateTime()!.isBefore(now))
-        .toList()
-        .length;
-
     String? date;
-    int dateCount = 0;
+
     for (var item in timeStampList) {
       String key = DateFormat('dd/MM/yyyy hh:mm:ss a')
           .format((item.toLocal()))
-          .replaceAll("/2024 ", "\n")
-          .replaceAll(":00:00 ", "\n")
+          .substring(11)
+          .replaceAll(":00:00 ", " ")
+          // .replaceAll(":00:00 ", "")
           .toLowerCase();
 
-      key = "${key.substring(6)}\n${key.substring(0, 5)}";
+      // key = "${key.substring(6)} ${key.substring(0, 5)}";
 
-      // "02\npm\n23/01"
-      date ??= key.substring(6);
+      // "02 pm 23/01"
+      date ??= key.substring(0, 5);
 
-      if (date != key.substring(6)) {
-        date = key.substring(6);
-        dateCount += 1;
-      } else {
-        key = "${" " * dateCount}${key.substring(0, 5)}";
-      }
+      // if (date != key.substring(6)) {
+      //   date = key.substring(0, 5);
+      //   dateCount += 1;
+      // } else {
+      //   key = "${" " * dateCount}${key.substring(6)}";
+      // }
 
       countByTimeMap[key] = appData.allSrsData!
-        .where(
-            (element) => element.data!.getNextReviewAsDateTime()! == item.toLocal())
+          .where((element) {
+            var nextReview = element.data?.getNextReviewAsDateTime();
+            return nextReview == null
+                ? false
+                : nextReview.toLocal() == item.toLocal();
+          })
+          .toList()
+          .length;
+    }
+
+    countByTimeMap["now"] = appData.allSrsData!
+        .where((element) => element.data!.getNextReviewAsDateTime() == now)
         .toList()
         .length;
-    }
-    
+
+    countByTimeMap.removeWhere((key, value) => value == 0 && key != "now");
+
     return countByTimeMap;
   }
 
   List<DateTime> getListTimeStamp(int days) {
-    final now = DateTime.now().add(const Duration(hours: 1));
-    now.subtract(
-      Duration(
-          minutes: now.minute,
-          seconds: now.second,
-          milliseconds: now.millisecond),
-    );
+    DateTime startTime = days == 0
+        ? DateTime(DateTime.now().year, DateTime.now().month,
+                DateTime.now().day, DateTime.now().hour)
+            .add(const Duration(hours: 1))
+        : DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day + days);
+
     const oneHour = Duration(hours: 1);
 
     List<DateTime> dateTimeList = [];
 
-    for (int i = 0; i < 24 * days; i++) {
-      dateTimeList.add(now.add(oneHour * i));
+    int i = 0;
+    var d = startTime.add(oneHour * i);
+    while (d.day == startTime.day) {
+      dateTimeList.add(d);
+      i += 1;
+      d = startTime.add(oneHour * i);
     }
 
     return dateTimeList;
