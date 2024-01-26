@@ -96,8 +96,10 @@ Future<List<WkSrsStatData>> getAllSrsStat() async {
     "Authorization": appData.apiKey!,
   };
 
-  final uri = Uri.https(wkAuthority, wkSrsStatistics,
-      {"subject_type": "kanji,vocabulary,kana_vocabulary"});
+  final uri = Uri.https(
+    wkAuthority, wkSrsStatistics,
+    // {"subject_types": "kanji,vocabulary,kana_vocabulary"}
+  );
 
   var response = await http.get(uri, headers: header);
 
@@ -129,8 +131,10 @@ Future<List<WkReviewStatData>> getAllReviewStat() async {
     "Authorization": appData.apiKey!,
   };
 
-  final uri = Uri.https(wkAuthority, wkReviewStatistics,
-      {"subject_type": "kanji,vocabulary,kana_vocabulary"});
+  final uri = Uri.https(
+    wkAuthority, wkReviewStatistics,
+    // {"subject_types": "kanji,vocabulary,kana_vocabulary"}
+  );
 
   var response = await http.get(uri, headers: header);
 

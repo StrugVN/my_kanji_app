@@ -159,14 +159,15 @@ class Assignment {
 
 enum SrsStage {
   locked(0, "Locked", Colors.grey),
-  apprenticeI(1, "A1", Color.fromARGB(255, 250, 115, 160)),
-  apprenticeII(2, "A2", Color.fromARGB(255, 250, 115, 160)),
-  apprenticeIII(3, "A3", Color.fromARGB(255, 250, 115, 160)),
-  apprenticeIV(4, "A4", Color.fromARGB(255, 250, 115, 160)),
+  apprenticeI(1, "A1", Color.fromARGB(255, 255, 159, 191)),
+  apprenticeII(2, "A2", Color.fromARGB(255, 252, 110, 157)),
+  apprenticeIII(3, "A3", Color.fromRGBO(255, 57, 123, 1)),
+  apprenticeIV(4, "A4", Color.fromARGB(255, 255, 15, 95)),
   guru(5, "Guru", Colors.purple),
-  master(6, "Master", Colors.blue),
-  enlighted(7, "Enlighted", Colors.green),
-  burned(8, "Burned", Colors.black54),
+  guruII(6, "Guru II", Colors.purple),
+  master(7, "Master", Colors.blue),
+  enlighted(8, "Enlightened", Colors.green),
+  burned(9, "Burned", Colors.black54),
   ;
 
   const SrsStage(this.id, this.label, this.color);

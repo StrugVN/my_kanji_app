@@ -191,13 +191,13 @@ class SubjectReviewStat {
     double baseScore = correct / (correct + incorrect);
 
     // Penalty for low current streak relative to max streak
-    double streakPenalty = 1 - (currentStreak / maxStreak);
+    double streakPenalty = 1.0 - (currentStreak / maxStreak);
 
     // Penalty for high incorrect/correct ratio
     double incorrectPenalty = incorrect / (correct + 1);
 
     // Combine penalties with base score
-    double memoryScore = baseScore * (1 - streakPenalty - incorrectPenalty);
+    double memoryScore = baseScore * (1 - streakPenalty*1.5 - incorrectPenalty);
 
     return memoryScore;
   }

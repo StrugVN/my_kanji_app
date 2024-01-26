@@ -1,5 +1,11 @@
+import 'dart:io';
+import 'dart:math';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/api.dart';
@@ -10,6 +16,7 @@ import 'dart:core';
 import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
 import 'package:animated_background/animated_background.dart';
+import 'package:collection/collection.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -29,8 +36,6 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    var scheduleTask = schedule();
-
     return Stack(
       children: [
         SingleChildScrollView(
@@ -58,47 +63,14 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                //
+                // //////////////////////////////////////////////////
                 greeting(),
 
-                FutureBuilder<Widget>(
-                  future: scheduleTask, // a previously-obtained Future
-                  builder:
-                      (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-                    List<Widget> children;
-                    if (snapshot.hasData) {
-                      children = <Widget>[
-                        snapshot.data!,
-                      ];
-                    } else if (snapshot.hasError) {
-                      children = <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                              'Error: Cannot load schedule "${snapshot.error}"'),
-                        ),
-                      ];
-                    } else {
-                      children = const <Widget>[
-                        SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Text('Fetching data...'),
-                        ),
-                      ];
-                    }
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: children,
-                      ),
-                    );
-                  },
-                ),
+                schedule(),
+
+                progression(),
+
+                criticalItem(),
               ],
             ),
           ),
@@ -107,10 +79,11 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
+  // ///////////////////////////////////////////////////////////////////////////////
   greeting() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black12,
+        // color: Colors.black12,
         borderRadius: BorderRadius.circular(30),
       ),
       padding: const EdgeInsets.all(10),
@@ -158,52 +131,269 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
-  Future<Widget> schedule() async {
+  // ///////////////////////////////////////////////////////////////////////////////
+  Widget schedule() {
+    var scheduleTask = scheduleDetails();
+
+    return FutureBuilder<Widget>(
+      future: scheduleTask, // a previously-obtained Future
+      builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        List<Widget> children;
+        if (snapshot.hasData) {
+          children = <Widget>[
+            snapshot.data!,
+          ];
+        } else if (snapshot.hasError) {
+          children = <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text('Error: Cannot load schedule "${snapshot.error}"'),
+            ),
+          ];
+        } else {
+          children = const <Widget>[
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Text('Fetching data...'),
+            ),
+          ];
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+
+  // ///////////////////////////////////////////////////////////////////////////////
+  Widget progression() {
+    var progressionTask = progressionDetails();
+
+    return FutureBuilder<Widget>(
+      future: progressionTask,
+      builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        List<Widget> children;
+        if (snapshot.hasData) {
+          children = <Widget>[
+            snapshot.data!,
+          ];
+        } else if (snapshot.hasError) {
+          children = <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text('Error: Cannot load progression "${snapshot.error}"'),
+            ),
+          ];
+        } else {
+          children = const <Widget>[
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Text('Fetching data...'),
+            ),
+          ];
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+
+  // ///////////////////////////////////////////////////////////////////////////////
+  Widget criticalItem() {
+    var criticalItemTask = criticalItemWidget();
+
+    return FutureBuilder<Widget>(
+      future: criticalItemTask,
+      builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        List<Widget> children;
+        if (snapshot.hasData) {
+          children = <Widget>[
+            snapshot.data!,
+          ];
+        } else if (snapshot.hasError) {
+          children = <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child:
+                  Text('Error: Cannot load critical item "${snapshot.error}"'),
+            ),
+          ];
+        } else {
+          children = const <Widget>[
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Text('Fetching data...'),
+            ),
+          ];
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+
+/* Note
+  - Greeting: X
+    + Name
+    + WK info
+    
+  - Schedule: X
+    + Up comming 2 days. available_at <= now
+  - Progress: 
+    + WK
+    + JLPT
+  - Highlight:
+    + Recent incorrect: streak = 1 | srs > 4
+    + Low s: top 10 lowerest mem_score | srs > 4 + top 10 lowest percentage | %<80%
+  - Recently 
+*/
+
+  Future<Widget> scheduleDetails() async {
     await appData.assertDataIsLoaded();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black12,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: Column(
-          children: [
-            const Text(
-              'Review schedule',
-              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-            ),
-            ExpansionTile(
-              title: Text(
-                  '${DateTime.now().toLocal().formatWeekdayName('EEEE')} (today)'),
-              children: [
-                getForecastOfDate(0),
-              ],
-            ),
-            ExpansionTile(
-              title: Text(DateTime.now()
-                  .add(const Duration(days: 1))
-                  .toLocal()
-                  .formatWeekdayName('EEEE')),
-              children: [
-                getForecastOfDate(1),
-              ],
-            ),
-            ExpansionTile(
-              title: Text(DateTime.now()
-                  .add(const Duration(days: 2))
-                  .toLocal()
-                  .formatWeekdayName('EEEE')),
-              children: [
-                getForecastOfDate(2),
-              ],
-            ),
-          ],
+    var lessonCount = appData.allSrsData!
+        .where((element) =>
+            element.data != null &&
+            element.data!.unlockedAt != null &&
+            element.data!.availableAt == null)
+        .toList()
+        .length;
+
+    var reviewCount = appData.allSrsData!
+        .where((element) {
+          var nextReview = element.data?.getNextReviewAsDateTime();
+          return nextReview == null
+              ? false
+              : nextReview.toLocal().isBefore(DateTime.now());
+        })
+        .toList()
+        .length;
+
+    return Column(
+      children: [
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            text: 'You have ',
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+            children: [
+              TextSpan(
+                text: '$lessonCount',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: ' lesson${lessonCount > 1 ? "s" : ""} and '),
+              TextSpan(
+                text: '$reviewCount',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                  text: ' review${lessonCount > 1 ? "s" : ""} available.\n'),
+              TextSpan(
+                text: 'Open WK',
+                style: const TextStyle(
+                    color: Colors.blue, fontStyle: FontStyle.italic),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    if (Platform.isWindows) {
+                      Process.run(
+                          'explorer', ["https://www.wanikani.com/dashboard"]);
+                    } else {
+                      openWebsite("https://www.wanikani.com/dashboard");
+                    }
+                  },
+              ),
+            ],
+          ),
         ),
-      ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black12,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: Column(
+              children: [
+                const Text(
+                  'Review schedule',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                ExpansionTile(
+                  initiallyExpanded: true,
+                  title: Text(
+                    '${DateTime.now().toLocal().formatWeekdayName('EEEE')} (today)',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    getForecastOfDate(0),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    DateTime.now()
+                        .add(const Duration(days: 1))
+                        .toLocal()
+                        .formatWeekdayName('EEEE'),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    getForecastOfDate(1),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    DateTime.now()
+                        .add(const Duration(days: 2))
+                        .toLocal()
+                        .formatWeekdayName('EEEE'),
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    getForecastOfDate(2),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -223,9 +413,8 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     formattedData = formattedData.reversed.toList();
 
     return Container(
-      height: (formattedData.length / 3) *
-          MediaQuery.of(context).size.height *
-          0.19,
+      height: MediaQuery.of(context).size.height *
+          (0.05 + formattedData.length / 2 * 0.09),
       decoration: BoxDecoration(
         color: Colors.white70,
         borderRadius: BorderRadius.circular(30),
@@ -355,6 +544,253 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     return countByTimeMap;
   }
 
+  Future<Widget> progressionDetails() async {
+    var srsList = await wKStat();
+
+    var totalCount = getSrsCounts(srsList);
+
+    Map<SrsStage, int> srsCounts = totalCount["srsCounts"];
+
+    int learning = totalCount["learning"];
+
+    // JPLT DATA COUNTS
+    var totalCountN5 = getSrsCounts(srsList
+        .where((element) =>
+            element["isKanji"] &&
+            element["char"] != null &&
+            jlptN5.contains(element["char"][0]))
+        .toList());
+    Map<SrsStage, int> srsCountsN5 = totalCountN5["srsCounts"];
+    var learningN5 = totalCountN5["learning"];
+    int learnedN5 = (srsCountsN5[SrsStage.guru] ?? 0) +
+        (srsCountsN5[SrsStage.guruII] ?? 0) +
+        (srsCountsN5[SrsStage.master] ?? 0) +
+        (srsCountsN5[SrsStage.enlighted] ?? 0);
+
+    var totalCountN4 = getSrsCounts(srsList
+        .where((element) =>
+            element["isKanji"] &&
+            element["char"] != null &&
+            jlptN4.contains(element["char"][0]))
+        .toList());
+    Map<SrsStage, int> srsCountsN4 = totalCountN4["srsCounts"];
+    var learningN4 = totalCountN4["learning"];
+    int learnedN4 = (srsCountsN4[SrsStage.guru] ?? 0) +
+        (srsCountsN4[SrsStage.guruII] ?? 0) +
+        (srsCountsN4[SrsStage.master] ?? 0) +
+        (srsCountsN4[SrsStage.enlighted] ?? 0);
+
+    var totalCountN3 = getSrsCounts(srsList
+        .where((element) =>
+            element["isKanji"] &&
+            element["char"] != null &&
+            jlptN3.contains(element["char"][0]))
+        .toList());
+    Map<SrsStage, int> srsCountsN3 = totalCountN3["srsCounts"];
+    var learningN3 = totalCountN3["learning"];
+    int learnedN3 = (srsCountsN3[SrsStage.guru] ?? 0) +
+        (srsCountsN3[SrsStage.guruII] ?? 0) +
+        (srsCountsN3[SrsStage.master] ?? 0) +
+        (srsCountsN3[SrsStage.enlighted] ?? 0);
+
+    var totalCountN2 = getSrsCounts(srsList
+        .where((element) =>
+            element["isKanji"] &&
+            element["char"] != null &&
+            jlptN2.contains(element["char"][0]))
+        .toList());
+    Map<SrsStage, int> srsCountsN2 = totalCountN2["srsCounts"];
+    var learningN2 = totalCountN2["learning"];
+    int learnedN2 = (srsCountsN2[SrsStage.guru] ?? 0) +
+        (srsCountsN2[SrsStage.guruII] ?? 0) +
+        (srsCountsN2[SrsStage.master] ?? 0) +
+        (srsCountsN2[SrsStage.enlighted] ?? 0);
+
+    var totalCountN1 = getSrsCounts(srsList
+        .where((element) =>
+            element["isKanji"] &&
+            element["char"] != null &&
+            jlptN1.contains(element["char"][0]))
+        .toList());
+    Map<SrsStage, int> srsCountsN1 = totalCountN1["srsCounts"];
+    var learningN1 = totalCountN1["learning"];
+    int learnedN1 = (srsCountsN1[SrsStage.guru] ?? 0) +
+        (srsCountsN1[SrsStage.guruII] ?? 0) +
+        (srsCountsN1[SrsStage.master] ?? 0) +
+        (srsCountsN1[SrsStage.enlighted] ?? 0);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Column(
+        children: [
+          const Text(
+            'WK Progression',
+            style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+          ),
+          const Gap(10),
+          Wrap(
+            alignment: WrapAlignment.start,
+            children: [
+              progressionCells(
+                  "Learning", learning, SrsStage.apprenticeIV.color),
+              progressionCells(
+                  "Remembering",
+                  (srsCounts[SrsStage.guru] ?? 0) +
+                      (srsCounts[SrsStage.guruII] ?? 0),
+                  SrsStage.guru.color),
+              progressionCells("Memorized", srsCounts[SrsStage.master] ?? 0,
+                  SrsStage.master.color),
+              progressionCells("Retained", srsCounts[SrsStage.enlighted] ?? 0,
+                  SrsStage.enlighted.color),
+              progressionCells("Burned", srsCounts[SrsStage.burned] ?? 0,
+                  SrsStage.burned.color),
+            ],
+          ),
+          const Gap(10),
+          const Text(
+            'JLPT',
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          ),
+          // -------------------
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Label
+              const Column(
+                children: [
+                  Text(
+                    "",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "N5",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "N4",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "N3",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "N2",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "N1",
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  const Text("Not studied"),
+                  Text("${jlptN5.replaceAll(",", "").length - learnedN5}"),
+                  Text("${jlptN4.replaceAll(",", "").length - learnedN4}"),
+                  Text("${jlptN3.replaceAll(",", "").length - learnedN3}"),
+                  Text("${jlptN2.replaceAll(",", "").length - learnedN2}"),
+                  Text("${jlptN1.replaceAll(",", "").length - learnedN1}"),
+                ],
+              ),
+              Column(
+                children: [
+                  const Text("In Progress"),
+                  Text("$learningN5"),
+                  Text("$learningN4"),
+                  Text("$learningN3"),
+                  Text("$learningN2"),
+                  Text("$learningN1"),
+                ],
+              ),
+              Column(
+                children: [
+                  const Text("Learned"),
+                  Text("$learnedN5"),
+                  Text("$learnedN4"),
+                  Text("$learnedN3"),
+                  Text("$learnedN2"),
+                  Text("$learnedN1"),
+                ],
+              ),
+              Column(
+                children: [
+                  const Text("Burned"),
+                  Text("${srsCountsN5[SrsStage.burned] ?? 0}"),
+                  Text("${srsCountsN4[SrsStage.burned] ?? 0}"),
+                  Text("${srsCountsN3[SrsStage.burned] ?? 0}"),
+                  Text("${srsCountsN2[SrsStage.burned] ?? 0}"),
+                  Text("${srsCountsN1[SrsStage.burned] ?? 0}"),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> getSrsCounts(List<Map<String, dynamic>> srsList) {
+    Map<SrsStage, int> srsCounts = {};
+    srsList.forEach((item) {
+      srsCounts[item["srs"]] = (srsCounts[item["srs"]] ?? 0) + 1;
+    });
+
+    var learning = (srsCounts[SrsStage.apprenticeI] ?? 0) +
+        (srsCounts[SrsStage.apprenticeII] ?? 0) +
+        (srsCounts[SrsStage.apprenticeIII] ?? 0) +
+        (srsCounts[SrsStage.apprenticeIV] ?? 0);
+
+    return {
+      "srsCounts": srsCounts,
+      "learning": learning,
+    };
+  }
+
+  Widget progressionCells(String name, int data, Color color) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.28,
+      height: MediaQuery.of(context).size.height * 0.1,
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "$data",
+            style: const TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 14.0,
+              fontWeight: FontWeight.w500,
+              color: Colors.white70,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<DateTime> getListTimeStamp(int days) {
     DateTime startTime = days == 0
         ? DateTime(DateTime.now().year, DateTime.now().month,
@@ -377,6 +813,135 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
 
     return dateTimeList;
   }
+
+  Future<List<Map<String, dynamic>>> wKStat() async {
+    await appData.assertDataIsLoaded();
+    if (appData.allSrsData == null) {
+      return [];
+    }
+
+    Map<int, String> kanjiMap = Map.fromEntries(
+      appData.allKanjiData!
+          .map((e) => {e.id!: e.data!.characters!})
+          .toList()
+          .expand((pair) => pair.entries),
+    );
+
+    Map<int, String> vocabMap = Map.fromEntries(
+      appData.allVocabData!
+          .map((e) => {e.id!: e.data!.characters!})
+          .toList()
+          .expand((pair) => pair.entries),
+    );
+
+    var combineMap = {...kanjiMap, ...vocabMap};
+
+    var result = appData.allSrsData!
+        .where((element) =>
+            element.data != null && element.data!.getSrs() != SrsStage.burned)
+        .map((e) => {
+              "srs": e.data!.getSrs(),
+              "id": e.data!.subjectId,
+              "isKanji": e.data!.subjectType == "kanji",
+              "char": combineMap[e.data!.subjectId] ?? "N/A"
+            })
+        .toList();
+
+    return result;
+  }
+
+  Future<Widget> criticalItemWidget() async {
+    await appData.assertDataIsLoaded();
+
+    var recentMistakes = appData.allReviewData!
+        .where((element) {
+          try {
+            var itemSrs = appData.allSrsData!.firstWhereOrNull(
+                (e) => e.data!.subjectId == element.data!.subjectId);
+
+            if (itemSrs == null) return false;
+
+            return itemSrs.data!.passedAt != null &&
+                (element.data!.meaningCurrentStreak == 1 ||
+                    element.data!.readingCurrentStreak == 1 ||
+                    (itemSrs.data!.getSrs().id < 6 &&
+                        (element.data!.meaningCurrentStreak == 2 ||
+                            element.data!.readingCurrentStreak == 2)) ||
+                    element.data!.percentageCorrect! < 80);
+          } on Exception catch (e) {
+            // TODO
+            return false;
+          }
+        })
+        .map((e) => e.data?.subjectId)
+        .toList();
+
+    recentMistakes.removeWhere((element) => element == null);
+
+    var recentMistakesData = appData.allKanjiData!
+        .where((element) => recentMistakes.contains(element.id))
+        .map((e) => {"id": e.id, "char": e.data!.characters, "isKanji": true})
+        .toList();
+    recentMistakesData = recentMistakesData +
+        appData.allVocabData!
+            .where((element) => recentMistakes.contains(element.id))
+            .map((e) =>
+                {"id": e.id, "char": e.data!.characters, "isKanji": false})
+            .toList();
+
+    recentMistakesData.shuffle();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          title: Center(
+            child: Text(
+              'Recent mistake${recentMistakesData.length > 1 ? "s" : ""}',
+              style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            ),
+          ),
+          children: [
+            recentMistakesData.isNotEmpty
+                ? Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                    children: [
+                      for (var item in recentMistakesData)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 3, vertical: 3),
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 3, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: item["isKanji"] as bool
+                                ? Colors.pink.shade600
+                                : Colors.purple.shade800,
+                          ),
+                          child: Text(
+                            item["char"]?.toString() ?? "",
+                            style: const TextStyle(
+                                fontSize: 24, color: Colors.white),
+                          ),
+                        ),
+                    ],
+                  )
+                : const Text(
+                    'No mistake! 凄いですよ！',
+                    style: TextStyle(fontSize: 18),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 extension DateTimeFormatting on DateTime {
@@ -384,19 +949,3 @@ extension DateTimeFormatting on DateTime {
     return DateFormat(formatString).format(this);
   }
 }
-
-/* Note
-  - Greeting:
-    + Name
-    + WK info
-    
-  - Schedule:
-    + Up comming 2 days. available_at <= now + 
-  - Highlight:
-    + Recent incorrect: streak = 1 | srs > 4
-    + Low s: top 10 lowerest mem_score | srs > 4 + top 10 lowest percentage | %<80%
-  - Progress: 
-    + WK
-    + JLPT
-  - Recently 
-*/
