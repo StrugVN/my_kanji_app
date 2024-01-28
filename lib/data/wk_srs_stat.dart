@@ -152,6 +152,21 @@ class Assignment {
     return null;
   }
 
+  DateTime? getUnlockededDateAsDateTime() {
+    if (unlockedAt != null) {
+      return DateTime.parse(unlockedAt!).toLocal();
+    }
+    return null;
+  }
+
+  String? getUnlockededDateAsLocalTime() {
+    if (unlockedAt != null) {
+      return DateFormat('dd/MM/yyyy hh:mm:ss a')
+          .format((DateTime.parse(unlockedAt!).toLocal()));
+    }
+    return null;
+  }
+
   SrsStage getSrs() {
     return SrsStage.fromId(srsStage!);
   }

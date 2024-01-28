@@ -40,35 +40,56 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            title: const Center(child: Text("📚上手に出来る様になる📖")),
-            backgroundColor: Colors.blue,
-          ),
-          body: GestureDetector(
-            onTap: () {
-              FocusScope.of(context).requestFocus(FocusNode());
-            },
-            child: IndexedStack(
-              index: pageIndex,
-              children: pageList,
-            ),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: pageIndex,
-            onTap: (value) {
-              setState(() {
-                pageIndex = value;
-              });
-            },
-            items: const [
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.home), label: "Dashboard"),
-              BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
-              BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Return to login screen'),
+            content: Text('Log out and return to login screen?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Leave'),
+              ),
             ],
           ),
+        );
+        if (confirm != null && confirm) {
+          Navigator.pop(context, true); // User confirmed leaving
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Center(child: Text("📚上手に出来る様になる📖")),
+          backgroundColor: Colors.blue,
+        ),
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).requestFocus(FocusNode());
+          },
+          child: IndexedStack(
+            index: pageIndex,
+            children: pageList,
+          ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: pageIndex,
+          onTap: (value) {
+            setState(() {
+              pageIndex = value;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
+            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
+          ],
         ),
       ),
     );
@@ -81,7 +102,6 @@ class _HomeState extends State<Home> {
       await appData.loadDataFromAsset();
 
       // TEST
-      
     } on Exception catch (e) {
       print(e);
     }

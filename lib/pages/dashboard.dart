@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
+import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/paralax.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
@@ -71,6 +72,8 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                 progression(),
 
                 criticalItem(),
+
+                newItem(),
               ],
             ),
           ),
@@ -233,6 +236,49 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
               padding: const EdgeInsets.only(top: 16),
               child:
                   Text('Error: Cannot load critical item "${snapshot.error}"'),
+            ),
+          ];
+        } else {
+          children = const <Widget>[
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Text('Fetching data...'),
+            ),
+          ];
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: children,
+          ),
+        );
+      },
+    );
+  }
+
+  // ///////////////////////////////////////////////////////////////////////////////
+  Widget newItem() {
+    var scheduleTask = newItemDetails();
+
+    return FutureBuilder<Widget>(
+      future: scheduleTask, // a previously-obtained Future
+      builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        List<Widget> children;
+        if (snapshot.hasData) {
+          children = <Widget>[
+            snapshot.data!,
+          ];
+        } else if (snapshot.hasError) {
+          children = <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child:
+                  Text('Error: Cannot load new items list "${snapshot.error}"'),
             ),
           ];
         } else {
@@ -464,6 +510,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
             dataLabelSettings: const DataLabelSettings(
               isVisible: true,
               labelAlignment: ChartDataLabelAlignment.auto,
+              showZeroValue: false,
             ),
           ),
           BarSeries<Map<String, dynamic>, String>(
@@ -889,7 +936,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                 {"id": e.id, "char": e.data!.characters, "isKanji": false})
             .toList();
 
-    recentMistakesData.shuffle();
+    // recentMistakesData.shuffle();
 
     return Container(
       width: double.infinity,
@@ -906,29 +953,46 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
           title: Center(
             child: Text(
               'Recent mistake${recentMistakesData.length > 1 ? "s" : ""}',
-              style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
           ),
           children: [
             recentMistakesData.isNotEmpty
                 ? Wrap(
-                  alignment: WrapAlignment.spaceBetween,
+                    alignment: WrapAlignment.spaceBetween,
                     children: [
                       for (var item in recentMistakesData)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 3, vertical: 3),
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 3, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: item["isKanji"] as bool
-                                ? Colors.pink.shade600
-                                : Colors.purple.shade800,
-                          ),
-                          child: Text(
-                            item["char"]?.toString() ?? "",
-                            style: const TextStyle(
-                                fontSize: 24, color: Colors.white),
+                        GestureDetector(
+                          onTap: () {
+                            var kanji = appData.allKanjiData!.firstWhereOrNull(
+                                (element) => element.id == item["id"]);
+                            if (kanji != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => KanjiPage(
+                                    kanji: kanji,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 3, vertical: 3),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 3, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: item["isKanji"] as bool
+                                  ? Colors.pink.shade600
+                                  : Colors.purple.shade800,
+                            ),
+                            child: Text(
+                              item["char"]?.toString() ?? "",
+                              style: const TextStyle(
+                                  fontSize: 28, color: Colors.white),
+                            ),
                           ),
                         ),
                     ],
@@ -939,6 +1003,123 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                   ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<Widget> newItemDetails() async {
+    await appData.assertDataIsLoaded();
+
+    var lessonItem = appData.allSrsData!
+        .where((element) =>
+            element.data != null &&
+            element.data!.unlockedAt != null &&
+            element.data!.availableAt == null)
+        .toList();
+
+    var newItemsList = appData.allKanjiData!
+        .where((element) =>
+            lessonItem.firstWhereOrNull(
+              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+            ) !=
+            null)
+        .map((element) {
+      var lessonItemStat = lessonItem.firstWhereOrNull(
+        (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+      );
+      return {
+        "id": element.id,
+        "char": element.data!.characters,
+        "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+        "isKanji": true
+      };
+    }).toList();
+    newItemsList = newItemsList +
+        appData.allVocabData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false
+          };
+        }).toList();
+
+    newItemsList.sort((a, b) => (b["unlockedDate"] as DateTime)
+        .compareTo(a["unlockedDate"] as DateTime));
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Column(
+        children: [
+          Text(
+            'Available lesson${newItemsList.length > 1 ? "s" : ""}',
+            style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+          ),
+          for (var item in newItemsList.sublist(
+              0, newItemsList.length < 10 ? newItemsList.length : 10))
+            Container(
+              decoration: BoxDecoration(
+                color: item["isKanji"] as bool
+                    ? Colors.pink.shade600
+                    : Colors.purple.shade800,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    (item["char"] ?? "ERR") as String,
+                    style: const TextStyle(fontSize: 24, color: Colors.white),
+                  ),
+                  Text(
+                    (item["unlockedDate"] != null
+                        ? DateFormat('MMM dd')
+                            .format(item["unlockedDate"] as DateTime)
+                        : "ERR"),
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          newItemsList.length > 10
+              ? RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    children: [
+                      const TextSpan(text: 'And '),
+                      TextSpan(
+                        text: '${newItemsList.length - 10}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const TextSpan(
+                        text: ' more...',
+                      ),
+                    ],
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ],
       ),
     );
   }

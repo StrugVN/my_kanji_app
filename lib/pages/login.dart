@@ -239,6 +239,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       appData.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
 
+      appData.dataIsLoaded = false;
+
       Navigator.pop(context);
 
       Navigator.push(context, toHome());
