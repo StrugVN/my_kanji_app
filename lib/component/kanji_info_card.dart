@@ -200,7 +200,7 @@ class KanjiInfoCard extends StatelessWidget {
                     },
                   ),
                   getVisualySimilar(),
-                  getRelatedVocab(),
+                  // getRelatedVocab(),
                 ],
               ),
             ),
@@ -408,4 +408,5 @@ class KanjiInfoCard extends StatelessWidget {
       children: widgets,
     );
   }
+
 }

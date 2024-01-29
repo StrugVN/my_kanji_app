@@ -47,7 +47,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 2,
             child: Image.asset(
-              "assets/images/blue_bg.jpg",
+              "assets/images/blue_bg_2.jpg",
               fit: BoxFit.fill,
             ),
           ),
@@ -1103,7 +1103,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                   textAlign: TextAlign.center,
                   text: TextSpan(
                     children: [
-                      const TextSpan(text: 'And '),
+                      const TextSpan(text: 'and '),
                       TextSpan(
                         text: '${newItemsList.length - 10}',
                         style: const TextStyle(fontWeight: FontWeight.bold),

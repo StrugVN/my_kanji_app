@@ -1,30 +1,649 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:gap/gap.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/kanji_set.dart';
+import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/service/api.dart';
+import 'package:my_kanji_app/utility/ult_func.dart';
+import 'package:unofficial_jisho_api/api.dart' as jisho;
+import 'package:unofficial_jisho_api/api.dart';
 
 class KanjiPage extends StatefulWidget {
-  const KanjiPage({super.key, required this.kanji, this.navigationList});
+  KanjiPage({super.key, required this.kanji, this.navigationList})
+      : kanjiInfo = jisho.searchForKanji(kanji.data!.characters!),
+        example = jisho.searchForExamples(kanji.data!.characters!);
 
   final Kanji kanji;
 
   final List<Kanji>? navigationList;
+
+  final Future<KanjiResult> kanjiInfo;
+
+  final Future<ExampleResults> example;
 
   @override
   State<KanjiPage> createState() => _KanjiPageState();
 }
 
 class _KanjiPageState extends State<KanjiPage> {
+  int numberOfExample = 3;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    if (widget.kanji.data?.characters == null ||
+        widget.kanji.data?.level == null ||
+        widget.kanji.data?.meanings == null ||
+        widget.kanji.data?.readings == null) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(widget.kanji.data!.characters ?? "", style: const TextStyle(color: Colors.white),),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white,),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        // ...
+        backgroundColor: Colors.pink,
       ),
-      body: Container(),
+      backgroundColor: Colors.grey.shade300,
+      body: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.pinkAccent.shade400,
+                    ),
+                    child: Text(
+                      widget.kanji.data?.characters ?? "N/A",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 96,
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          futureWidget(getUsageRate(), false, false),
+                          Text(
+                            'Wanikani lv.${widget.kanji.data!.level}, JLPT N${jlpt(widget.kanji.data!.characters!)}',
+                          ),
+                          const Divider(),
+                          Text(
+                            widget.kanji.data?.meanings!
+                                    .map((e) => e.meaning)
+                                    .join(", ") ??
+                                "",
+                            style: const TextStyle(fontSize: 24),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              RichText(
+                text: TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'On: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: widget.kanji.data?.readings
+                          ?.map((e) => e.type == "onyomi" ? e.reading : null)
+                          .whereNotNull()
+                          .join(", "),
+                    ),
+                  ],
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              RichText(
+                text: TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Kun: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: widget.kanji.data?.readings
+                          ?.map((e) => e.type == "kunyomi" ? e.reading : null)
+                          .whereNotNull()
+                          .join(", "),
+                    ),
+                  ],
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const Divider(color: Colors.black),
+              futureWidget(stroke(), true, true),
+              futureWidget(getExample(), false, false),
+              getRelatedVocab(),
+              getVisualySimilar(),
+              getWkInfo(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<Widget> getUsageRate() async {
+    var info = await widget.kanjiInfo;
+    // var exp_phase = await jisho.searchForExamples(widget.kanji.data!.characters!);
+
+    // print(widget.kanji.data!.characters!);
+
+    // print(exp_phase.results.map((element) => "${element.kanji} - ${element.english}\n").toList());
+
+    return Align(
+      alignment: Alignment.topRight,
+      child: RichText(
+        textAlign: TextAlign.right,
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: "${info.data?.newspaperFrequencyRank}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const TextSpan(
+              text: " of 2500 most used kanji",
+            ),
+          ],
+          style: const TextStyle(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+  Future<Widget> stroke() async {
+    var info = await widget.kanjiInfo;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Stroke order:",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Container(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SvgPicture.network(
+                info.data!.strokeOrderSvgUri,
+                height: MediaQuery.of(context).size.width * 0.4,
+                width: MediaQuery.of(context).size.width * 0.4,
+              ),
+              Image(
+                width: MediaQuery.of(context).size.width * 0.4,
+                height: MediaQuery.of(context).size.width * 0.4,
+                image: NetworkImage(info.data!.strokeOrderGifUri),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<Widget> getExample() async {
+    // var info = await widget.kanjiInfo;
+    var example = await widget.example;
+
+    example.results.sort((a, b) => a.kanji.length - b.kanji.length);
+
+    var exampleList = example.results.take(
+        example.results.length > numberOfExample
+            ? numberOfExample
+            : example.results.length);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Divider(color: Colors.black),
+        const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "Example sentences:",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        for (var sentence in exampleList)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  children: [
+                    for (var item in sentence.pieces)
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.lifted
+                                    ?.replaceAll(" ", "")
+                                    .replaceAll("\n", "") ??
+                                "",
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                          Text(
+                            item.unlifted
+                                .replaceAll(" ", "")
+                                .replaceAll("\n", ""),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                Text(
+                  " - ${sentence.english}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const Gap(5),
+              ],
+            ),
+          ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.grey[350],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: (example.results.length <= numberOfExample)
+                      ? "Show Less"
+                      : "Show More",
+                  style: const TextStyle(color: Colors.blue),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      if (example.results.length <= numberOfExample) {
+                        setState(() {
+                          numberOfExample = 3;
+                        });
+                      } else {
+                        setState(() {
+                          numberOfExample += 3;
+                        });
+                      }
+                    },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget getRelatedVocab() {
+    var relatedIds = widget.kanji.data?.amalgamationSubjectIds;
+
+    if (relatedIds == null || relatedIds.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Vocab>? relatedVocab = AppData()
+        .allVocabData
+        ?.where((element) => relatedIds.contains(element.id))
+        .toList();
+
+    if (relatedVocab == null || relatedVocab.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(
+      const Divider(color: Colors.black),
+    );
+    widgets.add(
+      const Text(
+        "Used in:",
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    for (var vocab in relatedVocab) {
+      widgets.add(
+        Container(
+          margin: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade600,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    vocab.data?.characters ?? "N/A",
+                    style: const TextStyle(
+                      fontSize: 32,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        vocab.data?.readings
+                                ?.firstWhereOrNull(
+                                    (item) => item.primary == true)
+                                ?.reading ??
+                            "N/A",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        vocab.data?.meanings
+                                ?.firstWhereOrNull(
+                                    (item) => item.primary == true)
+                                ?.meaning ??
+                            "N/A",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  Widget getVisualySimilar() {
+    var visualySimilarId = widget.kanji.data?.visuallySimilarSubjectIds;
+
+    if (visualySimilarId == null || visualySimilarId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Kanji>? similarKanji = AppData()
+        .allKanjiData
+        ?.where((element) => visualySimilarId.contains(element.id))
+        .toList();
+
+    if (similarKanji == null || similarKanji.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(
+      const Divider(color: Colors.black),
+    );
+    widgets.add(
+      const Text(
+        "Visually similar:",
+        textAlign: TextAlign.left,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+
+    var gridList = <Widget>[];
+
+    for (var kanji in similarKanji) {
+      gridList.add(
+        Container(
+          margin: const EdgeInsets.all(5.0),
+          // padding: const EdgeInsets.all(3.0),
+          decoration: BoxDecoration(
+            color: Colors.red.shade500,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                kanji.data?.characters ?? "N/A",
+                style: const TextStyle(
+                  fontSize: 42,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.readings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.reading ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                kanji.data?.meanings
+                        ?.firstWhereOrNull((item) => item.primary == true)
+                        ?.meaning ??
+                    "N/A" ??
+                    "N/A",
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    widgets.add(
+      GridView(
+        padding: const EdgeInsets.only(left: 10.0),
+        shrinkWrap: true,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          childAspectRatio: 1,
+          crossAxisCount: 3,
+        ),
+        physics: const NeverScrollableScrollPhysics(),
+        children: gridList,
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  Widget getWkInfo() {
+    var reviewStat = appData.allReviewData?.firstWhereOrNull(
+        (element) => element.data?.subjectId == widget.kanji.id);
+    var srsStat = appData.allSrsData?.firstWhereOrNull(
+        (element) => element.data?.subjectId == widget.kanji.id);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(color: Colors.black),
+        const Text(
+          "Wanikani progression:",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - SRS Stage: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: srsStat?.data?.getSrs().label,
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Unlocked at: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: srsStat?.data?.getUnlockededDateAsLocalTime(),
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Next review: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: srsStat?.data?.getNextReviewAsLocalTime(),
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Overall correct: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text: "${reviewStat?.data!.percentageCorrect}%",
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Meaning correct: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text:
+                    "${reviewStat?.data!.meaningCorrect}/${((reviewStat?.data!.meaningCorrect)! + (reviewStat?.data!.meaningIncorrect)!)}, ",
+              ),
+              TextSpan(
+                text:
+                    "current streak ${reviewStat?.data!.meaningCurrentStreak}, max streak ${reviewStat?.data!.meaningMaxStreak}",
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Reading correct: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(
+                text:
+                    "${reviewStat?.data!.readingCorrect}/${((reviewStat?.data!.readingCorrect)! + (reviewStat?.data!.readingIncorrect)!)}, ",
+              ),
+              TextSpan(
+                text:
+                    "current streak ${reviewStat?.data!.readingCurrentStreak}, max streak ${reviewStat?.data!.readingMaxStreak}",
+              ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
     );
   }
 }
