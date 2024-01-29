@@ -75,7 +75,7 @@ class _KanjiPageState extends State<KanjiPage> {
             ),
             onPressed: () {
               Navigator.of(context).popUntil(
-                  (route) => route.isFirst || route.settings.name == '/home');
+                  (route) => route.isFirst || route.settings.name == '/homePage' || route.settings.name == 'homePage');
             },
           ),
         ],

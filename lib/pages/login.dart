@@ -242,7 +242,6 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       appData.dataIsLoaded = false;
 
       Navigator.pop(context, true); // Pop loading
-      Navigator.pop(context, true); // Pop the page itself
       Navigator.push(context, toHome());
       
     } else {
@@ -274,5 +273,6 @@ Route toHome() {
         child: child,
       );
     },
+    settings: const RouteSettings(name: "homePage"),
   );
 }
