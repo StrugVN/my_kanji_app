@@ -69,9 +69,13 @@ class _KanjiPageState extends State<KanjiPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.home, color: Colors.white,),
+            icon: const Icon(
+              Icons.home,
+              color: Colors.white,
+            ),
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.of(context).popUntil(
+                  (route) => route.isFirst || route.settings.name == '/home');
             },
           ),
         ],
@@ -114,13 +118,16 @@ class _KanjiPageState extends State<KanjiPage> {
                             'Wanikani lv.${kanji.data!.level}, JLPT N${jlpt(kanji.data!.characters!)}',
                           ),
                           const Divider(),
-                          Text(
-                            kanji.data?.meanings!
-                                    .map((e) => e.meaning)
-                                    .join(", ") ??
-                                "",
-                            style: const TextStyle(fontSize: 24),
-                            textAlign: TextAlign.left,
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              kanji.data?.meanings!
+                                      .map((e) => e.meaning)
+                                      .join(", ") ??
+                                  "",
+                              style: const TextStyle(fontSize: 24),
+                              textAlign: TextAlign.left,
+                            ),
                           ),
                         ],
                       ),

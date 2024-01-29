@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
 
 void main() {
@@ -10,6 +11,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: Login());
+    return MaterialApp(
+      routes: {
+        '/home': (context) => const Home(),
+        '/login': (context) => const Login(),
+      },
+      home: const Login(),
+    );
   }
 }
