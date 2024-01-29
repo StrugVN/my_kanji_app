@@ -13,34 +13,41 @@ import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:unofficial_jisho_api/api.dart';
 
 class KanjiPage extends StatefulWidget {
-  KanjiPage({super.key, required this.kanji, this.navigationList})
-      : kanjiInfo = jisho.searchForKanji(kanji.data!.characters!),
-        example = jisho.searchForExamples(kanji.data!.characters!);
+  KanjiPage({super.key, required this.kanji, this.navigationList});
 
   final Kanji kanji;
 
   final List<Kanji>? navigationList;
 
-  final Future<KanjiResult> kanjiInfo;
-
-  final Future<ExampleResults> example;
-
   @override
-  State<KanjiPage> createState() => _KanjiPageState();
+  State<KanjiPage> createState() => _KanjiPageState(kanji, navigationList);
 }
 
 class _KanjiPageState extends State<KanjiPage> {
   int numberOfExample = 3;
+
+  final Kanji kanji;
+
+  final List<Kanji>? navigationList;
+
+  late Future<KanjiResult> kanjiInfo;
+
+  late Future<ExampleResults> example;
+
+  _KanjiPageState(this.kanji, this.navigationList);
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    if (widget.kanji.data?.characters == null ||
-        widget.kanji.data?.level == null ||
-        widget.kanji.data?.meanings == null ||
-        widget.kanji.data?.readings == null) {
+    kanjiInfo = jisho.searchForKanji(kanji.data!.characters!);
+    example = jisho.searchForExamples(kanji.data!.characters!);
+
+    if (kanji.data?.characters == null ||
+        kanji.data?.level == null ||
+        kanji.data?.meanings == null ||
+        kanji.data?.readings == null) {
       Navigator.of(context).pop();
     }
   }
@@ -49,11 +56,25 @@ class _KanjiPageState extends State<KanjiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.kanji.data!.characters ?? "", style: const TextStyle(color: Colors.white),),
+        title: Text(
+          kanji.data!.characters ?? "",
+          style: const TextStyle(color: Colors.white),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white,),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home, color: Colors.white,),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
         backgroundColor: Colors.pink,
       ),
       backgroundColor: Colors.grey.shade300,
@@ -75,7 +96,7 @@ class _KanjiPageState extends State<KanjiPage> {
                       color: Colors.pinkAccent.shade400,
                     ),
                     child: Text(
-                      widget.kanji.data?.characters ?? "N/A",
+                      kanji.data?.characters ?? "N/A",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 96,
@@ -90,11 +111,11 @@ class _KanjiPageState extends State<KanjiPage> {
                         children: [
                           futureWidget(getUsageRate(), false, false),
                           Text(
-                            'Wanikani lv.${widget.kanji.data!.level}, JLPT N${jlpt(widget.kanji.data!.characters!)}',
+                            'Wanikani lv.${kanji.data!.level}, JLPT N${jlpt(kanji.data!.characters!)}',
                           ),
                           const Divider(),
                           Text(
-                            widget.kanji.data?.meanings!
+                            kanji.data?.meanings!
                                     .map((e) => e.meaning)
                                     .join(", ") ??
                                 "",
@@ -117,7 +138,7 @@ class _KanjiPageState extends State<KanjiPage> {
                       ),
                     ),
                     TextSpan(
-                      text: widget.kanji.data?.readings
+                      text: kanji.data?.readings
                           ?.map((e) => e.type == "onyomi" ? e.reading : null)
                           .whereNotNull()
                           .join(", "),
@@ -139,7 +160,7 @@ class _KanjiPageState extends State<KanjiPage> {
                       ),
                     ),
                     TextSpan(
-                      text: widget.kanji.data?.readings
+                      text: kanji.data?.readings
                           ?.map((e) => e.type == "kunyomi" ? e.reading : null)
                           .whereNotNull()
                           .join(", "),
@@ -165,10 +186,10 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Future<Widget> getUsageRate() async {
-    var info = await widget.kanjiInfo;
-    // var exp_phase = await jisho.searchForExamples(widget.kanji.data!.characters!);
+    var info = await kanjiInfo;
+    // var exp_phase = await jisho.searchForExamples(kanji.data!.characters!);
 
-    // print(widget.kanji.data!.characters!);
+    // print(kanji.data!.characters!);
 
     // print(exp_phase.results.map((element) => "${element.kanji} - ${element.english}\n").toList());
 
@@ -193,7 +214,7 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Future<Widget> stroke() async {
-    var info = await widget.kanjiInfo;
+    var info = await kanjiInfo;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -229,15 +250,15 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Future<Widget> getExample() async {
-    // var info = await widget.kanjiInfo;
-    var example = await widget.example;
+    // var info = await kanjiInfo;
+    var exampleResults = await example;
 
-    example.results.sort((a, b) => a.kanji.length - b.kanji.length);
+    exampleResults.results.sort((a, b) => a.kanji.length - b.kanji.length);
 
-    var exampleList = example.results.take(
-        example.results.length > numberOfExample
+    var exampleList = exampleResults.results.take(
+        exampleResults.results.length > numberOfExample
             ? numberOfExample
-            : example.results.length);
+            : exampleResults.results.length);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -305,13 +326,13 @@ class _KanjiPageState extends State<KanjiPage> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: (example.results.length <= numberOfExample)
+                  text: (exampleResults.results.length <= numberOfExample)
                       ? "Show Less"
                       : "Show More",
                   style: const TextStyle(color: Colors.blue),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
-                      if (example.results.length <= numberOfExample) {
+                      if (exampleResults.results.length <= numberOfExample) {
                         setState(() {
                           numberOfExample = 3;
                         });
@@ -331,7 +352,7 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Widget getRelatedVocab() {
-    var relatedIds = widget.kanji.data?.amalgamationSubjectIds;
+    var relatedIds = kanji.data?.amalgamationSubjectIds;
 
     if (relatedIds == null || relatedIds.isEmpty) {
       return const SizedBox.shrink();
@@ -432,7 +453,7 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Widget getVisualySimilar() {
-    var visualySimilarId = widget.kanji.data?.visuallySimilarSubjectIds;
+    var visualySimilarId = kanji.data?.visuallySimilarSubjectIds;
 
     if (visualySimilarId == null || visualySimilarId.isEmpty) {
       return const SizedBox.shrink();
@@ -467,46 +488,62 @@ class _KanjiPageState extends State<KanjiPage> {
 
     for (var kanji in similarKanji) {
       gridList.add(
-        Container(
-          margin: const EdgeInsets.all(5.0),
-          // padding: const EdgeInsets.all(3.0),
-          decoration: BoxDecoration(
-            color: Colors.red.shade500,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                kanji.data?.characters ?? "N/A",
-                style: const TextStyle(
-                  fontSize: 42,
-                  color: Colors.white,
+        GestureDetector(
+          onTap: () {
+            var simKanji = appData.allKanjiData!
+                .firstWhereOrNull((element) => element.id == kanji.id);
+            if (simKanji != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KanjiPage(
+                    kanji: simKanji,
+                  ),
                 ),
-              ),
-              Text(
-                kanji.data?.readings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.reading ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+              );
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.all(5.0),
+            // padding: const EdgeInsets.all(3.0),
+            decoration: BoxDecoration(
+              color: Colors.red.shade500,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  kanji.data?.characters ?? "N/A",
+                  style: const TextStyle(
+                    fontSize: 42,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              Text(
-                kanji.data?.meanings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.meaning ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+                Text(
+                  kanji.data?.readings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.reading ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+                Text(
+                  kanji.data?.meanings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.meaning ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -532,10 +569,34 @@ class _KanjiPageState extends State<KanjiPage> {
   }
 
   Widget getWkInfo() {
-    var reviewStat = appData.allReviewData?.firstWhereOrNull(
-        (element) => element.data?.subjectId == widget.kanji.id);
-    var srsStat = appData.allSrsData?.firstWhereOrNull(
-        (element) => element.data?.subjectId == widget.kanji.id);
+    var reviewStat = appData.allReviewData
+        ?.firstWhereOrNull((element) => element.data?.subjectId == kanji.id);
+    var srsStat = appData.allSrsData
+        ?.firstWhereOrNull((element) => element.data?.subjectId == kanji.id);
+
+    if (reviewStat == null || srsStat == null) {
+      return const Column(
+        children: [
+          Divider(color: Colors.black),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Text(
+              "Wanikani progression:",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Text(
+            "Item is not yet learned",
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
