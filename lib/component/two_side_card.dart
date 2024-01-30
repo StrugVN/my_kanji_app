@@ -13,7 +13,7 @@ class TwoSideCard extends StatelessWidget {
       required this.isKanji,
       required this.isToEN,
       required this.kanjiOnFront,
-      required this.flipItemCallback, required this.isAudio,
+      required this.flipItemCallback, required this.isAudio, required this.context,
       });
 
   final SubjectItem item;
@@ -24,6 +24,8 @@ class TwoSideCard extends StatelessWidget {
   void Function(bool) flipItemCallback;
 
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
+
+  final BuildContext context;
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +56,10 @@ class TwoSideCard extends StatelessWidget {
           isKanji!
               ? KanjiInfoCard(
                   item: item.subjectItem!,
-                  
+                  context: context,
                 )
               : VocabInfoCard(
-                  item: item.subjectItem!,
+                  item: item.subjectItem!, context: context
                 ),
         ],
       ),

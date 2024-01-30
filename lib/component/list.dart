@@ -59,6 +59,7 @@ class _SubjectListState extends State<SubjectList> {
                 isToEN: widget.isToEN,
                 kanjiOnFront: widget.kanjiOnFront,
                 flipItemCallback: widget.dataCheckCallback, isAudio: widget.isAudio,
+                context: context,
               ),
             ],
           )

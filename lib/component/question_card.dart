@@ -7,6 +7,7 @@ import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 class QuestionCard extends StatefulWidget {
@@ -159,7 +160,9 @@ class _QuestionCardState extends State<QuestionCard> {
           children: [
             maleAudio!.isNotEmpty
                 ? TextButton.icon(
-                    onPressed: () async { await playAudio(true); },
+                    onPressed: () async {
+                      await playAudio(true);
+                    },
                     label: const Text(""),
                     icon: const Icon(
                       size: 70,
@@ -170,7 +173,9 @@ class _QuestionCardState extends State<QuestionCard> {
                 : const SizedBox.shrink(),
             femaleAudio!.isNotEmpty
                 ? TextButton.icon(
-                    onPressed: () async { await playAudio(false); },
+                    onPressed: () async {
+                      await playAudio(false);
+                    },
                     label: const Text(""),
                     icon: const Icon(
                       size: 70,
@@ -340,6 +345,10 @@ class _QuestionCardState extends State<QuestionCard> {
                 child: TextField(
                   controller: readingInput,
                   onChanged: (String value) {
+                    int cursorPosition = readingInput.selection.baseOffset;
+
+                    int x = countLatinCharacters(value);
+
                     if (value.length > 0 && value[value.length - 1] == "n") {
                       if (value.length > 1 && value[value.length - 2] == "n") {
                         readingInput.text = kanaKit
@@ -351,6 +360,14 @@ class _QuestionCardState extends State<QuestionCard> {
                     } else {
                       readingInput.text = kanaKit.toHiragana(value);
                     }
+
+                    if (value != readingInput.text) {
+                      cursorPosition = cursorPosition - x + 1;
+                    }
+
+                    readingInput.selection = TextSelection.fromPosition(
+                      TextPosition(offset: cursorPosition),
+                    );
                   },
                   onSubmitted: (value) {},
                   decoration: InputDecoration(
@@ -392,12 +409,10 @@ class _QuestionCardState extends State<QuestionCard> {
     final _random = Random();
     if (male) {
       var url = maleAudio![_random.nextInt(maleAudio!.length)].url!;
-      await audioPlayer
-          .play(UrlSource(url));
+      await audioPlayer.play(UrlSource(url));
     } else {
       var url = femaleAudio![_random.nextInt(femaleAudio!.length)].url!;
-      await audioPlayer.play(
-          UrlSource(url));
+      await audioPlayer.play(UrlSource(url));
     }
   }
 }

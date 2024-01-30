@@ -1,17 +1,29 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
+import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:unofficial_jisho_api/api.dart';
+import 'package:unofficial_jisho_api/api.dart' as jisho;
 
 class VocabInfoCard extends StatelessWidget {
-  VocabInfoCard({super.key, required this.item});
+  VocabInfoCard({super.key, required this.item, required this.context});
+
+  final BuildContext context;
 
   final appData = AppData();
+
+  int numberOfExample = 5;
 
   final Vocab item;
 
@@ -42,21 +54,33 @@ class VocabInfoCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: item.data?.characters ?? "N/A",
-                    style: const TextStyle(
-                      color: Colors.black,
+            GestureDetector(
+              onLongPress: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VocabPage(
+                      vocab: item,
                     ),
                   ),
-                ],
-                style: const TextStyle(
-                  fontSize: 56,
+                );
+              },
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: item.data?.characters ?? "N/A",
+                      style: const TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                  style: const TextStyle(
+                    fontSize: 56,
+                  ),
                 ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -103,23 +127,16 @@ class VocabInfoCard extends StatelessWidget {
                     ),
 
                     ///
+                    const Divider(color: Colors.black),
+                    getAudio(),
+                    
 
                     getUsedKanji(),
-                    const Divider(color: Colors.black),
 
                     ///
-                    getAudio(),
-                    const Divider(color: Colors.black),
 
                     ///
-                    const Text(
-                      "Example:",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    getExample(),
+                    futureWidget(getExampleJisho(), true, true),
                   ],
                 ),
               ),
@@ -317,22 +334,56 @@ class VocabInfoCard extends StatelessWidget {
       ),
     ));
 
-    for (var data in audioData) {
-      list.add(TextButton.icon(
-        onPressed: () async {
-          await audioPlayer.play(UrlSource(data.url!));
-        },
-        label: const Text(""),
-        icon: Icon(
-          Icons.volume_up,
-          color: data.metadata!.gender == "male" ? Colors.blue : Colors.pink,
-        ),
-      ));
-    }
+    // for (var data in audioData) {
+    //   list.add(TextButton.icon(
+    //     onPressed: () async {
+    //       await audioPlayer.play(UrlSource(data.url!));
+    //     },
+    //     label: const Text(""),
+    //     icon: Icon(
+    //       Icons.volume_up,
+    //       color: data.metadata!.gender == "male" ? Colors.blue : Colors.pink,
+    //     ),
+    //   ));
+    // }
+    list.add(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton.icon(
+            onPressed: () async {
+              await playAudio(true);
+            },
+            label: const Text(""),
+            icon: const Icon(
+              size: 32,
+              Icons.volume_up,
+              color: Colors.blue,
+            ),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+            ),
+          ),
+          TextButton.icon(
+            onPressed: () async {
+              await playAudio(false);
+            },
+            label: const Text(""),
+            icon: const Icon(
+              size: 32,
+              Icons.volume_up,
+              color: Colors.pink,
+            ),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+            ),
+          )
+        ],
+      ),
+    );
 
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      alignment: WrapAlignment.spaceEvenly,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: list,
     );
   }
@@ -414,46 +465,60 @@ class VocabInfoCard extends StatelessWidget {
 
     for (var kanji in similarKanji) {
       gridList.add(
-        Container(
-          margin: const EdgeInsets.all(5.0),
-          // padding: const EdgeInsets.all(3.0),
-          decoration: BoxDecoration(
-            color: Colors.red.shade500,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                kanji.data?.characters ?? "N/A",
-                style: const TextStyle(
-                  fontSize: 42,
-                  color: Colors.white,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => KanjiPage(
+                  kanji: kanji,
                 ),
               ),
-              Text(
-                kanji.data?.readings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.reading ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(5.0),
+            // padding: const EdgeInsets.all(3.0),
+            decoration: BoxDecoration(
+              color: Colors.red.shade500,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  kanji.data?.characters ?? "N/A",
+                  style: const TextStyle(
+                    fontSize: 42,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              Text(
-                kanji.data?.meanings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.meaning ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+                Text(
+                  kanji.data?.readings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.reading ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                Text(
+                  kanji.data?.meanings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.meaning ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -476,6 +541,110 @@ class VocabInfoCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widgets,
     );
+  }
+
+  Future<Widget> getExampleJisho() async {
+    // var info = await kanjiInfo;
+    var example = jisho.searchForExamples(item.data!.characters!);
+    var exampleResults = await example;
+
+    exampleResults.results.sort((a, b) => a.kanji.length - b.kanji.length);
+
+    var exampleList = exampleResults.results
+        .take(exampleResults.results.length > numberOfExample
+            ? numberOfExample
+            : exampleResults.results.length)
+        .toList();
+
+    // var x = fixFurigana(exampleList[0].pieces);
+    // print(exampleList[0].pieces.map((e) => e.lifted));
+    // print(exampleList[0].pieces.map((e) => e.unlifted));
+    // print(x.map((e) => e.lifted));
+    // print(x.map((e) => e.unlifted));
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Divider(color: Colors.black),
+        const Align(
+          alignment: Alignment.topLeft,
+          child: Text(
+            "Example sentences:",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        for (var sentence in exampleList)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.start,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  children: [
+                    for (var item in fixFurigana(sentence.pieces))
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.lifted
+                                    ?.replaceAll(" ", "")
+                                    .replaceAll("\n", "") ??
+                                "",
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          Text(
+                            item.unlifted
+                                .replaceAll(" ", "")
+                                .replaceAll("\n", ""),
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                Text(
+                  " - ${sentence.english}",
+                  style: const TextStyle(fontSize: 17),
+                ),
+                const Divider(
+                  thickness: 1.0,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  playAudio(bool male) async {
+    List<VocabPronunciationAudios>? audioData = item.data?.pronunciationAudios;
+
+    if (audioData != null) {
+      var maleAudio = audioData
+          .where((element) => element.metadata?.gender == "male")
+          .toList();
+      var femaleAudio = audioData
+          .where((element) => element.metadata?.gender == "female")
+          .toList();
+
+      final _random = Random();
+      if (male) {
+        var url = maleAudio![_random.nextInt(maleAudio!.length)].url!;
+        await audioPlayer.play(UrlSource(url));
+      } else {
+        var url = femaleAudio![_random.nextInt(femaleAudio!.length)].url!;
+        await audioPlayer.play(UrlSource(url));
+      }
+    } else {
+      return;
+    }
   }
 }
 

@@ -5,6 +5,8 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:collection/collection.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:unofficial_jisho_api/api.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,8 +15,10 @@ import 'package:collection/src/iterable_extensions.dart';
 class KanjiInfoCard extends StatelessWidget {
   KanjiInfoCard({
     super.key,
-    required this.item,
+    required this.item, required this.context,
   }) : kanjiInfo = jisho.searchForKanji(item.data!.characters!);
+
+  final BuildContext context;
 
   final Kanji item;
 
@@ -51,11 +55,23 @@ class KanjiInfoCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                item.data?.characters ?? "N/A",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 96,
+              GestureDetector(
+                onLongPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => KanjiPage(
+                        kanji: item,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  item.data?.characters ?? "N/A",
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 96,
+                  ),
                 ),
               ),
               Flexible(
@@ -64,7 +80,8 @@ class KanjiInfoCard extends StatelessWidget {
                   width: 190,
                   child: Center(
                     child: Text(
-                      item.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                      item.data?.meanings!.map((e) => e.meaning).join(", ") ??
+                          "",
                       style: const TextStyle(
                         fontSize: 21,
                       ),
@@ -155,12 +172,18 @@ class KanjiInfoCard extends StatelessWidget {
                                   children: [
                                     SvgPicture.network(
                                       snapshot.data!.data!.strokeOrderSvgUri,
-                                      height: MediaQuery.of(context).size.width * 0.3,
-                                      width: MediaQuery.of(context).size.width * 0.3,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              0.3,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.3,
                                     ),
                                     Image(
-                                      width: MediaQuery.of(context).size.width * 0.3,
-                                      height: MediaQuery.of(context).size.width * 0.3,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.3,
+                                      height:
+                                          MediaQuery.of(context).size.width *
+                                              0.3,
                                       image: NetworkImage(snapshot
                                           .data!.data!.strokeOrderGifUri),
                                     ),
@@ -200,7 +223,7 @@ class KanjiInfoCard extends StatelessWidget {
                     },
                   ),
                   getVisualySimilar(),
-                  // getRelatedVocab(),
+                  getRelatedVocab(),
                 ],
               ),
             ),
@@ -244,59 +267,73 @@ class KanjiInfoCard extends StatelessWidget {
 
     for (var vocab in relatedVocab) {
       widgets.add(
-        Container(
-          margin: const EdgeInsets.all(5.0),
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            color: Colors.purple.shade600,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    vocab.data?.characters ?? "N/A",
-                    style: const TextStyle(
-                      fontSize: 32,
-                      color: Colors.white,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VocabPage(
+                  vocab: vocab,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+              color: Colors.purple.shade600,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      vocab.data?.characters ?? "N/A",
+                      style: const TextStyle(
+                        fontSize: 32,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
                     ),
-                    textAlign: TextAlign.left,
                   ),
-                ),
-                Flexible (
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        vocab.data?.readings
-                                ?.firstWhereOrNull((item) => item.primary == true)
-                                ?.reading ??
-                            "N/A",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          vocab.data?.readings
+                                  ?.firstWhereOrNull(
+                                      (item) => item.primary == true)
+                                  ?.reading ??
+                              "N/A",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        vocab.data?.meanings
-                                ?.firstWhereOrNull((item) => item.primary == true)
-                                ?.meaning ??
-                            "N/A",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white70,
+                        Text(
+                          vocab.data?.meanings
+                                  ?.firstWhereOrNull(
+                                      (item) => item.primary == true)
+                                  ?.meaning ??
+                              "N/A",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.right,
                         ),
-                        textAlign: TextAlign.right,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -345,46 +382,60 @@ class KanjiInfoCard extends StatelessWidget {
 
     for (var kanji in similarKanji) {
       gridList.add(
-        Container(
-          margin: const EdgeInsets.all(5.0),
-          // padding: const EdgeInsets.all(3.0),
-          decoration: BoxDecoration(
-            color: Colors.red.shade500,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                kanji.data?.characters ?? "N/A",
-                style: const TextStyle(
-                  fontSize: 42,
-                  color: Colors.white,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => KanjiPage(
+                  kanji: kanji,
                 ),
               ),
-              Text(
-                kanji.data?.readings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.reading ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(5.0),
+            // padding: const EdgeInsets.all(3.0),
+            decoration: BoxDecoration(
+              color: Colors.red.shade500,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  kanji.data?.characters ?? "N/A",
+                  style: const TextStyle(
+                    fontSize: 42,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              Text(
-                kanji.data?.meanings
-                        ?.firstWhereOrNull((item) => item.primary == true)
-                        ?.meaning ??
-                    "N/A" ??
-                    "N/A",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
+                Text(
+                  kanji.data?.readings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.reading ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                Text(
+                  kanji.data?.meanings
+                          ?.firstWhereOrNull((item) => item.primary == true)
+                          ?.meaning ??
+                      "N/A" ??
+                      "N/A",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -408,5 +459,4 @@ class KanjiInfoCard extends StatelessWidget {
       children: widgets,
     );
   }
-
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/data/shared.dart';
+import 'package:unofficial_jisho_api/api.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 String helloAccordingToTime() {
@@ -81,4 +83,42 @@ Future<bool> popUntilTargetPopScope(BuildContext context) async {
   // Pop the current route and recursively call ourselves
   Navigator.pop(context);
   return await popUntilTargetPopScope(context); // Continue popping
+}
+
+List<ExampleSentencePiece> fixFurigana(List<ExampleSentencePiece> input) {
+  List<ExampleSentencePiece> result = [];
+
+  for (var item in input) {
+    if(item.lifted == null || (item.unlifted.length > 4 && item.lifted!.length  > 4 )){
+      result.add(item);
+      continue;
+    }
+
+    final match = kanaRegEx.firstMatch(item.unlifted);
+
+    if (match != null) {
+      final start = match.start;
+      final end = match.end;
+      final part1 = item.unlifted.substring(0, start);
+      final part2 = item.unlifted.substring(start);
+
+      result.add(ExampleSentencePiece(lifted: item.lifted, unlifted: part1));
+      result.add(ExampleSentencePiece(lifted: null, unlifted: part2));
+    } else {
+      result.add(item);
+    }
+  }
+
+  return result;
+}
+
+int countLatinCharacters(String text) {
+  // Define a regular expression to match Latin characters
+  RegExp latinRegExp = RegExp(r'[a-zA-Z]');
+
+  // Use the allMatches method to find all matches in the text
+  Iterable<Match> matches = latinRegExp.allMatches(text);
+
+  // Return the count of matches
+  return matches.length;
 }

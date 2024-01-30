@@ -34,7 +34,7 @@ class _ReviewState extends State<Review> {
   late SharedPreferences sharedPreferences;
 
   final scrollController = ScrollController();
-  
+
   bool vocabDisclaim = false;
 
   @override
@@ -54,10 +54,14 @@ class _ReviewState extends State<Review> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       controller: scrollController,
-      physics: const NeverScrollableScrollPhysics(),
+      // physics: const NeverScrollableScrollPhysics(),
       child: NotificationListener<ScrollUpdateNotification>(
         onNotification: (notification) {
-          scrollController.jumpTo(0.0); // Reset scroll position
+          scrollController.animateTo(
+            0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.linear,
+          );
           return true;
         },
         child: Column(
@@ -71,7 +75,6 @@ class _ReviewState extends State<Review> {
               isAudio: isAudio,
               dataCheckCallback: dataCallback,
             ),
-            const Text("TEST"),
           ],
         ),
       ),
@@ -268,9 +271,7 @@ class _ReviewState extends State<Review> {
                                   borderRadius: BorderRadius.circular(30)),
                             ),
                             onPressed: () {
-                              setState(() {
-                                revealAll();
-                              });
+                              revealAllItemConfirmDialog();
                             },
                             child: RichText(
                               text: const TextSpan(
@@ -298,15 +299,12 @@ class _ReviewState extends State<Review> {
                   }),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color.fromARGB(255, 255, 103, 103),
+                      backgroundColor: const Color.fromARGB(255, 255, 103, 103),
                       shape: ContinuousRectangleBorder(
                           borderRadius: BorderRadius.circular(30)),
                     ),
                     onPressed: () {
-                      setState(() {
-                        closeSection();
-                      });
+                      closeSectionConfirmDialog();
                     },
                     child: RichText(
                       text: const TextSpan(
@@ -349,12 +347,12 @@ class _ReviewState extends State<Review> {
               ),
               !isKanji! && vocabDisclaim
                   ? const Center(
-                    child: Text(
+                      child: Text(
                         "Disclaimer: These vocab is selected from wanikani data only",
                         style: TextStyle(
                             fontSize: 10, fontWeight: FontWeight.w100),
                       ),
-                  )
+                    )
                   : const SizedBox.shrink(),
             ],
           )
@@ -393,12 +391,16 @@ class _ReviewState extends State<Review> {
     sharedPreferences.remove('isKanji');
     sharedPreferences.remove('isToEN');
     sharedPreferences.remove('kanjiOnFront');
+
+    setState(() {});
   }
 
   revealAll() {
     dataList?.forEach((element) {
       element.isRevealed = true;
     });
+
+    setState(() {});
   }
 
   dataCallback(bool toSetState) async {
@@ -493,5 +495,77 @@ class _ReviewState extends State<Review> {
     await sharedPreferences.setBool('isToEN', isToEN!);
     await sharedPreferences.setBool('kanjiOnFront', kanjiOnFront!);
     await sharedPreferences.setBool('isAudio', isAudio!);
+  }
+
+  revealAllItemConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reveal all item?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              revealAll();
+              Navigator.pop(context);
+            },
+            child: const Text('Reveal all'),
+          ),
+        ],
+      ),
+    ).then((value) {});
+  }
+
+  closeSectionConfirmDialog() {
+    var remain = dataList
+            ?.where((element) => element.isCorrect == null)
+            .toList()
+            .length ??
+        0;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('End section'),
+        content: RichText(
+          text: TextSpan(
+            children: <TextSpan>[
+              TextSpan(
+                text: "There'${remain > 1 ? "re" : "s"} ",
+                style: const TextStyle(color: Colors.black),
+              ),
+              TextSpan(
+                text: '$remain',
+                style: const TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+              const TextSpan(
+                text: " remained.\nDo you want to end this section?",
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              closeSection();
+              Navigator.pop(context);
+            },
+            child: const Text('Close section'),
+          ),
+        ],
+      ),
+    ).then((value) {});
   }
 }

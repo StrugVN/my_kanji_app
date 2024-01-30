@@ -7,6 +7,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:unofficial_jisho_api/api.dart' as jisho;
@@ -74,8 +75,10 @@ class _KanjiPageState extends State<KanjiPage> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context).popUntil(
-                  (route) => route.isFirst || route.settings.name == '/homePage' || route.settings.name == 'homePage');
+              Navigator.of(context).popUntil((route) =>
+                  route.isFirst ||
+                  route.settings.name == '/homePage' ||
+                  route.settings.name == 'homePage');
             },
           ),
         ],
@@ -185,6 +188,7 @@ class _KanjiPageState extends State<KanjiPage> {
               getRelatedVocab(),
               getVisualySimilar(),
               getWkInfo(),
+              mnemonic(),
             ],
           ),
         ),
@@ -262,10 +266,11 @@ class _KanjiPageState extends State<KanjiPage> {
 
     exampleResults.results.sort((a, b) => a.kanji.length - b.kanji.length);
 
-    var exampleList = exampleResults.results.take(
-        exampleResults.results.length > numberOfExample
+    var exampleList = exampleResults.results
+        .take(exampleResults.results.length > numberOfExample
             ? numberOfExample
-            : exampleResults.results.length);
+            : exampleResults.results.length)
+        .toList();
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -293,7 +298,7 @@ class _KanjiPageState extends State<KanjiPage> {
                   alignment: WrapAlignment.start,
                   crossAxisAlignment: WrapCrossAlignment.start,
                   children: [
-                    for (var item in sentence.pieces)
+                    for (var item in fixFurigana(sentence.pieces))
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -302,13 +307,13 @@ class _KanjiPageState extends State<KanjiPage> {
                                     ?.replaceAll(" ", "")
                                     .replaceAll("\n", "") ??
                                 "",
-                            style: const TextStyle(fontSize: 10),
+                            style: const TextStyle(fontSize: 12),
                           ),
                           Text(
                             item.unlifted
                                 .replaceAll(" ", "")
                                 .replaceAll("\n", ""),
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 18),
                           ),
                         ],
                       ),
@@ -316,44 +321,48 @@ class _KanjiPageState extends State<KanjiPage> {
                 ),
                 Text(
                   " - ${sentence.english}",
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 17),
                 ),
                 const Gap(5),
               ],
             ),
           ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: Colors.grey[350],
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: (exampleResults.results.length <= numberOfExample)
-                      ? "Show Less"
-                      : "Show More",
-                  style: const TextStyle(color: Colors.blue),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      if (exampleResults.results.length <= numberOfExample) {
-                        setState(() {
-                          numberOfExample = 3;
-                        });
-                      } else {
-                        setState(() {
-                          numberOfExample += 3;
-                        });
-                      }
-                    },
+        exampleResults.results.length > numberOfExample
+            ? Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.grey[350],
+                  borderRadius: BorderRadius.circular(15),
                 ),
-              ],
-            ),
-          ),
-        ),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: (exampleResults.results.length <= numberOfExample)
+                            ? "Show Less"
+                            : "Show More",
+                        style: const TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            if (exampleResults.results.length <=
+                                numberOfExample) {
+                              setState(() {
+                                numberOfExample = 3;
+                              });
+                            } else {
+                              setState(() {
+                                numberOfExample += 3;
+                              });
+                            }
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }
@@ -392,61 +401,73 @@ class _KanjiPageState extends State<KanjiPage> {
 
     for (var vocab in relatedVocab) {
       widgets.add(
-        Container(
-          margin: const EdgeInsets.all(5.0),
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            color: Colors.purple.shade600,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    vocab.data?.characters ?? "N/A",
-                    style: const TextStyle(
-                      fontSize: 32,
-                      color: Colors.white,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VocabPage(
+                  vocab: vocab,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.all(5.0),
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+              color: Colors.purple.shade600,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      vocab.data?.characters ?? "N/A",
+                      style: const TextStyle(
+                        fontSize: 32,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.left,
                     ),
-                    textAlign: TextAlign.left,
                   ),
-                ),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        vocab.data?.readings
-                                ?.firstWhereOrNull(
-                                    (item) => item.primary == true)
-                                ?.reading ??
-                            "N/A",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          vocab.data?.readings
+                                  ?.firstWhereOrNull(
+                                      (item) => item.primary == true)
+                                  ?.reading ??
+                              "N/A",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        vocab.data?.meanings
-                                ?.firstWhereOrNull(
-                                    (item) => item.primary == true)
-                                ?.meaning ??
-                            "N/A",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white70,
+                        Text(
+                          vocab.data?.meanings
+                                  ?.firstWhereOrNull(
+                                      (item) => item.primary == true)
+                                  ?.meaning ??
+                              "N/A",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.right,
                         ),
-                        textAlign: TextAlign.right,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -497,18 +518,14 @@ class _KanjiPageState extends State<KanjiPage> {
       gridList.add(
         GestureDetector(
           onTap: () {
-            var simKanji = appData.allKanjiData!
-                .firstWhereOrNull((element) => element.id == kanji.id);
-            if (simKanji != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => KanjiPage(
-                    kanji: simKanji,
-                  ),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => KanjiPage(
+                  kanji: kanji,
                 ),
-              );
-            }
+              ),
+            );
           },
           child: Container(
             margin: const EdgeInsets.all(5.0),
@@ -537,6 +554,7 @@ class _KanjiPageState extends State<KanjiPage> {
                     fontSize: 16,
                     color: Colors.white,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   kanji.data?.meanings
@@ -548,6 +566,7 @@ class _KanjiPageState extends State<KanjiPage> {
                     fontSize: 16,
                     color: Colors.white,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -625,7 +644,7 @@ class _KanjiPageState extends State<KanjiPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(
-                text: srsStat?.data?.getSrs().label,
+                text: srsStat.data?.getSrs().label,
               ),
             ],
             style: const TextStyle(color: Colors.black),
@@ -639,7 +658,7 @@ class _KanjiPageState extends State<KanjiPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(
-                text: srsStat?.data?.getUnlockededDateAsLocalTime(),
+                text: srsStat.data?.getUnlockededDateAsLocalTime(),
               ),
             ],
             style: const TextStyle(color: Colors.black),
@@ -653,7 +672,7 @@ class _KanjiPageState extends State<KanjiPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(
-                text: srsStat?.data?.getNextReviewAsLocalTime(),
+                text: srsStat.data?.getNextReviewAsLocalTime(),
               ),
             ],
             style: const TextStyle(color: Colors.black),
@@ -667,7 +686,7 @@ class _KanjiPageState extends State<KanjiPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(
-                text: "${reviewStat?.data!.percentageCorrect}%",
+                text: "${reviewStat.data!.percentageCorrect}%",
               ),
             ],
             style: const TextStyle(color: Colors.black),
@@ -682,11 +701,11 @@ class _KanjiPageState extends State<KanjiPage> {
               ),
               TextSpan(
                 text:
-                    "${reviewStat?.data!.meaningCorrect}/${((reviewStat?.data!.meaningCorrect)! + (reviewStat?.data!.meaningIncorrect)!)}, ",
+                    "${reviewStat.data!.meaningCorrect}/${((reviewStat.data!.meaningCorrect)! + (reviewStat.data!.meaningIncorrect)!)}, ",
               ),
               TextSpan(
                 text:
-                    "current streak ${reviewStat?.data!.meaningCurrentStreak}, max streak ${reviewStat?.data!.meaningMaxStreak}",
+                    "current streak ${reviewStat.data!.meaningCurrentStreak}, max streak ${reviewStat.data!.meaningMaxStreak}",
               ),
             ],
             style: const TextStyle(color: Colors.black),
@@ -701,12 +720,66 @@ class _KanjiPageState extends State<KanjiPage> {
               ),
               TextSpan(
                 text:
-                    "${reviewStat?.data!.readingCorrect}/${((reviewStat?.data!.readingCorrect)! + (reviewStat?.data!.readingIncorrect)!)}, ",
+                    "${reviewStat.data!.readingCorrect}/${((reviewStat.data!.readingCorrect)! + (reviewStat.data!.readingIncorrect)!)}, ",
               ),
               TextSpan(
                 text:
-                    "current streak ${reviewStat?.data!.readingCurrentStreak}, max streak ${reviewStat?.data!.readingMaxStreak}",
+                    "current streak ${reviewStat.data!.readingCurrentStreak}, max streak ${reviewStat.data!.readingMaxStreak}",
               ),
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
+
+  mnemonic() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(color: Colors.black),
+        const Text(
+          "Wanikani mnemonic:",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const Gap(5),
+        const Center(
+          child: Text(
+            "😬 Not fixing their weird ass encoding😬\nI'm not using these most of the time anyway",
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const Gap(5),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Meaning: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: kanji.data?.meaningMnemonic ?? "")
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        const Gap(10),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " - Reading: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: kanji.data?.readingMnemonic ?? "")
             ],
             style: const TextStyle(color: Colors.black),
           ),

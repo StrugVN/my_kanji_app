@@ -9,6 +9,7 @@ import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/paralax.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
@@ -925,13 +926,21 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
 
     recentMistakes.removeWhere((element) => element == null);
 
-    var recentMistakesData = appData.allKanjiData!
+    var kanjiMistakeList = appData.allKanjiData!
         .where((element) => recentMistakes.contains(element.id))
-        .map((e) => {"id": e.id, "char": e.data!.characters, "isKanji": true})
+        // .map((e) => {"id": e.id, "char": e.data!.characters, "isKanji": true})
         .toList();
-    recentMistakesData = recentMistakesData +
-        appData.allVocabData!
-            .where((element) => recentMistakes.contains(element.id))
+
+    var vocabMistakeList = appData.allVocabData!
+        .where((element) => recentMistakes.contains(element.id))
+        // .map((e) => {"id": e.id, "char": e.data!.characters, "isKanji": false})
+        .toList();
+
+    var recentMistakesData = kanjiMistakeList
+            .map((e) =>
+                {"id": e.id, "char": e.data!.characters, "isKanji": true})
+            .toList() +
+        vocabMistakeList
             .map((e) =>
                 {"id": e.id, "char": e.data!.characters, "isKanji": false})
             .toList();
@@ -965,17 +974,34 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                       for (var item in recentMistakesData)
                         GestureDetector(
                           onTap: () {
-                            var kanji = appData.allKanjiData!.firstWhereOrNull(
-                                (element) => element.id == item["id"]);
-                            if (kanji != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => KanjiPage(
-                                    kanji: kanji,
+                            if (item["isKanji"] as bool) {
+                              var kanji = appData.allKanjiData!
+                                  .firstWhereOrNull(
+                                      (element) => element.id == item["id"]);
+                              if (kanji != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => KanjiPage(
+                                      kanji: kanji,
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              }
+                            } else {
+                              var vocab = appData.allVocabData!
+                                  .firstWhereOrNull(
+                                      (element) => element.id == item["id"]);
+                              if (vocab != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VocabPage(
+                                      vocab: vocab,
+                                    ),
+                                  ),
+                                );
+                              }
                             }
                           },
                           child: Container(
