@@ -42,8 +42,8 @@ class AppData {
   Future<void> loadDataFromAsset() async {
     dataIsLoaded = false;
 
-    var loadKanji = loadKanjiData();
-    var loadVocab = loadVocabData();
+    var loadKanji = loadKanjiApi();
+    var loadVocab = loadVocabApi();
     var loadPitch = loadVocabPitchData();
     var getSrs = getSrsData();
     var getReview = getReviewStatData();
@@ -56,28 +56,32 @@ class AppData {
     await getSrs;
     await getReview;
 
-    for(var element in allKanjiData!){
-      var srs = allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
-      var review = allReviewData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+    for (var element in allKanjiData!) {
+      var srs =
+          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+      var review = allReviewData!
+          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
 
-      if(srs != null){
+      if (srs != null) {
         element.srsData = srs;
       }
 
-      if(review != null){
+      if (review != null) {
         element.reviewData = review;
       }
     }
 
-    for(var element in allVocabData!){
-      var srs = allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
-      var review = allReviewData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+    for (var element in allVocabData!) {
+      var srs =
+          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+      var review = allReviewData!
+          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
 
-      if(srs != null){
+      if (srs != null) {
         element.srsData = srs;
       }
 
-      if(review != null){
+      if (review != null) {
         element.reviewData = review;
       }
     }
@@ -85,7 +89,8 @@ class AppData {
     dataIsLoaded = true;
   }
 
-  Future<void> loadKanjiData() async {
+  @Deprecated("Use the api one")
+  Future<void> loadKanjiDataFromLocal() async {
     final kanjiDataF = rootBundle.loadString('assets/kanjidata.json');
 
     allKanjiData = [];
@@ -96,13 +101,36 @@ class AppData {
     print("  Kanji count: ${allKanjiData!.length}");
   }
 
-  Future<void> loadVocabData() async {
+  Future<void> loadKanjiApi() async {
+    /// Load local
+    ///   - If not, load all.
+    ///   - If is:
+    ///      + Load from local. Then check update_after date of local cache. 
+    /// Then save to local with date
+    var kanjiDataF = getAllSubject("kanji");
+
+    allKanjiData = await kanjiDataF ?? [];
+
+    print("  Kanji count: ${allKanjiData!.length}");
+  }
+
+  @Deprecated("Use the api one")
+  Future<void> loadVocabDataFromLocal() async {
     final vocabDataF = rootBundle.loadString('assets/vocabdata.json');
 
     allVocabData = [];
     for (var json in jsonDecode(await vocabDataF)) {
       allVocabData!.add(Vocab.fromJson(json));
     }
+
+    print("  Vocab count: ${allVocabData!.length}");
+  }
+
+  Future<void> loadVocabApi() async {
+    var getVocab = getAllSubject("vocabulary");
+    var getKanaVocab = getAllSubject("kana_vocabulary");
+
+    allVocabData = (await getVocab ?? []) + (await getKanaVocab ?? []);
 
     print("  Vocab count: ${allVocabData!.length}");
   }
@@ -245,6 +273,4 @@ class AppData {
 
     return data;
   }
-
-  
 }

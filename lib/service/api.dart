@@ -34,6 +34,10 @@ Future<Response> getSubject(SubjectQueryParam param) {
 }
 
 Future getAllSubject(types) async {
+  return getAllSubjectAfterUpdate(types, "");
+}
+
+Future getAllSubjectAfterUpdate(types, updateAfter) async {
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
     "Authorization": "Bearer $freeApiKey",
@@ -41,6 +45,7 @@ Future getAllSubject(types) async {
 
   final uri = Uri.https(wkAuthority, wkSubjectPath, {
     "types": types,
+    "updated_after": updateAfter,
   });
 
   var response = await http.get(uri, headers: header);

@@ -238,7 +238,7 @@ class _ReviewState extends State<Review> {
       return ExpansionTile(
         title: Center(
           child: Text(
-            "${isKanji! ? "Kanji" : "Vocab"} review in progress",
+            "${isKanji! ? "Kanji" : "Vocab"} self-review in progress",
             style: const TextStyle(
               color: Colors.black,
               fontSize: 20,

@@ -87,8 +87,8 @@ class _HomeState extends State<Home> {
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Review"),
-            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Stuff"),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: "Self-study"),
+            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Items"),
           ],
         ),
       ),
