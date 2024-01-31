@@ -9,6 +9,7 @@ import 'package:my_kanji_app/data/wk_review_stat.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
   static final AppData _singleton = AppData._internal();
@@ -42,19 +43,17 @@ class AppData {
   Future<void> loadDataFromAsset() async {
     dataIsLoaded = false;
 
-    var loadKanji = loadKanjiApi();
-    var loadVocab = loadVocabApi();
-    var loadPitch = loadVocabPitchData();
-    var getSrs = getSrsData();
-    var getReview = getReviewStatData();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     print("  -- Data loading initialized --");
 
-    await loadKanji;
-    await loadVocab;
-    await loadPitch;
-    await getSrs;
-    await getReview;
+    await Future.wait([
+      loadKanjiApi(),
+      loadVocabApi(),
+      loadVocabPitchData(),
+      getSrsData(),
+      getReviewStatData()
+    ]);
 
     for (var element in allKanjiData!) {
       var srs =
@@ -86,6 +85,13 @@ class AppData {
       }
     }
 
+    String kanjiDataAsString = jsonEncode(allKanjiData);
+    String vocabDataAsString = jsonEncode(allVocabData);
+
+    await prefs.setString('kanjiCache', kanjiDataAsString);
+    await prefs.setString('vocabCache', vocabDataAsString);
+    await prefs.setString('dateOfCache', DateTime.now().toString());
+
     dataIsLoaded = true;
   }
 
@@ -102,14 +108,42 @@ class AppData {
   }
 
   Future<void> loadKanjiApi() async {
-    /// Load local
-    ///   - If not, load all.
-    ///   - If is:
-    ///      + Load from local. Then check update_after date of local cache. 
-    /// Then save to local with date
-    var kanjiDataF = getAllSubject("kanji");
+    /// 1 Load local
+    ///   - 1a If not, load all.
+    ///   - 1b If is:
+    ///       + Then check update_after date of local cache.
+    /// 2 Then save to local with date
 
-    allKanjiData = await kanjiDataF ?? [];
+    // 1
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? kanjiListAsString = prefs.getString('kanjiCache');
+    String? dateString = prefs.getString('dateOfCache');
+
+    if (kanjiListAsString != null) {
+      //1b
+      List<Kanji> tempKanjiList = (jsonDecode(kanjiListAsString) as List)
+          .map((e) => Kanji.fromJson(e))
+          .toList();
+      DateTime date = DateTime.parse(dateString!);
+
+      List<Kanji> updatedKanji = [];
+      updatedKanji = await getAllSubjectAfterUpdate("kanji", date.add(const Duration(days: -1)).toIso8601String()) ?? [];
+
+      for (var updatedItem in updatedKanji) {
+        int index =
+            tempKanjiList.indexWhere((item) => item.id == updatedItem.id);
+        if (index != -1) {
+          tempKanjiList[index] = updatedItem;
+        }
+      }
+
+      allKanjiData = tempKanjiList;
+    } else {
+      //1a
+      var kanjiDataF = getAllSubject("kanji");
+
+      allKanjiData = await kanjiDataF ?? [];
+    }
 
     print("  Kanji count: ${allKanjiData!.length}");
   }
@@ -127,10 +161,42 @@ class AppData {
   }
 
   Future<void> loadVocabApi() async {
-    var getVocab = getAllSubject("vocabulary");
-    var getKanaVocab = getAllSubject("kana_vocabulary");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? vocabListAsString = prefs.getString('vocabCache');
+    String? dateString = prefs.getString('dateOfCache');
 
-    allVocabData = (await getVocab ?? []) + (await getKanaVocab ?? []);
+    if (vocabListAsString != null) {
+      //1
+      List<Vocab> tempVocabList = (jsonDecode(vocabListAsString) as List)
+          .map((e) => Vocab.fromJson(e))
+          .toList();
+      DateTime date = DateTime.parse(dateString!);
+
+      //1b
+      var updatedVocab =
+          getAllSubjectAfterUpdate("vocabulary", date.add(const Duration(days: -1)).toIso8601String());
+      var updatedKanaVocab =
+          getAllSubjectAfterUpdate("kana_vocabulary", date.add(const Duration(days: -1)).toIso8601String());
+
+      List<Vocab> updatedAllVocab = [];
+      updatedAllVocab = (await updatedVocab ?? []) + (await updatedKanaVocab ?? []);
+
+      for (var updatedItem in updatedAllVocab) {
+        int index =
+            tempVocabList.indexWhere((item) => item.id == updatedItem.id);
+        if (index != -1) {
+          tempVocabList[index] = updatedItem;
+        }
+      }
+
+      allVocabData = tempVocabList;
+    } else {
+      //1a
+      var getVocab = getAllSubject("vocabulary");
+      var getKanaVocab = getAllSubject("kana_vocabulary");
+
+      allVocabData = (await getVocab ?? []) + (await getKanaVocab ?? []);
+    }
 
     print("  Vocab count: ${allVocabData!.length}");
   }

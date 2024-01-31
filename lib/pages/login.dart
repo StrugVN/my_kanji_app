@@ -242,6 +242,14 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       appData.dataIsLoaded = false;
 
       Navigator.pop(context, true); // Pop loading
+
+      // Load data
+      showLoaderDialog(context, "Loading data");
+      await appData.loadDataFromAsset();
+
+      Navigator.pop(context, true); // Pop loading
+      //
+
       Navigator.push(context, toHome());
       
     } else {
@@ -260,7 +268,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 Route toHome() {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => const Home(),
-    transitionDuration: const Duration(milliseconds: 900),
+    transitionDuration: const Duration(milliseconds: 1100),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 10.0);
       const end = Offset.zero;

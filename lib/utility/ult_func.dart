@@ -68,23 +68,6 @@ futureWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
   );
 }
 
-Future<bool> popUntilTargetPopScope(BuildContext context) async {
-  // Retrieve the current route
-  final ModalRoute<Object?>? currentRoute = ModalRoute.of(context);
-
-  if (currentRoute == null) return false;
-
-  // Check if current route is the target PopScope
-  if (currentRoute is PopScope &&
-      currentRoute.popDisposition == RoutePopDisposition.doNotPop) {
-    return false; // Stop popping when target PopScope reached
-  }
-
-  // Pop the current route and recursively call ourselves
-  Navigator.pop(context);
-  return await popUntilTargetPopScope(context); // Continue popping
-}
-
 List<ExampleSentencePiece> fixFurigana(List<ExampleSentencePiece> input) {
   List<ExampleSentencePiece> result = [];
 
