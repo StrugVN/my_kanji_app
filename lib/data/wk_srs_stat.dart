@@ -173,22 +173,25 @@ class Assignment {
 }
 
 enum SrsStage {
-  locked(0, "Locked", Colors.grey),
-  apprenticeI(1, "A1", Color.fromARGB(255, 255, 159, 191)),
-  apprenticeII(2, "A2", Color.fromARGB(255, 252, 110, 157)),
-  apprenticeIII(3, "A3", Color.fromRGBO(255, 57, 123, 1)),
-  apprenticeIV(4, "A4", Color.fromARGB(255, 255, 15, 95)),
-  guru(5, "Guru", Colors.purple),
-  guruII(6, "Guru II", Colors.purple),
-  master(7, "Master", Colors.blue),
-  enlighted(8, "Enlightened", Colors.green),
-  burned(9, "Burned", Colors.black54),
+  notExist(-2, "", Color.fromARGB(255, 197, 197, 197), Colors.grey),
+  unDiscovered(-1, "", Colors.grey, Colors.black),
+  locked(0, "Locked", Color.fromARGB(255, 233, 233, 233), Colors.black),
+  apprenticeI(1, "A1", Color.fromARGB(255, 255, 175, 202), Colors.black),
+  apprenticeII(2, "A2", Color.fromARGB(255, 250, 109, 156), Colors.black),
+  apprenticeIII(3, "A3", Color.fromRGBO(255, 40, 112, 1), Colors.black),
+  apprenticeIV(4, "A4", Colors.red, Colors.black),
+  guru(5, "Guru", Colors.purple, Colors.black),
+  guruII(6, "Guru II", Colors.purple, Colors.black),
+  master(7, "Master", Color.fromARGB(255, 95, 208, 99), Colors.black),
+  enlighted(8, "Enlightened", Colors.blue, Colors.black),
+  burned(9, "Burned", Colors.black54, Colors.white70),
   ;
 
-  const SrsStage(this.id, this.label, this.color);
+  const SrsStage(this.id, this.label, this.color, this.textColor);
   final int id;
   final String label;
   final Color color;
+  final Color textColor;
 
   static SrsStage fromId(int? id) {
     if (id == null) {

@@ -451,7 +451,7 @@ enum ModeLabel {
 enum SourceTypeLabel {
   Wanikani("Wanikani", Colors.blue),
   JLPT("JLPT", Colors.red),
-  Joyo("Joyo", Colors.yellow),
+  Joyo("Joyo", Color.fromARGB(255, 198, 182, 46)),
   Frequency("Frequency", Colors.pink);
 
   const SourceTypeLabel(this.label, this.color);

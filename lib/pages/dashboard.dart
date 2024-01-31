@@ -1,23 +1,17 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
-import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
-import 'package:my_kanji_app/utility/paralax.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:core';
-import 'package:collection/collection.dart';
-import 'package:flutter/rendering.dart';
-import 'package:animated_background/animated_background.dart';
 import 'package:collection/collection.dart';
 
 class Dashboard extends StatefulWidget {

@@ -63,8 +63,8 @@ const Map<String, String> kanjiSet = {
   "Joyo Grade 6": joyoG6,
   "Joyo Grade 9": joyoG9,
   "Most used 500": mostCommon500,
-  "500 - 1000": mostCommon1000_1500,
-  "1000 - 1500": mostCommon1500_2000,
+  "500 - 1000": mostCommon500_1000,
+  "1000 - 1500": mostCommon1000_1500,
   "1500 - 2000": mostCommon1500_2000,
 };
 
