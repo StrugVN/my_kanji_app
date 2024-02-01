@@ -96,15 +96,17 @@ Future getAllSubjectAfterUpdate(types, updateAfter) async {
 }
 
 Future<List<WkSrsStatData>> getAllSrsStat() async {
+  return getAllSrsStatAfter(null);
+}
+
+Future<List<WkSrsStatData>> getAllSrsStatAfter(updateAfter) async {
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
     "Authorization": appData.apiKey!,
   };
 
-  final uri = Uri.https(
-    wkAuthority, wkSrsStatistics,
-    // {"subject_types": "kanji,vocabulary,kana_vocabulary"}
-  );
+  final uri =
+      Uri.https(wkAuthority, wkSrsStatistics, {"updated_after": updateAfter});
 
   var response = await http.get(uri, headers: header);
 
@@ -131,15 +133,17 @@ Future<List<WkSrsStatData>> getAllSrsStat() async {
 }
 
 Future<List<WkReviewStatData>> getAllReviewStat() async {
+  return getAllReviewStatAfter(null);
+}
+
+Future<List<WkReviewStatData>> getAllReviewStatAfter(updateAfter) async {
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
     "Authorization": appData.apiKey!,
   };
 
   final uri = Uri.https(
-    wkAuthority, wkReviewStatistics,
-    // {"subject_types": "kanji,vocabulary,kana_vocabulary"}
-  );
+      wkAuthority, wkReviewStatistics, {"updated_after": updateAfter});
 
   var response = await http.get(uri, headers: header);
 

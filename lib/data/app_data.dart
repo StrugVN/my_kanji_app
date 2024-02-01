@@ -87,9 +87,13 @@ class AppData {
 
     String kanjiDataAsString = jsonEncode(allKanjiData);
     String vocabDataAsString = jsonEncode(allVocabData);
+    String srsDataAsString = jsonEncode(allSrsData);
+    String reviewDataAsString = jsonEncode(allReviewData);
 
     await prefs.setString('kanjiCache', kanjiDataAsString);
     await prefs.setString('vocabCache', vocabDataAsString);
+    await prefs.setString('srsCache', srsDataAsString);
+    await prefs.setString('reviewCache', reviewDataAsString);
     await prefs.setString('dateOfCache', DateTime.now().toString());
 
     dataIsLoaded = true;
@@ -127,7 +131,9 @@ class AppData {
       DateTime date = DateTime.parse(dateString!);
 
       List<Kanji> updatedKanji = [];
-      updatedKanji = await getAllSubjectAfterUpdate("kanji", date.add(const Duration(days: -1)).toIso8601String()) ?? [];
+      updatedKanji = await getAllSubjectAfterUpdate(
+              "kanji", date.add(const Duration(days: -1)).toIso8601String()) ??
+          [];
 
       for (var updatedItem in updatedKanji) {
         int index =
@@ -173,13 +179,14 @@ class AppData {
       DateTime date = DateTime.parse(dateString!);
 
       //1b
-      var updatedVocab =
-          getAllSubjectAfterUpdate("vocabulary", date.add(const Duration(days: -1)).toIso8601String());
-      var updatedKanaVocab =
-          getAllSubjectAfterUpdate("kana_vocabulary", date.add(const Duration(days: -1)).toIso8601String());
+      var updatedVocab = getAllSubjectAfterUpdate(
+          "vocabulary", date.add(const Duration(days: -1)).toIso8601String());
+      var updatedKanaVocab = getAllSubjectAfterUpdate("kana_vocabulary",
+          date.add(const Duration(days: -1)).toIso8601String());
 
       List<Vocab> updatedAllVocab = [];
-      updatedAllVocab = (await updatedVocab ?? []) + (await updatedKanaVocab ?? []);
+      updatedAllVocab =
+          (await updatedVocab ?? []) + (await updatedKanaVocab ?? []);
 
       for (var updatedItem in updatedAllVocab) {
         int index =
@@ -214,14 +221,67 @@ class AppData {
 
   // For WK user only
   Future<void> getSrsData() async {
-    allSrsData = await getAllSrsStat();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? srsListAsString = prefs.getString('srsCache');
+    String? dateString = prefs.getString('dateOfCache');
+
+    if (srsListAsString != null) {
+      //1
+      List<WkSrsStatData> tempSrsList = (jsonDecode(srsListAsString) as List)
+          .map((e) => WkSrsStatData.fromJson(e))
+          .toList();
+      DateTime date = DateTime.parse(dateString!);
+
+      //1b
+      var updatedSrsData = await getAllSrsStatAfter(
+          date.add(const Duration(days: -1)).toIso8601String());
+
+      for (var updatedItem in updatedSrsData) {
+        int index = tempSrsList.indexWhere((item) => item.id == updatedItem.id);
+        if (index != -1) {
+          tempSrsList[index] = updatedItem;
+        }
+      }
+
+      allSrsData = tempSrsList;
+    } else {
+      //1a
+      allSrsData = await getAllSrsStat();
+    }
 
     print("  SRS data count: ${allSrsData!.length}");
   }
 
   // For WK user only
   Future<void> getReviewStatData() async {
-    allReviewData = await getAllReviewStat();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? reviewListAsString = prefs.getString('reviewCache');
+    String? dateString = prefs.getString('dateOfCache');
+
+    if (reviewListAsString != null) {
+      //1
+      List<WkReviewStatData> tempReviewList = (jsonDecode(reviewListAsString) as List)
+          .map((e) => WkReviewStatData.fromJson(e))
+          .toList();
+      DateTime date = DateTime.parse(dateString!);
+
+      //1b
+      var updatedReviewData = await getAllReviewStatAfter(
+          date.add(const Duration(days: -1)).toIso8601String());
+
+      for (var updatedItem in updatedReviewData) {
+        int index = tempReviewList.indexWhere((item) => item.id == updatedItem.id);
+        if (index != -1) {
+          tempReviewList[index] = updatedItem;
+        }
+      }
+
+      allReviewData = tempReviewList;
+    } else {
+      //1a
+      allReviewData = await getAllReviewStat();
+    }
+    
 
     print("  Review data count: ${allReviewData!.length}");
   }
