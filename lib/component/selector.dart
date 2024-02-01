@@ -35,6 +35,13 @@ class _ReviewCreatorState extends State<ReviewCreator> {
 
   final void Function(String, int, bool, String?, String?) onPressedCallback;
 
+  @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
+  }
+
   _ReviewCreatorState(
       {required this.maxLevel, required this.onPressedCallback});
 

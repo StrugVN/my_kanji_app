@@ -4,7 +4,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
+import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
@@ -15,13 +17,22 @@ import 'dart:core';
 import 'package:collection/collection.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({super.key});
+  const Dashboard({super.key, required this.createQuiz});
+
+  final void Function({
+    required List<Kanji> listKanji,
+    required List<Vocab> listVocab,
+    required bool kanjiOnFront,
+  }) createQuiz;
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
+class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixin  {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -438,7 +449,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
     );
   }
 
-  Container getForecastOfDate(int day) {
+  Widget getForecastOfDate(int day) {
     var groupedData = getReviewForecast(day);
 
     List<Map<String, dynamic>> formattedData = groupedData.entries
@@ -961,8 +972,10 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
             ),
           ),
           children: [
-            recentMistakesData.isNotEmpty
-                ? Wrap(
+            if (recentMistakesData.isNotEmpty)
+              Column(
+                children: [
+                  Wrap(
                     alignment: WrapAlignment.spaceBetween,
                     children: [
                       for (var item in recentMistakesData)
@@ -1016,11 +1029,37 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
                           ),
                         ),
                     ],
-                  )
-                : const Text(
-                    'No mistake! 凄いですよ！',
-                    style: TextStyle(fontSize: 18),
                   ),
+                  GestureDetector(
+                    onTap: () {
+                      createQuizFromItemDialog(
+                          kanjiMistakeList, vocabMistakeList);
+                    },
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text:
+                                'Practice these item${recentMistakesData.length > 1 ? "s" : ""}',
+                          ),
+                        ],
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            else
+              const Text(
+                'No mistake! 凄いですよ！',
+                style: TextStyle(fontSize: 18),
+              ),
           ],
         ),
       ),
@@ -1142,6 +1181,58 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  createQuizFromItemDialog(List<Kanji> listKanji, List<Vocab> listVocab) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create flashcard set'),
+        content: const Text(
+          "Choose card front",
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      widget.createQuiz(
+                          listKanji: listKanji,
+                          listVocab: listVocab,
+                          kanjiOnFront: true);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Kanji on front'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      widget.createQuiz(
+                          listKanji: listKanji,
+                          listVocab: listVocab,
+                          kanjiOnFront: false);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Meaning on front'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).then((value) {});
   }
 }
 

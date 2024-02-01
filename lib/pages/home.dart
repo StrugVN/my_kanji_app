@@ -26,11 +26,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int pageIndex = 0;
 
-  List<Widget> pageList = <Widget>[
-    const Dashboard(),
-    const Review(),
-    const Stuff(),
-  ];
+  late List<Widget> pageList;
 
   final AppData appData = AppData();
 
@@ -49,6 +45,14 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+
+    pageList = <Widget>[
+      Dashboard(
+        createQuiz: createStudySet,
+      ),
+      Review(),
+      const Stuff(),
+    ];
 
     searchFocusNode.addListener(() {
       setState(() {
@@ -187,26 +191,16 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void initData() async {
-    showLoaderDialog(context, "Loading data");
-
-    try {
-      await appData.loadDataFromAsset();
-
-      // TEST
-    } on Exception catch (e) {
-      print(e);
-    }
-
-    Navigator.of(context, rootNavigator: true).pop(true);
-  }
-
   void showAppBarMenu(BuildContext context) {
     showMenu<int>(
       context: context,
       position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width * 0.8,
           MediaQuery.of(context).size.height * 0.05, 0, 0),
       items: <PopupMenuEntry<int>>[
+        const PopupMenuItem<int>(
+          value: 1,
+          child: Text('Setting'),
+        ),
         PopupMenuItem<int>(
           value: 0,
           child: const Text('Log out'),
@@ -217,10 +211,6 @@ class _HomeState extends State<Home> {
               }
             });
           },
-        ),
-        const PopupMenuItem<int>(
-          value: 1,
-          child: Text('Setting'),
         ),
       ],
     );
@@ -344,5 +334,34 @@ class _HomeState extends State<Home> {
     }
 
     return SizedBox.shrink();
+  }
+
+  createStudySet(
+      {required List<Kanji> listKanji,
+      required List<Vocab> listVocab,
+      required bool kanjiOnFront}) {
+    pageList = <Widget>[
+      Dashboard(
+        createQuiz: createStudySet,
+      ),
+      Review(
+          key: UniqueKey(),
+          listKanji: listKanji,
+          listVocab: listVocab,
+          kanjiOnFront: kanjiOnFront),
+      const Stuff(),
+    ];
+    print("Page removed and reinserted");
+
+    setState(
+      () {
+        pageIndex = 1;
+        pageController.animateToPage(
+          1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.ease,
+        );
+      },
+    );
   }
 }

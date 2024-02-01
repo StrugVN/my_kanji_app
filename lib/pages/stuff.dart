@@ -14,8 +14,11 @@ class Stuff extends StatefulWidget {
   State<Stuff> createState() => _StuffState();
 }
 
-class _StuffState extends State<Stuff> {
-  ScrollController _secondScrollController = ScrollController();
+class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
+  @override
+  bool get wantKeepAlive => true;
+
+  final ScrollController _secondScrollController = ScrollController();
 
   final TextEditingController sourceTypeController = TextEditingController();
 

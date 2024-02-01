@@ -8,19 +8,18 @@ import 'package:my_kanji_app/component/vocab_info_card.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:gap/gap.dart';
 import 'package:my_kanji_app/data/shared.dart';
+import 'package:my_kanji_app/data/vocab.dart';
 
 class SubjectList extends StatefulWidget {
   SubjectList(
       {super.key,
       required this.data,
       required this.isToEN,
-      required this.isKanji,
       required this.kanjiOnFront,
       required this.isAudio,
       required this.dataCheckCallback});
 
   List<SubjectItem>? data;
-  bool? isKanji;
   bool? isToEN;
   bool? kanjiOnFront;
   bool? isAudio;
@@ -34,10 +33,17 @@ class _SubjectListState extends State<SubjectList> {
   _SubjectListState();
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _buildPanel();
   }
 
+  // widget.isKanji should be remove! Check type!
   Widget _buildPanel() {
     return CarouselSlider(
       options: CarouselOptions(
@@ -46,28 +52,49 @@ class _SubjectListState extends State<SubjectList> {
         viewportFraction: 0.8,
         enlargeCenterPage: true,
       ),
-      items: [
-        for (SubjectItem item
-            in widget.data?.where((element) => element.isCorrect == null) ?? [])
-          Column(
-            
-            children: [
-              // buttonControl(item),
-              TwoSideCard(
-                item: item,
-                isKanji: widget.isKanji,
-                isToEN: widget.isToEN,
-                kanjiOnFront: widget.kanjiOnFront,
-                flipItemCallback: widget.dataCheckCallback, isAudio: widget.isAudio,
-                context: context,
-              ),
-            ],
-          )
-      ],
+      items: getCards(),
     );
   }
 
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
-  
+  List<Widget> getCards() {
+    List<Widget> list = [];
+    // why  isKanji: item is Kanji,  doesn't work?
+    for (SubjectItem item in widget.data?.where((element) =>
+            element.isCorrect == null && element.subjectItem is Kanji) ??
+        []) {
+      list.add(
+        TwoSideCard(
+          item: item,
+          isKanji: true,
+          isToEN: widget.isToEN,
+          kanjiOnFront: widget.kanjiOnFront,
+          flipItemCallback: widget.dataCheckCallback,
+          isAudio: widget.isAudio,
+          context: context,
+        ),
+      );
+    }
+
+    for (SubjectItem item in widget.data?.where((element) =>
+            element.isCorrect == null && element.subjectItem is Vocab) ??
+        []) {
+      list.add(
+        TwoSideCard(
+          item: item,
+          isKanji: false,
+          isToEN: widget.isToEN,
+          kanjiOnFront: widget.kanjiOnFront,
+          flipItemCallback: widget.dataCheckCallback,
+          isAudio: widget.isAudio,
+          context: context,
+        ),
+      );
+    }
+
+    list.shuffle();
+
+    return list;
+  }
 }

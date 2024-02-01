@@ -13,13 +13,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
 
 class Review extends StatefulWidget {
-  const Review({super.key});
+  Review({super.key, this.listKanji, this.listVocab, this.kanjiOnFront});
+
+  List<Kanji>? listKanji;
+  List<Vocab>? listVocab;
+  bool? kanjiOnFront;
 
   @override
   State<Review> createState() => _ReviewState();
 }
 
-class _ReviewState extends State<Review> {
+class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   List<SubjectItem>? dataList;
   List<SubjectItem>? dataListResult;
   bool? isKanji;
@@ -29,7 +36,7 @@ class _ReviewState extends State<Review> {
 
   final AppData appData = AppData();
 
-  late bool reviewInProgress;
+  bool reviewInProgress = true;
 
   late SharedPreferences sharedPreferences;
 
@@ -38,13 +45,20 @@ class _ReviewState extends State<Review> {
   bool vocabDisclaim = false;
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
 
-    reviewInProgress = false;
+    print("Init review");
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadPreviousReview();
+      initReviewIfExist();
     });
 
     // scrollController.jumpTo(0.0);
@@ -70,7 +84,6 @@ class _ReviewState extends State<Review> {
             SubjectList(
               data: dataList,
               isToEN: isToEN,
-              isKanji: isKanji,
               kanjiOnFront: kanjiOnFront,
               isAudio: isAudio,
               dataCheckCallback: dataCallback,
@@ -238,7 +251,7 @@ class _ReviewState extends State<Review> {
       return ExpansionTile(
         title: Center(
           child: Text(
-            "${isKanji! ? "Kanji" : "Vocab"} self-review in progress",
+            "${isKanji != null ? (isKanji! ? "Kanji" : "Vocab") : "Critical item${dataList != null && dataList!.length > 1 ? "s" : ""}"} self-review in progress",
             style: const TextStyle(
               color: Colors.black,
               fontSize: 20,
@@ -345,7 +358,7 @@ class _ReviewState extends State<Review> {
                   ),
                 ),
               ),
-              !isKanji! && vocabDisclaim
+              isKanji != null && !isKanji! && vocabDisclaim
                   ? const Center(
                       child: Text(
                         "Disclaimer: These vocab is selected from wanikani data only",
@@ -414,64 +427,97 @@ class _ReviewState extends State<Review> {
     }
   }
 
-  loadPreviousReview() async {
+  initReviewIfExist() async {
     await appData.assertDataIsLoaded();
 
-    showLoaderDialog(context, "Loading data");
-
     sharedPreferences = await SharedPreferences.getInstance();
-    try {
-      final List<String>? items = sharedPreferences.getStringList('dataList');
 
-      if (items == null) {
-        Navigator.of(context, rootNavigator: true).pop(true);
-        return;
+    // showLoaderDialog(context, "Loading data");
+
+    if (widget.listKanji != null &&
+        widget.listVocab != null &&
+        widget.kanjiOnFront != null) {
+      print("Create critical item review");
+
+      try {
+        dataList = [];
+
+        for (var item in widget.listKanji!) {
+          dataList!.add(SubjectItem(
+              subjectItem: item, isRevealed: false, isCorrect: null));
+        }
+
+        for (var item in widget.listVocab!) {
+          dataList!.add(SubjectItem(
+              subjectItem: item, isRevealed: false, isCorrect: null));
+        }
+
+        isKanji = null;
+        isToEN = widget.kanjiOnFront;
+        kanjiOnFront = true;
+        isAudio = false;
+
+        setState(() {
+          reviewInProgress = true;
+        });
+
+        saveReview();
+      } catch (e) {
+        print(e);
       }
+    } else {
+      print("Load review");
+      try {
+        final List<String>? items = sharedPreferences.getStringList('dataList');
 
-      isKanji = sharedPreferences.getBool('isKanji');
-      isToEN = sharedPreferences.getBool('isToEN');
-      kanjiOnFront = sharedPreferences.getBool('kanjiOnFront');
-      isAudio = sharedPreferences.getBool('isAudio');
+        if (items == null) {
+          setState(() {
+            reviewInProgress = false;
+          });
+          return;
+        }
 
-      if (isKanji == null) {
-        Navigator.of(context, rootNavigator: true).pop(true);
-        return;
-      }
+        isKanji = sharedPreferences.getBool('isKanji');
+        isToEN = sharedPreferences.getBool('isToEN');
+        kanjiOnFront = sharedPreferences.getBool('kanjiOnFront');
+        isAudio = sharedPreferences.getBool('isAudio');
 
-      dataList = [];
-      for (var s in items) {
-        var json = jsonDecode(s) as Map<String, dynamic>;
+        dataList = [];
+        for (var s in items) {
+          var json = jsonDecode(s) as Map<String, dynamic>;
 
-        if (isKanji!) {
-          Kanji? item = appData.allKanjiData!
-              .firstWhereOrNull((element) => element.id == json["itemId"]);
+          if (isKanji != null && isKanji!) {
+            Kanji? item = appData.allKanjiData!
+                .firstWhereOrNull((element) => element.id == json["itemId"]);
 
-          if (item != null) {
-            dataList!.add(SubjectItem(
-                subjectItem: item,
-                isRevealed: json["isRevealed"],
-                isCorrect: json["isCorrect"]));
-          }
-        } else {
-          Vocab? item = appData.allVocabData!
-              .firstWhereOrNull((element) => element.id == json["itemId"]);
+            if (item != null) {
+              dataList!.add(SubjectItem(
+                  subjectItem: item,
+                  isRevealed: json["isRevealed"],
+                  isCorrect: json["isCorrect"]));
+            }
+          } else {
+            Vocab? item = appData.allVocabData!
+                .firstWhereOrNull((element) => element.id == json["itemId"]);
 
-          if (item != null) {
-            dataList!.add(SubjectItem(
-                subjectItem: item,
-                isRevealed: json["isRevealed"],
-                isCorrect: json["isCorrect"]));
+            if (item != null) {
+              dataList!.add(SubjectItem(
+                  subjectItem: item,
+                  isRevealed: json["isRevealed"],
+                  isCorrect: json["isCorrect"]));
+            }
           }
         }
-      }
 
-      setState(() {
-        reviewInProgress = true;
-      });
-    } on Exception catch (e) {
-      print(e);
+        setState(() {
+          reviewInProgress = true;
+        });
+      } on Exception catch (e) {
+        print(e);
+      }
     }
-    Navigator.of(context, rootNavigator: true).pop(true);
+
+    // Navigator.of(context, rootNavigator: true).pop(true);
   }
 
   saveReview() async {
@@ -491,7 +537,11 @@ class _ReviewState extends State<Review> {
         .toList();
 
     await sharedPreferences.setStringList('dataList', toSave);
-    await sharedPreferences.setBool('isKanji', isKanji!);
+    if (isKanji != null) {
+      await sharedPreferences.setBool('isKanji', isKanji!);
+    } else {
+      await sharedPreferences.remove('isKanji');
+    }
     await sharedPreferences.setBool('isToEN', isToEN!);
     await sharedPreferences.setBool('kanjiOnFront', kanjiOnFront!);
     await sharedPreferences.setBool('isAudio', isAudio!);
@@ -567,5 +617,9 @@ class _ReviewState extends State<Review> {
         ],
       ),
     ).then((value) {});
+  }
+
+  void reinitializePage() {
+    initState();
   }
 }
