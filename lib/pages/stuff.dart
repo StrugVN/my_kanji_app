@@ -40,6 +40,8 @@ class _StuffState extends State<Stuff> {
 
   Map<String, SrsStage> formatMap = {};
 
+  Map<String, Widget> characterCells = {};
+
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent) {
@@ -117,10 +119,6 @@ class _StuffState extends State<Stuff> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // const Text(
-                      //   "Source",
-                      //   style: TextStyle(fontSize: 24, color: Colors.white),
-                      // ),
                       Center(
                         child: Container(
                           decoration: BoxDecoration(
@@ -148,7 +146,6 @@ class _StuffState extends State<Stuff> {
                 ),
 
                 getListItem(),
-
               ],
             ),
           ),
@@ -240,23 +237,8 @@ class _StuffState extends State<Stuff> {
   }
 
   getWkItems() {
-    // List<Widget> listW = [];
-
-    // for (int i = 1; i <= maxWkItems; i++) {
-    //   var subLevelKanji = appData.allKanjiData
-    //       ?.where((element) => element.data?.level == i)
-    //       .toList();
-    //   if (subLevelKanji != null) {
-    //     listW.add(itemGroupCell(
-    //         subLevelKanji.map((e) => e.data?.characters ?? "?").toList(),
-    //         "WK $i"));
-    //   }
-    // }
-
-    // return Column(
-    //   children: listW,
-    // );
     return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: maxWkItems,
       itemBuilder: (context, index) {
@@ -276,18 +258,8 @@ class _StuffState extends State<Stuff> {
 
   getOtherSourceItem(
       List<String> sourceListOfItem, List<String> sourceListName) {
-    // List<Widget> listW = [];
-
-    // for (int i = 0; i < sourceListOfItem.length; i++) {
-    //   listW.add(
-    //       itemGroupCell(sourceListOfItem[i].split(","), sourceListName[i]));
-    // }
-
-    // return Column(
-    //   children: listW,
-    // );
-
     return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: sourceListOfItem.length,
       itemBuilder: (context, index) {
@@ -324,9 +296,14 @@ class _StuffState extends State<Stuff> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          Wrap(
+          GridView.count(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            childAspectRatio: 3 / 3.5,
+            crossAxisCount: 9,
             children: [
-              for (var item in itemList) itemCell(item),
+              for (var item in itemList)
+                characterCells[item] ?? SizedBox.fromSize(),
             ],
           ),
         ],
@@ -369,21 +346,7 @@ class _StuffState extends State<Stuff> {
   }
 
   SrsStage getFormat(String s) {
-    // var kanji = appData.allKanjiData!
-    //     .firstWhereOrNull((element) => element.data?.characters == s);
-
-    // if (kanji == null) {
-    //   return SrsStage.notExist;
-    // }
-
-    // var format = kanji.srsData?.data?.getSrs();
-    // if (format == null) {
-    //   return SrsStage.unDiscovered;
-    // } else {
-    //   return format;
-    // }
-
-    if(formatMap[s] == null){
+    if (formatMap[s] == null) {
       return SrsStage.notExist;
     } else {
       return formatMap[s]!;
@@ -395,6 +358,7 @@ class _StuffState extends State<Stuff> {
 
     for (var s in appData.allKanjiData!) {
       if (s.data?.characters == null) {
+        characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
         continue;
       }
 
@@ -405,11 +369,11 @@ class _StuffState extends State<Stuff> {
       } else {
         formatMap[s.data!.characters!] = format;
       }
+
+      characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
     }
 
-    setState(() {
-      
-    });
+    setState(() {});
   }
 
   @override
