@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/component/selector.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
@@ -37,6 +38,8 @@ class _StuffState extends State<Stuff> {
 
   bool showBackToTopButton = false;
 
+  Map<String, SrsStage> formatMap = {};
+
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent) {
@@ -53,6 +56,8 @@ class _StuffState extends State<Stuff> {
     super.initState();
     scrollController.addListener(_scrollListener);
     sourceTypeController.text = "Wanikani";
+
+    createFormatMap();
   }
 
   @override
@@ -143,6 +148,7 @@ class _StuffState extends State<Stuff> {
                 ),
 
                 getListItem(),
+
               ],
             ),
           ),
@@ -234,35 +240,62 @@ class _StuffState extends State<Stuff> {
   }
 
   getWkItems() {
-    List<Widget> listW = [];
+    // List<Widget> listW = [];
 
-    for (int i = 1; i <= maxWkItems; i++) {
-      var subLevelKanji = appData.allKanjiData
-          ?.where((element) => element.data?.level == i)
-          .toList();
-      if (subLevelKanji != null) {
-        listW.add(itemGroupCell(
+    // for (int i = 1; i <= maxWkItems; i++) {
+    //   var subLevelKanji = appData.allKanjiData
+    //       ?.where((element) => element.data?.level == i)
+    //       .toList();
+    //   if (subLevelKanji != null) {
+    //     listW.add(itemGroupCell(
+    //         subLevelKanji.map((e) => e.data?.characters ?? "?").toList(),
+    //         "WK $i"));
+    //   }
+    // }
+
+    // return Column(
+    //   children: listW,
+    // );
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: maxWkItems,
+      itemBuilder: (context, index) {
+        var subLevelKanji = appData.allKanjiData
+            ?.where((element) => element.data?.level == index + 1)
+            .toList();
+        if (subLevelKanji != null) {
+          return itemGroupCell(
             subLevelKanji.map((e) => e.data?.characters ?? "?").toList(),
-            "WK $i"));
-      }
-    }
-
-    return Column(
-      children: listW,
+            "WK ${index + 1}",
+          );
+        }
+        return Container(); // Return empty container if subLevelKanji is null
+      },
     );
   }
 
   getOtherSourceItem(
       List<String> sourceListOfItem, List<String> sourceListName) {
-    List<Widget> listW = [];
+    // List<Widget> listW = [];
 
-    for (int i = 0; i < sourceListOfItem.length; i++) {
-      listW.add(
-          itemGroupCell(sourceListOfItem[i].split(","), sourceListName[i]));
-    }
+    // for (int i = 0; i < sourceListOfItem.length; i++) {
+    //   listW.add(
+    //       itemGroupCell(sourceListOfItem[i].split(","), sourceListName[i]));
+    // }
 
-    return Column(
-      children: listW,
+    // return Column(
+    //   children: listW,
+    // );
+
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: sourceListOfItem.length,
+      itemBuilder: (context, index) {
+        return itemGroupCell(
+          sourceListOfItem[index].split(","),
+          sourceListName[index],
+        );
+      },
     );
   }
 
@@ -281,19 +314,6 @@ class _StuffState extends State<Stuff> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ExpansionTile(
-          //     title: Text(
-          //       groupName,
-          //       style:
-          //           const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          //     ),
-          //     children: [
-          //       Wrap(
-          //         children: [
-          //           for (var item in itemList) itemCell(item),
-          //         ],
-          //       ),
-          //     ]),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             margin: const EdgeInsets.symmetric(vertical: 5),
@@ -349,19 +369,47 @@ class _StuffState extends State<Stuff> {
   }
 
   SrsStage getFormat(String s) {
-    var kanji = appData.allKanjiData!
-        .firstWhereOrNull((element) => element.data?.characters == s);
+    // var kanji = appData.allKanjiData!
+    //     .firstWhereOrNull((element) => element.data?.characters == s);
 
-    if (kanji == null) {
+    // if (kanji == null) {
+    //   return SrsStage.notExist;
+    // }
+
+    // var format = kanji.srsData?.data?.getSrs();
+    // if (format == null) {
+    //   return SrsStage.unDiscovered;
+    // } else {
+    //   return format;
+    // }
+
+    if(formatMap[s] == null){
       return SrsStage.notExist;
+    } else {
+      return formatMap[s]!;
+    }
+  }
+
+  void createFormatMap() async {
+    await AppData().assertDataIsLoaded();
+
+    for (var s in appData.allKanjiData!) {
+      if (s.data?.characters == null) {
+        continue;
+      }
+
+      var format = s.srsData?.data?.getSrs();
+
+      if (format == null) {
+        formatMap[s.data!.characters!] = SrsStage.unDiscovered;
+      } else {
+        formatMap[s.data!.characters!] = format;
+      }
     }
 
-    var format = kanji.srsData?.data?.getSrs();
-    if (format == null) {
-      return SrsStage.unDiscovered;
-    } else {
-      return format;
-    }
+    setState(() {
+      
+    });
   }
 
   @override
