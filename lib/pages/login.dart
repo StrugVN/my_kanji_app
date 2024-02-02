@@ -245,7 +245,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
       // Load data
       showLoaderDialog(context, "Loading data");
-      await appData.loadDataFromAsset();
+      await appData.loadData();
 
       Navigator.pop(context, true); // Pop loading
       //

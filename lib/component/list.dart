@@ -52,49 +52,20 @@ class _SubjectListState extends State<SubjectList> {
         viewportFraction: 0.8,
         enlargeCenterPage: true,
       ),
-      items: getCards(),
+      items: [
+        for (SubjectItem item in widget.data?.where((element) => element.isCorrect == null) ?? [])
+          TwoSideCard(
+            item: item,
+            isKanji: item.subjectItem is Kanji,
+            isToEN: widget.isToEN,
+            kanjiOnFront: widget.kanjiOnFront,
+            flipItemCallback: widget.dataCheckCallback,
+            isAudio: widget.isAudio,
+            context: context,
+          ),
+      ],
     );
   }
 
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
-
-  List<Widget> getCards() {
-    List<Widget> list = [];
-    // why  isKanji: item is Kanji,  doesn't work?
-    for (SubjectItem item in widget.data?.where((element) =>
-            element.isCorrect == null && element.subjectItem is Kanji) ??
-        []) {
-      list.add(
-        TwoSideCard(
-          item: item,
-          isKanji: true,
-          isToEN: widget.isToEN,
-          kanjiOnFront: widget.kanjiOnFront,
-          flipItemCallback: widget.dataCheckCallback,
-          isAudio: widget.isAudio,
-          context: context,
-        ),
-      );
-    }
-
-    for (SubjectItem item in widget.data?.where((element) =>
-            element.isCorrect == null && element.subjectItem is Vocab) ??
-        []) {
-      list.add(
-        TwoSideCard(
-          item: item,
-          isKanji: false,
-          isToEN: widget.isToEN,
-          kanjiOnFront: widget.kanjiOnFront,
-          flipItemCallback: widget.dataCheckCallback,
-          isAudio: widget.isAudio,
-          context: context,
-        ),
-      );
-    }
-
-    list.shuffle();
-
-    return list;
-  }
 }

@@ -40,7 +40,7 @@ class AppData {
     }
   }
 
-  Future<void> loadDataFromAsset() async {
+  Future<void> loadData() async {
     dataIsLoaded = false;
 
     SharedPreferences prefs = await SharedPreferences.getInstance();

@@ -54,6 +54,8 @@ class _QuestionCardState extends State<QuestionCard> {
 
   AudioPlayer audioPlayer = AudioPlayer();
 
+  late bool kanjiOnFront;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -74,6 +76,13 @@ class _QuestionCardState extends State<QuestionCard> {
       femaleAudio = audioData
           .where((element) => element.metadata?.gender == "female")
           .toList();
+    }
+
+    if(widget.item.getData() is Kanji){
+      kanjiOnFront = true;
+    }
+    else{
+      kanjiOnFront = widget.kanjiOnFront;
     }
   }
 
@@ -146,7 +155,7 @@ class _QuestionCardState extends State<QuestionCard> {
     var reading = widget.item.getData().data.readings;
     String characters;
 
-    if (widget.kanjiOnFront || reading == null) {
+    if (kanjiOnFront || reading == null) {
       characters = widget.item.getData()?.data.characters;
     } else {
       characters = reading.map((e) => e.reading).toList().join("\n");
@@ -309,7 +318,7 @@ class _QuestionCardState extends State<QuestionCard> {
           ];
     }
 
-    if ((widget.kanjiOnFront && widget.item.getData().data.readings != null) ||
+    if ((kanjiOnFront && widget.item.getData().data.readings != null) ||
         widget.isAudio) {
       widgets = widgets +
           [

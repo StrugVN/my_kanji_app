@@ -18,6 +18,11 @@ class Review extends StatefulWidget {
   List<Kanji>? listKanji;
   List<Vocab>? listVocab;
   bool? kanjiOnFront;
+  // Create items with list x2, 
+  // kanjiOnFront:
+  //  - True: Kanji
+  //  - False: Kana
+  //  - Null: Meaning
 
   @override
   State<Review> createState() => _ReviewState();
@@ -435,8 +440,7 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
     // showLoaderDialog(context, "Loading data");
 
     if (widget.listKanji != null &&
-        widget.listVocab != null &&
-        widget.kanjiOnFront != null) {
+        widget.listVocab != null) {
       print("Create critical item review");
 
       try {
@@ -452,9 +456,11 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
               subjectItem: item, isRevealed: false, isCorrect: null));
         }
 
+        dataList!.shuffle();
+
         isKanji = null;
-        isToEN = widget.kanjiOnFront;
-        kanjiOnFront = true;
+        isToEN = widget.kanjiOnFront != null;
+        kanjiOnFront = widget.kanjiOnFront ?? false;
         isAudio = false;
 
         setState(() {
@@ -485,29 +491,27 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
         dataList = [];
         for (var s in items) {
           var json = jsonDecode(s) as Map<String, dynamic>;
-
-          if (isKanji != null && isKanji!) {
-            Kanji? item = appData.allKanjiData!
+            Kanji? kanji = appData.allKanjiData!
                 .firstWhereOrNull((element) => element.id == json["itemId"]);
 
-            if (item != null) {
+            if (kanji != null) {
               dataList!.add(SubjectItem(
-                  subjectItem: item,
+                  subjectItem: kanji,
                   isRevealed: json["isRevealed"],
                   isCorrect: json["isCorrect"]));
             }
-          } else {
-            Vocab? item = appData.allVocabData!
+            
+            Vocab? vocab = appData.allVocabData!
                 .firstWhereOrNull((element) => element.id == json["itemId"]);
 
-            if (item != null) {
+            if (vocab != null) {
               dataList!.add(SubjectItem(
-                  subjectItem: item,
+                  subjectItem: vocab,
                   isRevealed: json["isRevealed"],
                   isCorrect: json["isCorrect"]));
             }
           }
-        }
+        
 
         setState(() {
           reviewInProgress = true;
@@ -522,7 +526,6 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
 
   saveReview() async {
     if (dataList == null ||
-        isKanji == null ||
         isToEN == null ||
         kanjiOnFront == null) {
       return;

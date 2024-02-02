@@ -22,7 +22,7 @@ class Dashboard extends StatefulWidget {
   final void Function({
     required List<Kanji> listKanji,
     required List<Vocab> listVocab,
-    required bool kanjiOnFront,
+    required bool? kanjiOnFront,
   }) createQuiz;
 
   @override
@@ -40,6 +40,8 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
   }
 
   ScrollController _secondScrollController = ScrollController();
+
+  int accumulateReviews = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -456,10 +458,9 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
         .map((entry) => {"Date": entry.key, "count": entry.value})
         .toList();
 
-    int accumulate = 0;
     for (var item in formattedData) {
-      accumulate += item["count"] as int;
-      item["accumulate"] = accumulate;
+      accumulateReviews += item["count"] as int;
+      item["accumulate"] = accumulateReviews;
     }
 
     formattedData = formattedData.reversed.toList();
@@ -1222,6 +1223,16 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
                           listKanji: listKanji,
                           listVocab: listVocab,
                           kanjiOnFront: false);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Kana on front'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      widget.createQuiz(
+                          listKanji: listKanji,
+                          listVocab: listVocab,
+                          kanjiOnFront: null);
                       Navigator.pop(context);
                     },
                     child: const Text('Meaning on front'),

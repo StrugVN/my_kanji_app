@@ -197,9 +197,31 @@ class _HomeState extends State<Home> {
       position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width * 0.8,
           MediaQuery.of(context).size.height * 0.05, 0, 0),
       items: <PopupMenuEntry<int>>[
-        const PopupMenuItem<int>(
+        PopupMenuItem<int>(
           value: 1,
-          child: Text('Setting'),
+          child: const Text('Sync data'),
+          onTap: () async {
+            // Load data
+            showLoaderDialog(context, "Loading data");
+            await appData.loadData();
+
+            setState(() {
+              pageList = <Widget>[
+                Dashboard(
+                  key: UniqueKey(),
+                  createQuiz: createStudySet,
+                ),
+                Review(
+                  key: UniqueKey(),
+                ),
+                Stuff(
+                  key: UniqueKey(),
+                ),
+              ];
+            });
+
+            Navigator.pop(context, true);
+          },
         ),
         PopupMenuItem<int>(
           value: 0,
@@ -339,7 +361,7 @@ class _HomeState extends State<Home> {
   createStudySet(
       {required List<Kanji> listKanji,
       required List<Vocab> listVocab,
-      required bool kanjiOnFront}) {
+      required bool? kanjiOnFront}) {
     pageList = <Widget>[
       Dashboard(
         createQuiz: createStudySet,
