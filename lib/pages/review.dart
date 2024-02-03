@@ -7,6 +7,7 @@ import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/vocab.dart';
+import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +19,7 @@ class Review extends StatefulWidget {
   List<Kanji>? listKanji;
   List<Vocab>? listVocab;
   bool? kanjiOnFront;
-  // Create items with list x2, 
+  // Create items with list x2,
   // kanjiOnFront:
   //  - True: Kanji
   //  - False: Kana
@@ -33,7 +34,6 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
 
   List<SubjectItem>? dataList;
-  List<SubjectItem>? dataListResult;
   bool? isKanji;
   bool? isToEN;
   bool? kanjiOnFront;
@@ -399,8 +399,34 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  closeSection() {
-    dataListResult = dataList;
+  ResultPage closeSection() {
+    ResultData passedItems = ResultData(
+      data: dataList!
+          .where((element) => element.isCorrect == true)
+          .map((e) => e.subjectItem)
+          .toList(),
+      dataLabel: 'Correct items',
+      themeColor: Colors.green,
+    );
+
+    ResultData failedItems = ResultData(
+      data: dataList!
+          .where((element) => element.isCorrect == false)
+          .map((e) => e.subjectItem)
+          .toList(),
+      dataLabel: 'Incorrect items',
+      themeColor: Colors.red,
+    );
+
+    ResultData untouchItems = ResultData(
+      data: dataList!
+          .where((element) => element.isCorrect == null)
+          .map((e) => e.subjectItem)
+          .toList(),
+      dataLabel: 'Unreviewed items',
+      themeColor: Colors.black,
+    );
+
     dataList = [];
     reviewInProgress = false;
     vocabDisclaim = false;
@@ -411,6 +437,12 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
     sharedPreferences.remove('kanjiOnFront');
 
     setState(() {});
+
+    return ResultPage(
+      listData: [passedItems, failedItems, untouchItems],
+      title: 'Self-study result',
+      titleTheme: Colors.indigo,
+    );
   }
 
   revealAll() {
@@ -439,8 +471,7 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
 
     // showLoaderDialog(context, "Loading data");
 
-    if (widget.listKanji != null &&
-        widget.listVocab != null) {
+    if (widget.listKanji != null && widget.listVocab != null) {
       print("Create critical item review");
 
       try {
@@ -491,27 +522,26 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
         dataList = [];
         for (var s in items) {
           var json = jsonDecode(s) as Map<String, dynamic>;
-            Kanji? kanji = appData.allKanjiData!
-                .firstWhereOrNull((element) => element.id == json["itemId"]);
+          Kanji? kanji = appData.allKanjiData!
+              .firstWhereOrNull((element) => element.id == json["itemId"]);
 
-            if (kanji != null) {
-              dataList!.add(SubjectItem(
-                  subjectItem: kanji,
-                  isRevealed: json["isRevealed"],
-                  isCorrect: json["isCorrect"]));
-            }
-            
-            Vocab? vocab = appData.allVocabData!
-                .firstWhereOrNull((element) => element.id == json["itemId"]);
-
-            if (vocab != null) {
-              dataList!.add(SubjectItem(
-                  subjectItem: vocab,
-                  isRevealed: json["isRevealed"],
-                  isCorrect: json["isCorrect"]));
-            }
+          if (kanji != null) {
+            dataList!.add(SubjectItem(
+                subjectItem: kanji,
+                isRevealed: json["isRevealed"],
+                isCorrect: json["isCorrect"]));
           }
-        
+
+          Vocab? vocab = appData.allVocabData!
+              .firstWhereOrNull((element) => element.id == json["itemId"]);
+
+          if (vocab != null) {
+            dataList!.add(SubjectItem(
+                subjectItem: vocab,
+                isRevealed: json["isRevealed"],
+                isCorrect: json["isCorrect"]));
+          }
+        }
 
         setState(() {
           reviewInProgress = true;
@@ -525,9 +555,7 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
   }
 
   saveReview() async {
-    if (dataList == null ||
-        isToEN == null ||
-        kanjiOnFront == null) {
+    if (dataList == null || isToEN == null || kanjiOnFront == null) {
       return;
     }
 
@@ -612,8 +640,21 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
           ),
           TextButton(
             onPressed: () async {
-              closeSection();
-              Navigator.pop(context);
+              try {
+                ResultPage page = closeSection();
+
+                Navigator.pop(context);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => page,
+                  ),
+                );
+              } on Exception catch (e) {
+                print(e);
+                Navigator.pop(context);
+              }
             },
             child: const Text('Close section'),
           ),

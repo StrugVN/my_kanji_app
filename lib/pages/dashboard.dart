@@ -944,11 +944,11 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
 
     var recentMistakesData = kanjiMistakeList
             .map((e) =>
-                {"id": e.id, "char": e.data!.characters, "isKanji": true})
+                {"id": e.id, "char": e.data!.characters, "isKanji": true, "data": e})
             .toList() +
         vocabMistakeList
             .map((e) =>
-                {"id": e.id, "char": e.data!.characters, "isKanji": false})
+                {"id": e.id, "char": e.data!.characters, "isKanji": false, "data": e})
             .toList();
 
     // recentMistakesData.shuffle();
@@ -983,9 +983,7 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
                         GestureDetector(
                           onTap: () {
                             if (item["isKanji"] as bool) {
-                              var kanji = appData.allKanjiData!
-                                  .firstWhereOrNull(
-                                      (element) => element.id == item["id"]);
+                              var kanji = item["data"] as Kanji?;
                               if (kanji != null) {
                                 Navigator.push(
                                   context,
@@ -997,9 +995,7 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
                                 );
                               }
                             } else {
-                              var vocab = appData.allVocabData!
-                                  .firstWhereOrNull(
-                                      (element) => element.id == item["id"]);
+                              var vocab = item["data"] as Vocab?;
                               if (vocab != null) {
                                 Navigator.push(
                                   context,
