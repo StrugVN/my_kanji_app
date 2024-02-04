@@ -4,11 +4,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/lesson.dart';
+import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
@@ -17,7 +20,8 @@ import 'dart:core';
 import 'package:collection/collection.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({super.key, required this.createQuiz});
+  const Dashboard(
+      {super.key, required this.createQuiz, required this.changePageCallback});
 
   final void Function({
     required List<Kanji> listKanji,
@@ -25,11 +29,14 @@ class Dashboard extends StatefulWidget {
     required bool? kanjiOnFront,
   }) createQuiz;
 
+  final void Function(int) changePageCallback;
+
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixin  {
+class _DashboardState extends State<Dashboard>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -312,22 +319,6 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
     );
   }
 
-/* Note
-  - Greeting: X
-    + Name
-    + WK info
-    
-  - Schedule: X
-    + Up comming 2 days. available_at <= now
-  - Progress: 
-    + WK
-    + JLPT
-  - Highlight:
-    + Recent incorrect: streak = 1 | srs > 4
-    + Low s: top 10 lowerest mem_score | srs > 4 + top 10 lowest percentage | %<80%
-  - Recently 
-*/
-
   Future<Widget> scheduleDetails() async {
     await appData.assertDataIsLoaded();
 
@@ -368,22 +359,56 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
               ),
               TextSpan(
                   text: ' review${lessonCount > 1 ? "s" : ""} available.\n'),
-              TextSpan(
-                text: 'Open WK',
-                style: const TextStyle(
-                    color: Colors.blue, fontStyle: FontStyle.italic),
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    if (Platform.isWindows) {
-                      Process.run(
-                          'explorer', ["https://www.wanikani.com/dashboard"]);
-                    } else {
-                      openWebsite("https://www.wanikani.com/dashboard");
-                    }
-                  },
-              ),
+              // TextSpan(
+              //   text: 'Open WK',
+              //   style: const TextStyle(
+              //       color: Colors.blue, fontStyle: FontStyle.italic),
+              //   recognizer: TapGestureRecognizer()
+              //     ..onTap = () {
+              //       if (Platform.isWindows) {
+              //         Process.run(
+              //             'explorer', ["https://www.wanikani.com/dashboard"]);
+              //       } else {
+              //         openWebsite("https://www.wanikani.com/dashboard");
+              //       }
+              //     },
+              // ),
             ],
           ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LessonPage(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+              ),
+              child: const Text('Start lesson'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Your button press code here
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+              ),
+              child: const Text('Start review'),
+            ),
+          ],
         ),
         Container(
           decoration: BoxDecoration(
@@ -452,6 +477,7 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
   }
 
   Widget getForecastOfDate(int day) {
+    if (day == 0) accumulateReviews = 0;
     var groupedData = getReviewForecast(day);
 
     List<Map<String, dynamic>> formattedData = groupedData.entries
@@ -551,6 +577,18 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
 
     String? date;
 
+    if (forecastDays == 0) {
+      countByTimeMap["now"] = appData.allSrsData!
+          .where((element) {
+            var nextReview = element.data?.getNextReviewAsDateTime();
+            return nextReview == null
+                ? false
+                : nextReview.toLocal().isBefore(now);
+          })
+          .toList()
+          .length;
+    }
+
     for (var item in timeStampList) {
       String key = DateFormat('dd/MM/yyyy hh:mm:ss a')
           .format((item.toLocal()))
@@ -570,17 +608,6 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
       // } else {
       //   key = "${" " * dateCount}${key.substring(6)}";
       // }
-      if (forecastDays == 0) {
-        countByTimeMap["now"] = appData.allSrsData!
-            .where((element) {
-              var nextReview = element.data?.getNextReviewAsDateTime();
-              return nextReview == null
-                  ? false
-                  : nextReview.toLocal().isBefore(now);
-            })
-            .toList()
-            .length;
-      }
 
       countByTimeMap[key] = appData.allSrsData!
           .where((element) {
@@ -688,23 +715,145 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
             style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
           ),
           const Gap(10),
-          Wrap(
-            alignment: WrapAlignment.start,
-            children: [
-              progressionCells(
-                  "Learning", learning, SrsStage.apprenticeIV.color),
-              progressionCells(
-                  "Remembering",
-                  (srsCounts[SrsStage.guru] ?? 0) +
-                      (srsCounts[SrsStage.guruII] ?? 0),
-                  SrsStage.guru.color),
-              progressionCells("Memorized", srsCounts[SrsStage.master] ?? 0,
-                  SrsStage.master.color),
-              progressionCells("Retained", srsCounts[SrsStage.enlighted] ?? 0,
-                  SrsStage.enlighted.color),
-              progressionCells("Burned", srsCounts[SrsStage.burned] ?? 0,
-                  SrsStage.burned.color),
-            ],
+          GestureDetector(
+            onTap: () {
+              ResultData learningItems = ResultData(
+                data: appData.allKanjiData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.apprenticeI ||
+                              srs == SrsStage.apprenticeII ||
+                              srs == SrsStage.apprenticeIII ||
+                              srs == SrsStage.apprenticeIV;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList() +
+                    appData.allVocabData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.apprenticeI ||
+                              srs == SrsStage.apprenticeII ||
+                              srs == SrsStage.apprenticeIII ||
+                              srs == SrsStage.apprenticeIV;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList(),
+                dataLabel: 'Learning',
+                themeColor: SrsStage.apprenticeIV.color,
+              );
+
+              ResultData rememberingItems = ResultData(
+                data: appData.allKanjiData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.guru || srs == SrsStage.guruII;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList() +
+                    appData.allVocabData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.guru || srs == SrsStage.guruII;
+                        })
+                        .map((e) => e as dynamic)
+                        .map((e) => e as dynamic)
+                        .toList(),
+                dataLabel: 'Remembering',
+                themeColor: SrsStage.guruII.color,
+              );
+
+              ResultData memorizedItems = ResultData(
+                data: appData.allKanjiData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.master;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList() +
+                    appData.allVocabData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.master;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList(),
+                dataLabel: 'Memorized',
+                themeColor: Colors.green,
+              );
+
+              ResultData retainedItems = ResultData(
+                data: appData.allKanjiData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.enlighted;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList() +
+                    appData.allVocabData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.enlighted;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList(),
+                dataLabel: 'Retained',
+                themeColor: SrsStage.enlighted.color,
+              );
+
+              ResultData burnedItems = ResultData(
+                data: appData.allKanjiData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.burned;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList() +
+                    appData.allVocabData!
+                        .where((element) {
+                          var srs = element.srsData?.data?.getSrs();
+                          return srs == SrsStage.burned;
+                        })
+                        .map((e) => e as dynamic)
+                        .toList(),
+                dataLabel: 'Retained',
+                themeColor: const Color.fromARGB(31, 0, 0, 0),
+              );
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ResultPage(
+                    listData: [
+                      learningItems,
+                      rememberingItems,
+                      memorizedItems,
+                      retainedItems,
+                      burnedItems
+                    ],
+                    title: 'Wanikani progression',
+                    titleTheme: Colors.indigo,
+                  ),
+                ),
+              );
+            },
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              children: [
+                progressionCells(
+                    "Learning", learning, SrsStage.apprenticeIV.color),
+                progressionCells(
+                    "Remembering",
+                    (srsCounts[SrsStage.guru] ?? 0) +
+                        (srsCounts[SrsStage.guruII] ?? 0),
+                    SrsStage.guru.color),
+                progressionCells("Memorized", srsCounts[SrsStage.master] ?? 0,
+                    SrsStage.master.color),
+                progressionCells("Retained", srsCounts[SrsStage.enlighted] ?? 0,
+                    SrsStage.enlighted.color),
+                progressionCells("Burned", srsCounts[SrsStage.burned] ?? 0,
+                    SrsStage.burned.color),
+              ],
+            ),
           ),
           const Gap(10),
           const Text(
@@ -857,6 +1006,10 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
 
     List<DateTime> dateTimeList = [];
 
+    if (days == 0 && startTime.day > DateTime.now().day) {
+      return dateTimeList;
+    }
+
     int i = 0;
     var d = startTime.add(oneHour * i);
     while (d.day == startTime.day) {
@@ -943,15 +1096,21 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
         .toList();
 
     var recentMistakesData = kanjiMistakeList
-            .map((e) =>
-                {"id": e.id, "char": e.data!.characters, "isKanji": true, "data": e})
+            .map((e) => {
+                  "id": e.id,
+                  "char": e.data!.characters,
+                  "isKanji": true,
+                  "data": e
+                })
             .toList() +
         vocabMistakeList
-            .map((e) =>
-                {"id": e.id, "char": e.data!.characters, "isKanji": false, "data": e})
+            .map((e) => {
+                  "id": e.id,
+                  "char": e.data!.characters,
+                  "isKanji": false,
+                  "data": e
+                })
             .toList();
-
-    // recentMistakesData.shuffle();
 
     return Container(
       width: double.infinity,
@@ -1027,6 +1186,7 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
                         ),
                     ],
                   ),
+                  const Gap(10),
                   GestureDetector(
                     onTap: () {
                       createQuizFromItemDialog(
@@ -1087,7 +1247,8 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
         "id": element.id,
         "char": element.data!.characters,
         "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-        "isKanji": true
+        "isKanji": true,
+        "data": element,
       };
     }).toList();
     newItemsList = newItemsList +
@@ -1106,7 +1267,8 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
             "id": element.id,
             "char": element.data!.characters,
             "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-            "isKanji": false
+            "isKanji": false,
+            "data": element,
           };
         }).toList();
 
@@ -1121,61 +1283,91 @@ class _DashboardState extends State<Dashboard> with AutomaticKeepAliveClientMixi
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      child: Column(
-        children: [
-          Text(
-            'Available lesson${newItemsList.length > 1 ? "s" : ""}',
-            style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-          ),
-          for (var item in newItemsList.sublist(
-              0, newItemsList.length < 10 ? newItemsList.length : 10))
-            Container(
-              decoration: BoxDecoration(
-                color: item["isKanji"] as bool
-                    ? Colors.pink.shade600
-                    : Colors.purple.shade800,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    (item["char"] ?? "ERR") as String,
-                    style: const TextStyle(fontSize: 24, color: Colors.white),
-                  ),
-                  Text(
-                    (item["unlockedDate"] != null
-                        ? DateFormat('MMM dd')
-                            .format(item["unlockedDate"] as DateTime)
-                        : "ERR"),
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultPage(
+                listData: [
+                  ResultData(
+                      data: newItemsList.map((e) => e["data"]).toList(),
+                      dataLabel: "Available Items",
+                      themeColor: Colors.black)
                 ],
+                title: 'Lessons',
+                titleTheme: Colors.pink,
               ),
             ),
-          newItemsList.length > 10
-              ? RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
+          );
+        },
+        child: GestureDetector(
+          onTap: () {
+            appData.stuffSourceLabel = SourceTypeLabel.JLPT;
+            widget.changePageCallback(2);
+          },
+          child: Column(
+            children: [
+              Text(
+                'Available lesson${newItemsList.length > 1 ? "s" : ""}',
+                style: const TextStyle(
+                    fontSize: 24.0, fontWeight: FontWeight.bold),
+              ),
+              for (var item in newItemsList.sublist(
+                  0, newItemsList.length < 10 ? newItemsList.length : 10))
+                Container(
+                  decoration: BoxDecoration(
+                    color: item["isKanji"] as bool
+                        ? Colors.pink.shade600
+                        : Colors.purple.shade800,
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const TextSpan(text: 'and '),
-                      TextSpan(
-                        text: '${newItemsList.length - 10}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        (item["char"] ?? "ERR") as String,
+                        style:
+                            const TextStyle(fontSize: 24, color: Colors.white),
                       ),
-                      const TextSpan(
-                        text: ' more...',
+                      Text(
+                        (item["unlockedDate"] != null
+                            ? DateFormat('MMM dd')
+                                .format(item["unlockedDate"] as DateTime)
+                            : "ERR"),
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ],
-                    style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic),
                   ),
-                )
-              : const SizedBox.shrink(),
-        ],
+                ),
+              newItemsList.length > 10
+                  ? RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        children: [
+                          const TextSpan(text: 'and '),
+                          TextSpan(
+                            text: '${newItemsList.length - 10}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const TextSpan(
+                            text: ' more...',
+                          ),
+                        ],
+                        style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ],
+          ),
+        ),
       ),
     );
   }

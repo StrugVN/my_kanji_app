@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
@@ -21,6 +22,16 @@ class AppData {
   List<WkSrsStatData>? allSrsData;
   List<WkReviewStatData>? allReviewData;
   bool dataIsLoaded = false;
+
+  SourceTypeLabel stuffSourceLabel = SourceTypeLabel.Wanikani;
+
+  Map lessonSetting = {
+    "radical": true,
+    "kanji": true,
+    "vocab": true,
+  };
+
+  int lessonBatchSize = 5;
 
   UserData userData = UserData();
 

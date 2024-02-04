@@ -458,7 +458,14 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
     if (toSetState) {
       setState(() {
         if (dataList!.where((element) => element.isCorrect == null).isEmpty) {
-          closeSection();
+          var page = closeSection();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => page,
+            ),
+          );
         }
       });
     }

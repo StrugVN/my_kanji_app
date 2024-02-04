@@ -54,7 +54,7 @@ class _ResultPageState extends State<ResultPage> {
               },
             ),
           ],
-          backgroundColor: Colors.blue,
+          backgroundColor: titleTheme,
         ),
         backgroundColor: Colors.grey.shade300,
         body: SingleChildScrollView(
@@ -141,8 +141,6 @@ class _ResultPageState extends State<ResultPage> {
     if (item is Vocab) {
       vocab = item;
     }
-
-    print(item);
 
     return GestureDetector(
       onTap: () {

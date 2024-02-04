@@ -49,6 +49,7 @@ class _HomeState extends State<Home> {
     pageList = <Widget>[
       Dashboard(
         createQuiz: createStudySet,
+        changePageCallback: changePage,
       ),
       Review(),
       const Stuff(),
@@ -210,6 +211,7 @@ class _HomeState extends State<Home> {
                 Dashboard(
                   key: UniqueKey(),
                   createQuiz: createStudySet,
+                  changePageCallback: changePage,
                 ),
                 Review(
                   key: UniqueKey(),
@@ -365,6 +367,7 @@ class _HomeState extends State<Home> {
     pageList = <Widget>[
       Dashboard(
         createQuiz: createStudySet,
+        changePageCallback: changePage,
       ),
       Review(
           key: UniqueKey(),
@@ -385,5 +388,18 @@ class _HomeState extends State<Home> {
         );
       },
     );
+  }
+
+  changePage(int i) {
+    if (i >= 0 && i < pageList.length) {
+      setState(() {
+        pageIndex = i;
+        pageController.animateToPage(
+          i,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.ease,
+        );
+      });
+    }
   }
 }

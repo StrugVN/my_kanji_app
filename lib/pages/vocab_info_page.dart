@@ -18,11 +18,15 @@ import 'package:collection/collection.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class VocabPage extends StatefulWidget {
-  const VocabPage({super.key, required this.vocab, this.navigationList});
+  VocabPage({super.key, required this.vocab, this.navigationList}) : hideAppBar = false;
+
+  VocabPage.hideAppBar({super.key, required this.vocab, this.navigationList}) : hideAppBar = true;
 
   final Vocab vocab;
 
   final List<Vocab>? navigationList;
+
+  bool hideAppBar;
 
   @override
   State<VocabPage> createState() => _VocabPageState(vocab, navigationList);
@@ -74,7 +78,7 @@ class _VocabPageState extends State<VocabPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: !widget.hideAppBar ? AppBar(
         title: Text(
           vocab.data!.characters ?? "",
           style: const TextStyle(color: Colors.white),
@@ -101,7 +105,7 @@ class _VocabPageState extends State<VocabPage> {
           ),
         ],
         backgroundColor: Colors.purple,
-      ),
+      ) : null,
       backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(

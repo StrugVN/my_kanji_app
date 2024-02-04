@@ -22,8 +22,6 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
 
   final TextEditingController sourceTypeController = TextEditingController();
 
-  SourceTypeLabel sourceTypeLabel = SourceTypeLabel.Wanikani;
-
   var dropDownItem = SourceTypeLabel.values
       .map<DropdownMenuEntry<SourceTypeLabel>>((SourceTypeLabel color) {
     return DropdownMenuEntry<SourceTypeLabel>(
@@ -60,7 +58,6 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
   void initState() {
     super.initState();
     scrollController.addListener(_scrollListener);
-    sourceTypeController.text = "Wanikani";
 
     createFormatMap();
   }
@@ -130,11 +127,11 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                           ),
                           child: DropdownMenu<SourceTypeLabel>(
                             width: MediaQuery.of(context).size.width * 0.75,
-                            controller: sourceTypeController,
+                            controller: sourceTypeController..text = appData.stuffSourceLabel.label,
                             onSelected: (SourceTypeLabel? type) {
                               if (type != null) {
                                 setState(() {
-                                  sourceTypeLabel = type;
+                                  appData.stuffSourceLabel = type;
                                 });
                               }
                             },
@@ -187,7 +184,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
   }
 
   getListItem() {
-    switch (sourceTypeLabel) {
+    switch (appData.stuffSourceLabel) {
       case SourceTypeLabel.Wanikani:
         return getWkItems();
       case SourceTypeLabel.JLPT:
