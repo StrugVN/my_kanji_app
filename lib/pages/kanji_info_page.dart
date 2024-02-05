@@ -14,17 +14,23 @@ import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:unofficial_jisho_api/api.dart';
 
 class KanjiPage extends StatefulWidget {
-  KanjiPage({super.key, required this.kanji, this.navigationList});
+  KanjiPage({super.key, required this.kanji, this.navigationList}) : hideAppBar = false;
+
+  KanjiPage.hideAppBar({super.key, required this.kanji, this.navigationList}) : hideAppBar = true;
 
   final Kanji kanji;
 
   final List<Kanji>? navigationList;
 
+  bool hideAppBar;
+
   @override
   State<KanjiPage> createState() => _KanjiPageState(kanji, navigationList);
 }
 
-class _KanjiPageState extends State<KanjiPage> {
+class _KanjiPageState extends State<KanjiPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   int numberOfExample = 3;
 
   final Kanji kanji;
@@ -56,7 +62,7 @@ class _KanjiPageState extends State<KanjiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: !widget.hideAppBar ? AppBar(
         title: Text(
           kanji.data!.characters ?? "",
           style: const TextStyle(color: Colors.white),
@@ -83,7 +89,7 @@ class _KanjiPageState extends State<KanjiPage> {
           ),
         ],
         backgroundColor: Colors.pink,
-      ),
+      ) : AppBar(),
       backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(

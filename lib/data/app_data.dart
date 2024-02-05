@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
@@ -23,6 +24,11 @@ class AppData {
   List<WkReviewStatData>? allReviewData;
   bool dataIsLoaded = false;
 
+  // //////
+  Map<String, SrsStage> formatMap = {};
+
+  Map<String, Widget> characterCells = {};
+
   SourceTypeLabel stuffSourceLabel = SourceTypeLabel.Wanikani;
 
   Map lessonSetting = {
@@ -32,6 +38,14 @@ class AppData {
   };
 
   int lessonBatchSize = 5;
+
+  Map reviewSetting = {
+    "radical": true,
+    "kanji": true,
+    "vocab": true,
+  };
+
+  int reviewDraftSize = 10;
 
   UserData userData = UserData();
 
@@ -52,7 +66,7 @@ class AppData {
   }
 
   Future<void> loadData() async {
-    dataIsLoaded = false;
+    initData();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -108,6 +122,12 @@ class AppData {
     await prefs.setString('dateOfCache', DateTime.now().toString());
 
     dataIsLoaded = true;
+  }
+
+  void initData() {
+    dataIsLoaded = false;
+    formatMap = {};
+    characterCells = {};
   }
 
   @Deprecated("Use the api one")

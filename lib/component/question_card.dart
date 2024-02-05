@@ -236,6 +236,7 @@ class _QuestionCardState extends State<QuestionCard> {
                   if (meaningInput.text.trim() == "") {
                     setState(() {
                       isMeaningCorrect = true;
+                      isMeaningSlightlyWrong = false;
                     });
 
                     meaningInput.text = meaningInput.text.trim();
@@ -356,8 +357,6 @@ class _QuestionCardState extends State<QuestionCard> {
                   onChanged: (String value) {
                     int cursorPosition = readingInput.selection.baseOffset;
 
-                    int x = countLatinCharacters(value);
-
                     if (value.length > 0 && value[value.length - 1] == "n") {
                       if (value.length > 1 && value[value.length - 2] == "n") {
                         readingInput.text = kanaKit
@@ -370,8 +369,8 @@ class _QuestionCardState extends State<QuestionCard> {
                       readingInput.text = kanaKit.toHiragana(value);
                     }
 
-                    if (value != readingInput.text) {
-                      cursorPosition = cursorPosition - x + 1;
+                    if (value.length != readingInput.text.length) {
+                      cursorPosition = cursorPosition - (value.length - readingInput.text.length);
                     }
 
                     readingInput.selection = TextSelection.fromPosition(

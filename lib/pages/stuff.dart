@@ -39,10 +39,6 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
 
   bool showBackToTopButton = false;
 
-  Map<String, SrsStage> formatMap = {};
-
-  Map<String, Widget> characterCells = {};
-
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent) {
@@ -303,7 +299,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
             crossAxisCount: 9,
             children: [
               for (var item in itemList)
-                characterCells[item] ?? SizedBox.fromSize(),
+                appData.characterCells[item] ?? SizedBox.fromSize(),
             ],
           ),
         ],
@@ -346,31 +342,35 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
   }
 
   SrsStage getFormat(String s) {
-    if (formatMap[s] == null) {
+    if (appData.formatMap[s] == null) {
       return SrsStage.notExist;
     } else {
-      return formatMap[s]!;
+      return appData.formatMap[s]!;
     }
   }
 
   void createFormatMap() async {
     await AppData().assertDataIsLoaded();
 
+    if( appData.characterCells.isNotEmpty) {
+      return;
+    }
+
     for (var s in appData.allKanjiData!) {
       if (s.data?.characters == null) {
-        characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
+        appData.characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
         continue;
       }
 
       var format = s.srsData?.data?.getSrs();
 
       if (format == null) {
-        formatMap[s.data!.characters!] = SrsStage.unDiscovered;
+        appData.formatMap[s.data!.characters!] = SrsStage.unDiscovered;
       } else {
-        formatMap[s.data!.characters!] = format;
+        appData.formatMap[s.data!.characters!] = format;
       }
 
-      characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
+      appData.characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
     }
 
     setState(() {});

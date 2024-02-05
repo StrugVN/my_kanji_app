@@ -32,7 +32,10 @@ class VocabPage extends StatefulWidget {
   State<VocabPage> createState() => _VocabPageState(vocab, navigationList);
 }
 
-class _VocabPageState extends State<VocabPage> {
+class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   int numberOfExample = 5;
 
   final Vocab vocab;
@@ -50,13 +53,12 @@ class _VocabPageState extends State<VocabPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     if (vocab.data?.characters == null ||
         vocab.data?.level == null ||
-        vocab.data?.meanings == null ||
-        vocab.data?.readings == null) {
+        vocab.data?.meanings == null
+        ) {
       Navigator.of(context).pop();
     }
 
@@ -153,7 +155,7 @@ class _VocabPageState extends State<VocabPage> {
                 children: [
                   Flexible(
                     child: Text(
-                      "(${vocab.data?.partsOfSpeech?.join(", ")})",
+                      "${vocab.data?.partsOfSpeech?.join(", ")}",
                       style: const TextStyle(
                         fontSize: 16,
                       ),
@@ -216,7 +218,7 @@ class _VocabPageState extends State<VocabPage> {
   }
 
   getTextOfVocab() {
-    String slug = vocab.data!.slug ?? "N/A";
+    String char = vocab.data!.characters ?? "N/A";
     var readings = vocab.data!.readings;
 
     if (readings != null) {
@@ -242,7 +244,7 @@ class _VocabPageState extends State<VocabPage> {
                         ),
                       ),
                     ),
-                    getPitch(slug, reading.reading),
+                    getPitch(char, reading.reading),
                   ],
                 );
               }).toList(),
@@ -253,19 +255,19 @@ class _VocabPageState extends State<VocabPage> {
     } else {
       return Column(
         children: [
-          getPitch(slug, slug),
+          getPitch(char, char),
         ],
       );
     }
   }
 
-  Widget getPitch(String? slugs, String? reading) {
+  Widget getPitch(String? chars, String? reading) {
     const Widget noData = SizedBox.shrink();
 
-    if (slugs == null || reading == null) return noData;
+    if (chars == null || reading == null) return noData;
 
     var pitchData = appData.pitchData
-        ?.firstWhereOrNull((element) => element.characters == slugs);
+        ?.firstWhereOrNull((element) => element.characters == chars);
 
     if (pitchData == null || pitchData.pitches == null) {
       // Retry with kana reading only
@@ -448,7 +450,6 @@ class _VocabPageState extends State<VocabPage> {
                   kanji.data?.readings
                           ?.firstWhereOrNull((item) => item.primary == true)!
                           .reading ??
-                      "N/A" ??
                       "N/A",
                   style: const TextStyle(
                     fontSize: 16,
@@ -460,7 +461,6 @@ class _VocabPageState extends State<VocabPage> {
                   kanji.data?.meanings
                           ?.firstWhereOrNull((item) => item.primary == true)
                           ?.meaning ??
-                      "N/A" ??
                       "N/A",
                   style: const TextStyle(
                     fontSize: 16,
@@ -804,6 +804,19 @@ class _VocabPageState extends State<VocabPage> {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(text: vocab.data?.readingMnemonic ?? "")
+            ],
+            style: const TextStyle(color: Colors.black),
+          ),
+        ),
+        const Gap(10),
+        RichText(
+          text: TextSpan(
+            children: [
+              const TextSpan(
+                text: " Item id: ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              TextSpan(text: "${vocab.id}")
             ],
             style: const TextStyle(color: Colors.black),
           ),

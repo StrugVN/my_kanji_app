@@ -14,6 +14,7 @@ import 'package:my_kanji_app/pages/lesson.dart';
 import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
+import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:core';
@@ -52,6 +53,7 @@ class _DashboardState extends State<Dashboard>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Stack(
       children: [
         SingleChildScrollView(
@@ -376,39 +378,55 @@ class _DashboardState extends State<Dashboard>
             ],
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LessonPage(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LessonPage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                ),
+                child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+                    child: const Text(
+                      'Start lessons',
+                      style: TextStyle(fontSize: 22),
+                    )),
               ),
-              child: const Text('Start lesson'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Your button press code here
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0)),
+              ElevatedButton(
+                onPressed: () {
+                  // Your button press code here
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                ),
+                child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+                    child: const Text(
+                      'Start reviews',
+                      style: TextStyle(fontSize: 22),
+                    )),
               ),
-              child: const Text('Start review'),
-            ),
-          ],
+            ],
+          ),
         ),
         Container(
           decoration: BoxDecoration(
@@ -861,7 +879,7 @@ class _DashboardState extends State<Dashboard>
             style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
           ),
           // -------------------
-
+                    
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -870,38 +888,49 @@ class _DashboardState extends State<Dashboard>
                 children: [
                   Text(
                     "",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
                     "N5",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
                     "N4",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
                     "N3",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
                     "N2",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
                     "N1",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
               Column(
                 children: [
                   const Text("Not studied"),
-                  Text("${jlptN5.replaceAll(",", "").length - learnedN5}"),
-                  Text("${jlptN4.replaceAll(",", "").length - learnedN4}"),
-                  Text("${jlptN3.replaceAll(",", "").length - learnedN3}"),
-                  Text("${jlptN2.replaceAll(",", "").length - learnedN2}"),
-                  Text("${jlptN1.replaceAll(",", "").length - learnedN1}"),
+                  Text(
+                      "${jlptN5.replaceAll(",", "").length - learnedN5}"),
+                  Text(
+                      "${jlptN4.replaceAll(",", "").length - learnedN4}"),
+                  Text(
+                      "${jlptN3.replaceAll(",", "").length - learnedN3}"),
+                  Text(
+                      "${jlptN2.replaceAll(",", "").length - learnedN2}"),
+                  Text(
+                      "${jlptN1.replaceAll(",", "").length - learnedN1}"),
                 ],
               ),
               Column(
@@ -1301,72 +1330,62 @@ class _DashboardState extends State<Dashboard>
             ),
           );
         },
-        child: GestureDetector(
-          onTap: () {
-            appData.stuffSourceLabel = SourceTypeLabel.JLPT;
-            widget.changePageCallback(2);
-          },
-          child: Column(
-            children: [
-              Text(
-                'Available lesson${newItemsList.length > 1 ? "s" : ""}',
-                style: const TextStyle(
-                    fontSize: 24.0, fontWeight: FontWeight.bold),
-              ),
-              for (var item in newItemsList.sublist(
-                  0, newItemsList.length < 10 ? newItemsList.length : 10))
-                Container(
-                  decoration: BoxDecoration(
-                    color: item["isKanji"] as bool
-                        ? Colors.pink.shade600
-                        : Colors.purple.shade800,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        (item["char"] ?? "ERR") as String,
-                        style:
-                            const TextStyle(fontSize: 24, color: Colors.white),
-                      ),
-                      Text(
-                        (item["unlockedDate"] != null
-                            ? DateFormat('MMM dd')
-                                .format(item["unlockedDate"] as DateTime)
-                            : "ERR"),
-                        style:
-                            const TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ],
-                  ),
+        child: Column(
+          children: [
+            Text(
+              'Available lesson${newItemsList.length > 1 ? "s" : ""}',
+              style:
+                  const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            ),
+            for (var item in newItemsList.sublist(
+                0, newItemsList.length < 10 ? newItemsList.length : 10))
+              Container(
+                decoration: BoxDecoration(
+                  color: item["isKanji"] as bool
+                      ? Colors.pink.shade600
+                      : Colors.purple.shade800,
                 ),
-              newItemsList.length > 10
-                  ? RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        children: [
-                          const TextSpan(text: 'and '),
-                          TextSpan(
-                            text: '${newItemsList.length - 10}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const TextSpan(
-                            text: ' more...',
-                          ),
-                        ],
-                        style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      (item["char"] ?? "ERR") as String,
+                      style: const TextStyle(fontSize: 24, color: Colors.white),
+                    ),
+                    Text(
+                      (item["unlockedDate"] != null
+                          ? DateFormat('MMM dd')
+                              .format(item["unlockedDate"] as DateTime)
+                          : "ERR"),
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            newItemsList.length > 10
+                ? RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      children: [
+                        const TextSpan(text: 'and '),
+                        TextSpan(
+                          text: '${newItemsList.length - 10}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const TextSpan(
+                          text: ' more...',
+                        ),
+                      ],
+                      style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontStyle: FontStyle.italic),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
         ),
       ),
     );

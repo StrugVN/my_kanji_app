@@ -15,6 +15,7 @@ import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:collection/collection.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
+import 'package:preload_page_view/preload_page_view.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -40,7 +41,8 @@ class _HomeState extends State<Home> {
 
   var searchTextController = TextEditingController();
 
-  var pageController = PageController(initialPage: 0);
+  var pageController = PreloadPageController(initialPage: 0);
+  // var pageController = PageController(initialPage: 0);
 
   @override
   void initState() {
@@ -52,7 +54,7 @@ class _HomeState extends State<Home> {
         changePageCallback: changePage,
       ),
       Review(),
-      const Stuff(),
+      Stuff(),
     ];
 
     searchFocusNode.addListener(() {
@@ -72,11 +74,22 @@ class _HomeState extends State<Home> {
       onPopInvoked: (didPop) async {
         if (didPop) return;
 
-        await showLogOutDialog(context).then((confirm) {
-          if (confirm != null && confirm) {
-            Navigator.pop(context, true);
-          }
-        });
+        if (pageIndex > 0) {
+          pageIndex = 0;
+          setState(() {
+            pageController.animateToPage(
+              pageIndex,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+            );
+          });
+        } else {
+          await showLogOutDialog(context).then((confirm) {
+            if (confirm != null && confirm) {
+              Navigator.pop(context, true);
+            }
+          });
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -111,14 +124,27 @@ class _HomeState extends State<Home> {
           },
           child: Stack(
             children: [
-              PageView(
+              // PageView(
+              //   controller: pageController,
+              //   onPageChanged: (index) {
+              //     setState(() {
+              //       pageIndex = index;
+              //     });
+              //   },
+              //   children: pageList,
+              // ),
+              PreloadPageView.builder(
                 controller: pageController,
                 onPageChanged: (index) {
                   setState(() {
                     pageIndex = index;
                   });
                 },
-                children: pageList,
+                itemBuilder: (context, index) {
+                  return pageList[index];
+                },
+                itemCount: pageList.length,
+                preloadPagesCount: 3,
               ),
               if (isSearchOpen && searchTextController.text.isNotEmpty)
                 searchResult(searchTextController.text),
@@ -128,14 +154,16 @@ class _HomeState extends State<Home> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: pageIndex,
           onTap: (index) {
-            setState(() {
-              pageIndex = index;
-              pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.ease,
-              );
-            });
+            setState(
+              () {
+                pageIndex = index;
+                pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.ease,
+                );
+              },
+            );
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
@@ -374,7 +402,7 @@ class _HomeState extends State<Home> {
           listKanji: listKanji,
           listVocab: listVocab,
           kanjiOnFront: kanjiOnFront),
-      const Stuff(),
+      Stuff(),
     ];
     print("Page removed and reinserted");
 
