@@ -7,6 +7,7 @@ import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_respone.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
@@ -43,8 +44,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
   // ----
   final meaningInput = TextEditingController();
-
   final readingInput = TextEditingController();
+  final focusNodeReading = FocusNode();
+  final focusNodeMeaning = FocusNode();
 
   bool isMeaningCorrect = true;
   bool isMeaningSlightlyWrong = false;
@@ -104,7 +106,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
               getAnswerField(),
               if (showInfo)
                 Expanded(child: getInfoPage(draftList[currIndex].data))
-              else
+              else if (result != null)
                 getInfoButton(),
             ],
           ),
@@ -122,18 +124,21 @@ class _WkReviewPageState extends State<WkReviewPage> {
       Vocab vocab = draftList[currIndex].data;
 
       if (vocab.data != null && vocab.data!.readings == null) {
-        draftList[currIndex].incorrectReadingAnswers = 0;
+        draftList[currIndex].readingAnswered = true;
       }
     }
 
-    if (draftList[currIndex].incorrectMeaningAnswers == null &&
-        draftList[currIndex].incorrectReadingAnswers == null) {
+    if (!draftList[currIndex].meaningAnswered &&
+        !draftList[currIndex].readingAnswered) {
+      // Pick random
       isReadingAsked = random.nextBool();
     } else {
-      if (draftList[currIndex].incorrectMeaningAnswers != null) {
-        isReadingAsked = false;
-      } else if (draftList[currIndex].incorrectReadingAnswers != null) {
+      if (draftList[currIndex].meaningAnswered) {
+        // If meaning is answered pick reading
         isReadingAsked = true;
+      } else if (draftList[currIndex].readingAnswered) {
+        // If reading is answered pick meaning
+        isReadingAsked = false;
       }
     }
   }
@@ -148,6 +153,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
         children: [
           ElevatedButton(
             onPressed: () {
+              focusNodeMeaning.unfocus();
+              focusNodeReading.unfocus();
               setState(() {
                 result = false;
                 showInfo = true;
@@ -168,16 +175,24 @@ class _WkReviewPageState extends State<WkReviewPage> {
             ),
           ),
           Text(
-            "${completedList.length}/${draftList.length + standByList.length}",
+            "${completedList.length}/${reviewItems.length}",
             style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              focusNodeMeaning.unfocus();
+              focusNodeReading.unfocus();
+              if (result == null) {
+                onSubmitPressed();
+              } else {
+                recordAnswer();
+              }
+            },
             icon: result != null
                 ? result!
                     ? const Icon(
                         Icons.check,
-                        color: Colors.green,
+                        color: Colors.lightGreen,
                       )
                     : const Icon(
                         Icons.close,
@@ -189,9 +204,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
               style: const TextStyle(fontSize: 18),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: result == null
-                  ? const Color.fromARGB(255, 128, 195, 250)
-                  : Colors.blue,
+              backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(0.0),
@@ -286,49 +299,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
           children: [
             Focus(
               onFocusChange: (hasFocus) {
-                if (meaningInput.text.trim() == "") {
-                  setState(() {
-                    isMeaningCorrect = true;
-                    isMeaningSlightlyWrong = false;
-                  });
-
-                  meaningInput.text = meaningInput.text.trim();
-                } else {
-                  var meaning = kanji != null
-                      ? kanji.data?.meanings
-                      : vocab!.data?.meanings;
-                  var auxMeaning = kanji != null
-                      ? kanji.data?.auxiliaryMeanings
-                      : vocab!.data?.auxiliaryMeanings;
-
-                  if (meaning == null) {
-                    return;
-                  }
-                  if (auxMeaning != null) {
-                    meaning = meaning + auxMeaning;
-                  }
-
-                  setState(() {
-                    isMeaningCorrect = meaning
-                        ?.where((e) =>
-                            (e.meaning?.toLowerCase() as String).similarityTo(
-                                meaningInput.text.toLowerCase()) >=
-                            0.75)
-                        .toList()
-                        .isNotEmpty as bool;
-
-                    isMeaningSlightlyWrong = isMeaningCorrect &&
-                        meaning
-                            ?.where((e) =>
-                                e.meaning?.toLowerCase() ==
-                                meaningInput.text.toLowerCase())
-                            .toList()
-                            .isEmpty as bool;
-                  });
-                  // print("${readingInput.text} - ${meaning.map((e) => e.meaning)}");
-                }
+                checkMeaningAnswer();
               },
               child: TextField(
+                focusNode: focusNodeMeaning,
                 controller: meaningInput,
                 onSubmitted: (String value) {
                   meaningInput.text = value;
@@ -344,14 +318,14 @@ class _WkReviewPageState extends State<WkReviewPage> {
                           ? Icon(
                               Icons.check,
                               color: isMeaningSlightlyWrong
-                                  ? Colors.yellow
-                                  : Colors.green,
+                                  ? const Color.fromARGB(255, 167, 150, 2)
+                                  : Colors.lightGreen,
                             )
                           : const Icon(
                               Icons.close,
                               color: Colors.red,
                             )),
-                  hintText: "Meaning",
+                  hintText: "Answer",
                   hintStyle: const TextStyle(
                     color: Colors.grey,
                     fontSize: 18,
@@ -364,8 +338,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                     padding: EdgeInsets.only(left: 20),
                     child: Text(
                       "Answer is a bit off. Double check the meaning.",
-                      style:
-                          TextStyle(color: Color.fromARGB(255, 199, 184, 46)),
+                      style: TextStyle(color: Color.fromARGB(255, 146, 132, 6)),
                       textAlign: TextAlign.left,
                     ),
                   )
@@ -380,32 +353,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Focus(
           onFocusChange: (hasFocus) {
-            if (readingInput.text.trim() == "") {
-              setState(() {
-                isReadingCorrect = true;
-              });
-
-              readingInput.text = readingInput.text.trim();
-            } else {
-              var reading =
-                  kanji != null ? kanji.data?.readings : vocab!.data?.readings;
-
-              if (reading == null) {
-                return;
-              }
-
-              setState(() {
-                isReadingCorrect = reading
-                    .where((e) =>
-                        e.reading?.toLowerCase() ==
-                        readingInput.text.toLowerCase())
-                    .toList()
-                    .isNotEmpty;
-              });
-              // print("${readingInput.text} - ${reading.map((e) => e.reading)}");
-            }
+            checkReadingAnswer();
           },
           child: TextField(
+            focusNode: focusNodeReading,
             controller: readingInput,
             onChanged: (String value) {
               int cursorPosition = readingInput.selection.baseOffset;
@@ -442,7 +393,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                   : (isReadingCorrect
                       ? const Icon(
                           Icons.check,
-                          color: Colors.green,
+                          color: Colors.lightGreen,
                         )
                       : const Icon(
                           Icons.close,
@@ -463,6 +414,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
   Widget getInfoButton() {
     return ElevatedButton(
       onPressed: () {
+        focusNodeMeaning.unfocus();
+        focusNodeReading.unfocus();
         setState(() {
           showInfo = true;
         });
@@ -483,50 +436,87 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   // -------
+  void onSubmitPressed() {
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (draftList[currIndex].data is Kanji) {
+      kanji = draftList[currIndex].data;
+    }
+    if (draftList[currIndex].data is Vocab) {
+      vocab = draftList[currIndex].data;
+    }
+
+    if (!isReadingAsked) {
+      checkMeaningAnswer();
+    } else {
+      checkReadingAnswer();
+    }
+  }
+
   void onSubmitAnswer() {
-    result = isMeaningCorrect || isReadingCorrect;
+    result = isMeaningCorrect && isReadingCorrect;
   }
 
   void recordAnswer() {
+    if (draftList.isEmpty) {
+      toResultPage();
+      return;
+    }
+
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (draftList[currIndex].data is Kanji) {
+      kanji = draftList[currIndex].data;
+    }
+    if (draftList[currIndex].data is Vocab) {
+      vocab = draftList[currIndex].data;
+    }
+
+    String? char =
+        kanji != null ? kanji.data?.characters : vocab!.data?.characters;
+
     if (result == null) return;
     // -- Record result
     if (result!) {
       if (isReadingAsked) {
-        draftList[currIndex].incorrectReadingAnswers = 0;
+        draftList[currIndex].readingAnswered = true;
       } else {
-        draftList[currIndex].incorrectMeaningAnswers = 0;
+        draftList[currIndex].meaningAnswered = true;
       }
     } else {
       if (isReadingAsked) {
-        draftList[currIndex].incorrectReadingAnswers =
-            draftList[currIndex].incorrectReadingAnswers != null
-                ? draftList[currIndex].incorrectReadingAnswers! + 1
-                : 1;
+        draftList[currIndex].incorrectReadingAnswers += 1;
+
       } else {
-        draftList[currIndex].incorrectMeaningAnswers =
-            draftList[currIndex].incorrectMeaningAnswers != null
-                ? draftList[currIndex].incorrectMeaningAnswers! + 1
-                : 1;
+        draftList[currIndex].incorrectMeaningAnswers += 1;
       }
     }
 
     // -- Check if item is completed?
-    if(draftList[currIndex].incorrectReadingAnswers != null && draftList[currIndex].incorrectMeaningAnswers != null){
+    if (draftList[currIndex].readingAnswered &&
+        draftList[currIndex].meaningAnswered) {
       // Move item to completedList
       completedList.add(draftList[currIndex]);
       draftList.removeAt(currIndex);
 
+      print(" - $char added to completed list");
+
       // To do: Send review result/assignment init based on page type
-      if(isReview){
-
-      }else{
-
-      }
+      if (isReview) {
+      } else {}
 
       // Draft new item
-      if(standByList.isNotEmpty){
+      if (standByList.isNotEmpty) {
         draftList.add(standByList[random.nextInt(standByList.length)]);
       }
+    }
+
+    // If draftList is empty <=> finished review
+    if (draftList.isEmpty) {
+      toResultPage();
+      return;
     }
 
     // -- Reset varible
@@ -543,9 +533,137 @@ class _WkReviewPageState extends State<WkReviewPage> {
     // -- Pick new review
     pickFromDraft();
 
-    setState(() {
-      
-    });
+    setState(() {});
+  }
+
+  void toResultPage() {
+    ResultData incorrectData = ResultData(
+      data: completedList
+          .where((element) =>
+              (element.incorrectMeaningAnswers ?? 0) +
+                  (element.incorrectReadingAnswers ?? 0) >
+              0)
+          .map((e) => e.data)
+          .toList(),
+      dataLabel: "Incorrect items",
+      themeColor: Colors.red,
+    );
+
+    ResultData correctData = ResultData(
+      data: completedList
+          .where((element) =>
+              (element.incorrectMeaningAnswers ?? 0) +
+                  (element.incorrectReadingAnswers ?? 0) ==
+              0)
+          .map((e) => e.data)
+          .toList(),
+      dataLabel: "Correct items",
+      themeColor: Colors.blue,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultPage(
+            listData: [correctData, incorrectData],
+            title: "Review result",
+            titleTheme: Colors.blue),
+      ),
+    );
+  }
+
+  void checkMeaningAnswer() {
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (draftList[currIndex].data is Kanji) {
+      kanji = draftList[currIndex].data;
+    }
+    if (draftList[currIndex].data is Vocab) {
+      vocab = draftList[currIndex].data;
+    }
+
+    if (meaningInput.text.trim() == "") {
+      setState(() {
+        isMeaningCorrect = true;
+        isMeaningSlightlyWrong = false;
+      });
+
+      meaningInput.text = meaningInput.text.trim();
+    } else {
+      var meaning =
+          kanji != null ? kanji.data?.meanings : vocab!.data?.meanings;
+      var auxMeaning = kanji != null
+          ? kanji.data?.auxiliaryMeanings
+          : vocab!.data?.auxiliaryMeanings;
+
+      if (meaning == null) {
+        return;
+      }
+      if (auxMeaning != null) {
+        meaning = meaning + auxMeaning;
+      }
+
+      setState(() {
+        isMeaningCorrect = meaning
+            ?.where((e) =>
+                (e.meaning?.toLowerCase() as String)
+                    .similarityTo(meaningInput.text.toLowerCase()) >=
+                0.75)
+            .toList()
+            .isNotEmpty as bool;
+
+        isMeaningSlightlyWrong = isMeaningCorrect &&
+            meaning
+                ?.where((e) =>
+                    e.meaning?.toLowerCase() == meaningInput.text.toLowerCase())
+                .toList()
+                .isEmpty as bool;
+
+        onSubmitAnswer();
+      });
+      // print("${readingInput.text} - ${meaning.map((e) => e.meaning)}");
+    }
+  }
+
+  void checkReadingAnswer() {
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (draftList[currIndex].data is Kanji) {
+      kanji = draftList[currIndex].data;
+    }
+    if (draftList[currIndex].data is Vocab) {
+      vocab = draftList[currIndex].data;
+    }
+
+    readingInput.text = kanaKit.toHiragana(readingInput.text);
+
+    if (readingInput.text.trim() == "") {
+      setState(() {
+        isReadingCorrect = true;
+      });
+
+      readingInput.text = readingInput.text.trim();
+    } else {
+      var reading =
+          kanji != null ? kanji.data?.readings : vocab!.data?.readings;
+
+      if (reading == null) {
+        return;
+      }
+
+      setState(() {
+        isReadingCorrect = reading
+            .where((e) =>
+                e.reading?.toLowerCase() == readingInput.text.toLowerCase())
+            .toList()
+            .isNotEmpty;
+
+        onSubmitAnswer();
+      });
+      // print("${readingInput.text} - ${reading.map((e) => e.reading)}");
+    }
   }
 
   Widget getInfoPage(dynamic item) {
@@ -625,8 +743,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
 class ReviewItem {
   final dynamic data;
   // null = not yet review, 0 = correct, else +1 every error
-  int? incorrectMeaningAnswers;
-  int? incorrectReadingAnswers;
+  int incorrectMeaningAnswers = 0;
+  bool meaningAnswered = false;
+  int incorrectReadingAnswers = 0;
+  bool readingAnswered = false;
   // Respone when review is sent
   WkReviewRespone? respone;
   // Respone when assignment started is sent
