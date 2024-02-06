@@ -65,6 +65,10 @@ class AppData extends ChangeNotifier  {
     }
   }
 
+  void manualNotify(){
+    notifyListeners();
+  }
+
   Future<void> loadData() async {
     initData();
 

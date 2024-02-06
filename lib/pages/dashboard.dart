@@ -14,6 +14,7 @@ import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/lesson.dart';
 import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
+import 'package:my_kanji_app/pages/wk_review.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
@@ -73,9 +74,9 @@ class _DashboardState extends State<Dashboard>
           physics: const NeverScrollableScrollPhysics(),
           child: Container(
             width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 2,
+            height: MediaQuery.of(context).size.height * 2.5,
             child: Image.asset(
-              "assets/images/blue_bg_2.jpg",
+              "assets/images/blue_bg_3.jpg",
               fit: BoxFit.fill,
             ),
           ),
@@ -94,13 +95,13 @@ class _DashboardState extends State<Dashboard>
               children: [
                 // //////////////////////////////////////////////////
                 greeting(),
-    
+
                 schedule(),
-    
+
                 progression(),
-    
+
                 criticalItem(),
-    
+
                 newItem(),
               ],
             ),
@@ -117,8 +118,8 @@ class _DashboardState extends State<Dashboard>
         // color: Colors.black12,
         borderRadius: BorderRadius.circular(30),
       ),
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -343,15 +344,16 @@ class _DashboardState extends State<Dashboard>
         .toList()
         .length;
 
-    var reviewCount = appData.allSrsData!
+    var reviewData = appData.allSrsData!
         .where((element) {
           var nextReview = element.data?.getNextReviewAsDateTime();
           return nextReview == null
               ? false
               : nextReview.toLocal().isBefore(DateTime.now());
         })
-        .toList()
-        .length;
+        .toList();
+
+    var reviewCount = reviewData.length;
 
     return Column(
       children: [
@@ -372,26 +374,11 @@ class _DashboardState extends State<Dashboard>
               ),
               TextSpan(
                   text: ' review${lessonCount > 1 ? "s" : ""} available.\n'),
-              // TextSpan(
-              //   text: 'Open WK',
-              //   style: const TextStyle(
-              //       color: Colors.blue, fontStyle: FontStyle.italic),
-              //   recognizer: TapGestureRecognizer()
-              //     ..onTap = () {
-              //       if (Platform.isWindows) {
-              //         Process.run(
-              //             'explorer', ["https://www.wanikani.com/dashboard"]);
-              //       } else {
-              //         openWebsite("https://www.wanikani.com/dashboard");
-              //       }
-              //     },
-              // ),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -420,7 +407,38 @@ class _DashboardState extends State<Dashboard>
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Your button press code here
+                  var kanjiReviewList = appData.allKanjiData?.where((element) {
+                        var nextReview =
+                            element.srsData?.data?.getNextReviewAsDateTime();
+                        return nextReview == null
+                            ? false
+                            : nextReview.toLocal().isBefore(DateTime.now());
+                      }).toList() ??
+                      [];
+
+                  var vocabReviewList = appData.allVocabData?.where((element) {
+                        var nextReview =
+                            element.srsData?.data?.getNextReviewAsDateTime();
+                        return nextReview == null
+                            ? false
+                            : nextReview.toLocal().isBefore(DateTime.now());
+                      }).toList() ??
+                      [];
+
+                  var reviewList =
+                      kanjiReviewList.map((e) => e as dynamic).toList() +
+                          vocabReviewList.map((e) => e as dynamic).toList();
+                  
+                  print("${kanjiReviewList.length} ${vocabReviewList.length} ");
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WkReviewPage(
+                        reviewItems: reviewList,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -884,97 +902,108 @@ class _DashboardState extends State<Dashboard>
               ],
             ),
           ),
-          const Gap(10),
-          const Text(
-            'JLPT',
-            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          ),
-          // -------------------
-                    
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Label
-              const Column(
-                children: [
-                  Text(
-                    "",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "N5",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "N4",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "N3",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "N2",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    "N1",
-                    style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text("Not studied"),
-                  Text(
-                      "${jlptN5.replaceAll(",", "").length - learnedN5}"),
-                  Text(
-                      "${jlptN4.replaceAll(",", "").length - learnedN4}"),
-                  Text(
-                      "${jlptN3.replaceAll(",", "").length - learnedN3}"),
-                  Text(
-                      "${jlptN2.replaceAll(",", "").length - learnedN2}"),
-                  Text(
-                      "${jlptN1.replaceAll(",", "").length - learnedN1}"),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text("In Progress"),
-                  Text("$learningN5"),
-                  Text("$learningN4"),
-                  Text("$learningN3"),
-                  Text("$learningN2"),
-                  Text("$learningN1"),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text("Learned"),
-                  Text("$learnedN5"),
-                  Text("$learnedN4"),
-                  Text("$learnedN3"),
-                  Text("$learnedN2"),
-                  Text("$learnedN1"),
-                ],
-              ),
-              Column(
-                children: [
-                  const Text("Burned"),
-                  Text("${srsCountsN5[SrsStage.burned] ?? 0}"),
-                  Text("${srsCountsN4[SrsStage.burned] ?? 0}"),
-                  Text("${srsCountsN3[SrsStage.burned] ?? 0}"),
-                  Text("${srsCountsN2[SrsStage.burned] ?? 0}"),
-                  Text("${srsCountsN1[SrsStage.burned] ?? 0}"),
-                ],
-              ),
-            ],
+          GestureDetector(
+            onTap: () {
+              appData.stuffSourceLabel = SourceTypeLabel.JLPT;
+              appData.manualNotify();
+              widget.changePageCallback(2);
+            },
+            child: Column(
+              children: [
+                const Gap(10),
+                const Text(
+                  'JLPT',
+                  style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                ),
+                // -------------------
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Label
+                    const Column(
+                      children: [
+                        Text(
+                          "",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          "N5",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          "N4",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          "N3",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          "N2",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          "N1",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text("Not studied"),
+                        Text(
+                            "${jlptN5.replaceAll(",", "").length - learnedN5}"),
+                        Text(
+                            "${jlptN4.replaceAll(",", "").length - learnedN4}"),
+                        Text(
+                            "${jlptN3.replaceAll(",", "").length - learnedN3}"),
+                        Text(
+                            "${jlptN2.replaceAll(",", "").length - learnedN2}"),
+                        Text(
+                            "${jlptN1.replaceAll(",", "").length - learnedN1}"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text("In Progress"),
+                        Text("$learningN5"),
+                        Text("$learningN4"),
+                        Text("$learningN3"),
+                        Text("$learningN2"),
+                        Text("$learningN1"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text("Learned"),
+                        Text("$learnedN5"),
+                        Text("$learnedN4"),
+                        Text("$learnedN3"),
+                        Text("$learnedN2"),
+                        Text("$learnedN1"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        const Text("Burned"),
+                        Text("${srsCountsN5[SrsStage.burned] ?? 0}"),
+                        Text("${srsCountsN4[SrsStage.burned] ?? 0}"),
+                        Text("${srsCountsN3[SrsStage.burned] ?? 0}"),
+                        Text("${srsCountsN2[SrsStage.burned] ?? 0}"),
+                        Text("${srsCountsN1[SrsStage.burned] ?? 0}"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1343,13 +1372,12 @@ class _DashboardState extends State<Dashboard>
         },
         child: Column(
           children: [
-            Text(
-              'Available lesson${newItemsList.length > 1 ? "s" : ""}',
-              style:
-                  const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+            const Text(
+              'Recently unlocked',
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
             for (var item in newItemsList.sublist(
-                0, newItemsList.length < 10 ? newItemsList.length : 10))
+                0, newItemsList.length < 5 ? newItemsList.length : 5))
               Container(
                 decoration: BoxDecoration(
                   color: item["isKanji"] as bool
@@ -1382,7 +1410,7 @@ class _DashboardState extends State<Dashboard>
                       children: [
                         const TextSpan(text: 'and '),
                         TextSpan(
-                          text: '${newItemsList.length - 10}',
+                          text: '${newItemsList.length - 5}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const TextSpan(

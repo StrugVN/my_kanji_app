@@ -6,6 +6,7 @@ import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
+import 'package:provider/provider.dart';
 
 class Stuff extends StatefulWidget {
   const Stuff({super.key});
@@ -60,6 +61,15 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    return Consumer<AppData>(
+      builder: (context, appData, child) {
+        return stuffBody();
+      },
+    );
+  }
+
+  Stack stuffBody() {
     return Stack(
       children: [
         SingleChildScrollView(
@@ -83,7 +93,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
             _secondScrollController.animateTo(offset,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.ease);
-
+    
             if (notification.metrics.pixels >
                 MediaQuery.of(context).size.height * 0.5) {
               setState(() {
@@ -94,7 +104,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                 showBackToTopButton = false;
               });
             }
-
+    
             return true;
           },
           child: SingleChildScrollView(
@@ -140,7 +150,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                     ],
                   ),
                 ),
-
+    
                 getListItem(),
               ],
             ),
