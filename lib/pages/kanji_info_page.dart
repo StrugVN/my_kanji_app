@@ -89,7 +89,7 @@ class _KanjiPageState extends State<KanjiPage> with AutomaticKeepAliveClientMixi
           ),
         ],
         backgroundColor: Colors.pink,
-      ) : AppBar(),
+      ) : null,
       backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(

@@ -8,7 +8,7 @@ import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/review.dart';
-import 'package:my_kanji_app/pages/stuff.dart';
+import 'package:my_kanji_app/pages/archive.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
@@ -54,7 +54,7 @@ class _HomeState extends State<Home> {
         changePageCallback: changePage,
       ),
       Review(),
-      Stuff(),
+      Archive(),
     ];
 
     searchFocusNode.addListener(() {
@@ -93,7 +93,7 @@ class _HomeState extends State<Home> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("My app")),
+          title: const Center(child: Text("Home")),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [
@@ -169,7 +169,7 @@ class _HomeState extends State<Home> {
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
             BottomNavigationBarItem(
                 icon: Icon(Icons.book), label: "Self-study"),
-            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Items"),
+            BottomNavigationBarItem(icon: Icon(Icons.info), label: "Archive"),
           ],
         ),
       ),
@@ -388,7 +388,7 @@ class _HomeState extends State<Home> {
           listKanji: listKanji,
           listVocab: listVocab,
           kanjiOnFront: kanjiOnFront),
-      Stuff(),
+      Archive(),
     ];
     print("Page removed and reinserted");
 

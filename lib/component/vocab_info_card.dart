@@ -82,18 +82,16 @@ class VocabInfoCard extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+
+            ///
+
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: getTextOfVocab(),
-                    ),
                     const Divider(color: Colors.black),
-
-                    ///
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -125,15 +123,14 @@ class VocabInfoCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const Divider(color: Colors.black),
+                    Center(
+                      child: getTextOfVocab(),
+                    ),
 
                     ///
-                    const Divider(color: Colors.black),
-                    getAudio(),
-                    
 
                     getUsedKanji(),
-
-                    ///
 
                     ///
                     futureWidget(getExampleJisho(), true, true),
@@ -173,6 +170,7 @@ class VocabInfoCard extends StatelessWidget {
                       ),
                     ),
                     getPitch(slug, reading.reading),
+                    getAudioButton(reading.reading ?? ""),
                   ],
                 );
               }).toList(),
@@ -315,76 +313,39 @@ class VocabInfoCard extends StatelessWidget {
     );
   }
 
-  getAudio() {
-    List<VocabPronunciationAudios>? audioData = item.data?.pronunciationAudios;
-
-    if (audioData == null) {
-      return const SizedBox(
-        width: 5,
-      );
-    }
-
-    List<Widget> list = [];
-
-    list.add(const Text(
-      "Audio:",
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-    ));
-
-    // for (var data in audioData) {
-    //   list.add(TextButton.icon(
-    //     onPressed: () async {
-    //       await audioPlayer.play(UrlSource(data.url!));
-    //     },
-    //     label: const Text(""),
-    //     icon: Icon(
-    //       Icons.volume_up,
-    //       color: data.metadata!.gender == "male" ? Colors.blue : Colors.pink,
-    //     ),
-    //   ));
-    // }
-    list.add(
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton.icon(
-            onPressed: () async {
-              await playAudio(true);
-            },
-            label: const Text(""),
-            icon: const Icon(
-              size: 32,
-              Icons.volume_up,
-              color: Colors.blue,
-            ),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-            ),
-          ),
-          TextButton.icon(
-            onPressed: () async {
-              await playAudio(false);
-            },
-            label: const Text(""),
-            icon: const Icon(
-              size: 32,
-              Icons.volume_up,
-              color: Colors.pink,
-            ),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-            ),
-          )
-        ],
-      ),
-    );
-
+  getAudioButton(String char) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: list,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextButton.icon(
+          onPressed: () async {
+            await playAudio(true, char);
+          },
+          label: const Text(""),
+          icon: const Icon(
+            size: 32,
+            Icons.volume_up,
+            color: Colors.blue,
+          ),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+          ),
+        ),
+        TextButton.icon(
+          onPressed: () async {
+            await playAudio(false, char);
+          },
+          label: const Text(""),
+          icon: const Icon(
+            size: 32,
+            Icons.volume_up,
+            color: Colors.pink,
+          ),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+          ),
+        )
+      ],
     );
   }
 
@@ -623,15 +584,19 @@ class VocabInfoCard extends StatelessWidget {
     );
   }
 
-  playAudio(bool male) async {
+  playAudio(bool male, String char) async {
     List<VocabPronunciationAudios>? audioData = item.data?.pronunciationAudios;
 
     if (audioData != null) {
       var maleAudio = audioData
-          .where((element) => element.metadata?.gender == "male")
+          .where((element) =>
+              element.metadata?.gender == "male" &&
+              element.metadata?.pronunciation == char)
           .toList();
       var femaleAudio = audioData
-          .where((element) => element.metadata?.gender == "female")
+          .where((element) =>
+              element.metadata?.gender == "female" &&
+              element.metadata?.pronunciation == char)
           .toList();
 
       final _random = Random();

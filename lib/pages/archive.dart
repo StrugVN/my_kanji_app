@@ -8,14 +8,14 @@ import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
-class Stuff extends StatefulWidget {
-  const Stuff({super.key});
+class Archive extends StatefulWidget {
+  const Archive({super.key});
 
   @override
-  State<Stuff> createState() => _StuffState();
+  State<Archive> createState() => _ArchiveState();
 }
 
-class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
+class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -93,7 +93,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
             _secondScrollController.animateTo(offset,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.ease);
-    
+
             if (notification.metrics.pixels >
                 MediaQuery.of(context).size.height * 0.5) {
               setState(() {
@@ -104,7 +104,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                 showBackToTopButton = false;
               });
             }
-    
+
             return true;
           },
           child: SingleChildScrollView(
@@ -133,7 +133,8 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                           ),
                           child: DropdownMenu<SourceTypeLabel>(
                             width: MediaQuery.of(context).size.width * 0.75,
-                            controller: sourceTypeController..text = appData.stuffSourceLabel.label,
+                            controller: sourceTypeController
+                              ..text = appData.stuffSourceLabel.label,
                             onSelected: (SourceTypeLabel? type) {
                               if (type != null) {
                                 setState(() {
@@ -150,7 +151,7 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
                     ],
                   ),
                 ),
-    
+
                 getListItem(),
               ],
             ),
@@ -362,13 +363,14 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
   void createFormatMap() async {
     await AppData().assertDataIsLoaded();
 
-    if( appData.characterCells.isNotEmpty) {
+    if (appData.characterCells.isNotEmpty) {
       return;
     }
 
     for (var s in appData.allKanjiData!) {
       if (s.data?.characters == null) {
-        appData.characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
+        appData.characterCells[s.data!.characters!] =
+            itemCell(s.data!.characters!);
         continue;
       }
 
@@ -380,10 +382,12 @@ class _StuffState extends State<Stuff> with AutomaticKeepAliveClientMixin   {
         appData.formatMap[s.data!.characters!] = format;
       }
 
-      appData.characterCells[s.data!.characters!] = itemCell(s.data!.characters!);
+      appData.characterCells[s.data!.characters!] =
+          itemCell(s.data!.characters!);
     }
 
     setState(() {});
+    appData.manualNotify();
   }
 
   @override

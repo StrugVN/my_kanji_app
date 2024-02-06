@@ -198,15 +198,15 @@ Future<Response> reviewRequest(int subjectId, int meaningIncorrect, int readingI
   
   print(uri);
 
-  var body = {
+  var body = jsonEncode({
     "review": {
         "subject_id": subjectId,
         "incorrect_meaning_answers": meaningIncorrect,
         "incorrect_reading_answers": readingIncorrect
     }
-  };
+  });
 
-  var response = await http.put(uri, headers: header, body: body);
+  var response = await http.post(uri, headers: header, body: body);
 
   return response;
 }

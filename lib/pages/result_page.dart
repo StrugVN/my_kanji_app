@@ -8,14 +8,19 @@ class ResultPage extends StatefulWidget {
   const ResultPage(
       {super.key,
       required this.listData,
-      required this.title, required this.titleTheme});
+      required this.title,
+      required this.titleTheme});
 
   final List<ResultData> listData;
   final String title;
   final Color titleTheme;
 
   @override
-  State<ResultPage> createState() => _ResultPageState(listData: listData, title: title, titleTheme: titleTheme, );
+  State<ResultPage> createState() => _ResultPageState(
+        listData: listData,
+        title: title,
+        titleTheme: titleTheme,
+      );
 }
 
 class _ResultPageState extends State<ResultPage> {
@@ -23,8 +28,9 @@ class _ResultPageState extends State<ResultPage> {
   final String title;
   final Color titleTheme;
 
-  _ResultPageState({required this.listData, required this.title, required this.titleTheme});
-  
+  _ResultPageState(
+      {required this.listData, required this.title, required this.titleTheme});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,9 +75,11 @@ class _ResultPageState extends State<ResultPage> {
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade400,
-                        shape: ContinuousRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
+                        backgroundColor: titleTheme,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0.0),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -82,7 +90,7 @@ class _ResultPageState extends State<ResultPage> {
                             children: <TextSpan>[
                               TextSpan(
                                 text: ' Close ',
-                                style: TextStyle(color: Colors.black),
+                                style: TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -97,7 +105,7 @@ class _ResultPageState extends State<ResultPage> {
   }
 
   Widget groupContainer(ResultData data) {
-    if(data.data.isEmpty){
+    if (data.data.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -115,14 +123,17 @@ class _ResultPageState extends State<ResultPage> {
           initiallyExpanded: true,
           title: Text(
             data.dataLabel,
-            style:
-                TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: data.themeColor),
+            style: TextStyle(
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+                color: data.themeColor),
           ),
           children: [
             Wrap(
               alignment: WrapAlignment.spaceBetween,
               children: [
-                for (var item in data.data) itemContainer(item),
+                for (var item in data.data)
+                  itemContainer(item),
               ],
             ),
           ],
@@ -169,9 +180,9 @@ class _ResultPageState extends State<ResultPage> {
         margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         decoration: BoxDecoration(
           // color: kanji != null ? Colors.pink.shade600 : Colors.purple.shade800,
-          color:  (kanji != null
-                  ? Colors.pink.shade600
-                  : (vocab != null ? Colors.purple.shade800 : Colors.grey)),
+          color: (kanji != null
+              ? Colors.pink.shade600
+              : (vocab != null ? Colors.purple.shade800 : Colors.grey)),
         ),
         child: Text(
           (kanji != null

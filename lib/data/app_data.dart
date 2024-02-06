@@ -132,8 +132,8 @@ class AppData extends ChangeNotifier  {
 
   void initData() {
     dataIsLoaded = false;
-    formatMap = {};
-    characterCells = {};
+    // formatMap = {};
+    // characterCells = {};
   }
 
   @Deprecated("Use the api one")

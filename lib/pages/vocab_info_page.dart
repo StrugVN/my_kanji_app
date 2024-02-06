@@ -18,9 +18,11 @@ import 'package:collection/collection.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class VocabPage extends StatefulWidget {
-  VocabPage({super.key, required this.vocab, this.navigationList}) : hideAppBar = false;
+  VocabPage({super.key, required this.vocab, this.navigationList})
+      : hideAppBar = false;
 
-  VocabPage.hideAppBar({super.key, required this.vocab, this.navigationList}) : hideAppBar = true;
+  VocabPage.hideAppBar({super.key, required this.vocab, this.navigationList})
+      : hideAppBar = true;
 
   final Vocab vocab;
 
@@ -32,7 +34,8 @@ class VocabPage extends StatefulWidget {
   State<VocabPage> createState() => _VocabPageState(vocab, navigationList);
 }
 
-class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixin {
+class _VocabPageState extends State<VocabPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -57,8 +60,7 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
 
     if (vocab.data?.characters == null ||
         vocab.data?.level == null ||
-        vocab.data?.meanings == null
-        ) {
+        vocab.data?.meanings == null) {
       Navigator.of(context).pop();
     }
 
@@ -80,34 +82,36 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: !widget.hideAppBar ? AppBar(
-        title: Text(
-          vocab.data!.characters ?? "",
-          style: const TextStyle(color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.home,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.isFirst ||
-                  route.settings.name == '/homePage' ||
-                  route.settings.name == 'homePage');
-            },
-          ),
-        ],
-        backgroundColor: Colors.purple,
-      ) : null,
+      appBar: !widget.hideAppBar
+          ? AppBar(
+              title: Text(
+                vocab.data!.characters ?? "",
+                style: const TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.home,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) =>
+                        route.isFirst ||
+                        route.settings.name == '/homePage' ||
+                        route.settings.name == 'homePage');
+                  },
+                ),
+              ],
+              backgroundColor: Colors.purple,
+            )
+          : null,
       backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(
@@ -161,43 +165,6 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
                       ),
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      maleAudio?.isNotEmpty ?? false
-                          ? TextButton.icon(
-                              onPressed: () async {
-                                await playAudio(true);
-                              },
-                              label: const Text(""),
-                              icon: const Icon(
-                                size: 42,
-                                Icons.volume_up,
-                                color: Colors.blue,
-                              ),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                      femaleAudio?.isNotEmpty ?? false
-                          ? TextButton.icon(
-                              onPressed: () async {
-                                await playAudio(false);
-                              },
-                              label: const Text(""),
-                              icon: const Icon(
-                                size: 42,
-                                Icons.volume_up,
-                                color: Colors.pink,
-                              ),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ],
-                  ),
                 ],
               ),
               getUsedKanji(),
@@ -229,6 +196,7 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
               children: readings.map<Widget>((reading) {
                 return Column(
                   children: [
+                    const Divider(),
                     RichText(
                       text: TextSpan(
                         children: [
@@ -245,6 +213,7 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
                       ),
                     ),
                     getPitch(char, reading.reading),
+                    getAudio(reading.reading ?? ""),
                   ],
                 );
               }).toList(),
@@ -259,6 +228,46 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
         ],
       );
     }
+  }
+
+  getAudio(String char) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        maleAudio?.isNotEmpty ?? false
+            ? TextButton.icon(
+                onPressed: () async {
+                  await playAudio(true, char);
+                },
+                label: const Text(""),
+                icon: const Icon(
+                  size: 36,
+                  Icons.volume_up,
+                  color: Colors.blue,
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                ),
+              )
+            : const SizedBox.shrink(),
+        femaleAudio?.isNotEmpty ?? false
+            ? TextButton.icon(
+                onPressed: () async {
+                  await playAudio(false, char);
+                },
+                label: const Text(""),
+                icon: const Icon(
+                  size: 36,
+                  Icons.volume_up,
+                  color: Colors.pink,
+                ),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                ),
+              )
+            : const SizedBox.shrink(),
+      ],
+    );
   }
 
   Widget getPitch(String? chars, String? reading) {
@@ -494,13 +503,23 @@ class _VocabPageState extends State<VocabPage> with AutomaticKeepAliveClientMixi
     );
   }
 
-  playAudio(bool male) async {
+  playAudio(bool male, String char) async {
     final _random = Random();
     if (male) {
-      var url = maleAudio![_random.nextInt(maleAudio!.length)].url!;
+      var maleAudioOfPronounce = maleAudio!
+          .where((element) => element.metadata?.pronunciation == char)
+          .toList();
+      var url =
+          maleAudioOfPronounce[_random.nextInt(maleAudioOfPronounce.length)]
+              .url!;
       await audioPlayer.play(UrlSource(url));
     } else {
-      var url = femaleAudio![_random.nextInt(femaleAudio!.length)].url!;
+      var femaleAudioOfPronounce = femaleAudio!
+          .where((element) => element.metadata?.pronunciation == char)
+          .toList();
+      var url =
+          femaleAudioOfPronounce[_random.nextInt(femaleAudioOfPronounce.length)]
+              .url!;
       await audioPlayer.play(UrlSource(url));
     }
   }

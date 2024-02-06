@@ -31,12 +31,13 @@ class WkReviewPage extends StatefulWidget {
 }
 
 class _WkReviewPageState extends State<WkReviewPage> {
-  late final List<dynamic> reviewItems;
-  late final bool isReview;
+  late List<dynamic> reviewItems;
+  late bool isReview;
 
   List<ReviewItem> standByList = [];
   List<ReviewItem> draftList = [];
   List<ReviewItem> completedList = [];
+  List<ReviewItem> abandonedList = [];
 
   late int currIndex;
   late bool isReadingAsked;
@@ -87,16 +88,26 @@ class _WkReviewPageState extends State<WkReviewPage> {
       onPopInvoked: (didPop) async {
         if (didPop) return;
 
-        await showAbandoneDialog(context).then((confirm) {
+        await showAbandonDialog(context).then((confirm) {
           if (confirm != null && confirm) {
-            Navigator.pop(context, true);
+            toResultPage();
           }
         });
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Review"),
+          title: isReview ? const Text("Review") : const Text("Quiz"),
           backgroundColor: Colors.blue,
+          actions: [
+            if (isReview)
+              IconButton(
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Colors.black,
+                ),
+                onPressed: () => showAppBarMenu(context),
+              ),
+          ],
         ),
         backgroundColor: Colors.grey.shade300,
         body: GestureDetector(
@@ -160,12 +171,14 @@ class _WkReviewPageState extends State<WkReviewPage> {
         children: [
           ElevatedButton(
             onPressed: () {
-              focusNodeMeaning.unfocus();
-              focusNodeReading.unfocus();
-              setState(() {
-                result = false;
-                showInfo = true;
-              });
+              if (result == null) {
+                focusNodeMeaning.unfocus();
+                focusNodeReading.unfocus();
+                setState(() {
+                  result = false;
+                  showInfo = true;
+                });
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: result == null
@@ -175,6 +188,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(0.0),
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
             ),
             child: const Text(
               "Don't know",
@@ -266,13 +280,13 @@ class _WkReviewPageState extends State<WkReviewPage> {
                 children: [
                   TextSpan(
                     text: kanji != null ? 'Kanji' : 'Vocab',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(),
                   ),
                   TextSpan(
                     text: isReadingAsked ? ' reading' : ' meaning',
-                    style: const TextStyle(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
                 style: const TextStyle(
@@ -530,13 +544,17 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
       // Draft new item
       if (standByList.isNotEmpty) {
-        draftList.add(standByList[random.nextInt(standByList.length)]);
+        var ind = random.nextInt(standByList.length);
+        draftList.add(standByList[ind]);
+        standByList.removeAt(ind);
       }
     }
 
     // If draftList is empty <=> finished review
     if (draftList.isEmpty) {
+      showLoaderDialog(context, "Sending data");
       await requestTask;
+      Navigator.pop(context, true);
       toResultPage();
       return;
     }
@@ -584,13 +602,21 @@ class _WkReviewPageState extends State<WkReviewPage> {
         themeColor: Colors.blue,
       );
 
+      ResultData abandonedData = ResultData(
+        data: (draftList + standByList + abandonedList)
+            .map((e) => e.data)
+            .toList(),
+        dataLabel: "Abandoned items",
+        themeColor: Colors.black,
+      );
+
       Navigator.pop(context, true);
 
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ResultPage(
-              listData: [correctData, incorrectData],
+              listData: [correctData, incorrectData, abandonedData],
               title: "Review result",
               titleTheme: Colors.blue),
         ),
@@ -746,9 +772,29 @@ class _WkReviewPageState extends State<WkReviewPage> {
       if (srsData != null) {
         await assignmentStart(srsData.id).then((response) {
           if (response.statusCode == 200 || response.statusCode == 201) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    Text("${kanji?.data?.characters} added to review queue")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: kanji?.data?.characters,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          const TextSpan(
+                            text: " added to review queue",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
           } else {
             print(response.body);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -766,9 +812,29 @@ class _WkReviewPageState extends State<WkReviewPage> {
       if (srsData != null) {
         await assignmentStart(srsData.id).then((response) {
           if (response.statusCode == 200 || response.statusCode == 201) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    Text("${vocab?.data?.characters} added to review queue")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: vocab?.data?.characters,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          const TextSpan(
+                            text: " added to review queue",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
           } else {
             print(response.body);
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -834,7 +900,34 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text("$char: ${srs?.label}"),
+                // content: Center(
+                //   child: Text(
+                //     "$char - SRS level: ${srs?.label}",
+                //     style: TextStyle(color: srs?.textColor, fontSize: 16),
+                //     textAlign: TextAlign.center,
+                //   ),
+                // ),
+                content: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: char,
+                            style:
+                                TextStyle(color: srs?.textColor, fontSize: 20),
+                          ),
+                          TextSpan(
+                            text: "   SRS level: ${srs?.label}",
+                            style:
+                                TextStyle(color: srs?.textColor, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 backgroundColor: srs?.color),
           );
         } else {
@@ -855,24 +948,17 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   // ---------------------------------
-  Future<bool?> showAbandoneDialog(BuildContext context) {
+  Future<bool?> showAbandonDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Abandone review section?'),
+        title: const Text('Abandon review section?'),
         content: RichText(
           text: TextSpan(
             children: [
-              TextSpan(
-                text: "${completedList.length}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              TextSpan(
-                text:
-                    " item${completedList.length > 1 ? "s" : ""} is recorded. ",
-                style: const TextStyle(),
+              const TextSpan(
+                text: "Remaining ",
+                style: TextStyle(),
               ),
               TextSpan(
                 text: "${draftList.length + standByList.length}",
@@ -905,8 +991,86 @@ class _WkReviewPageState extends State<WkReviewPage> {
     );
   }
 
+  void showAppBarMenu(BuildContext context) {
+    showMenu<int>(
+      context: context,
+      position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width * 0.8,
+          MediaQuery.of(context).size.height * 0.05, 0, 0),
+      items: <PopupMenuEntry<int>>[
+        PopupMenuItem<int>(
+          value: 1,
+          child: const Text('Wrap up section'),
+          onTap: () async {
+            await showConfirmDialog(context).then(
+              (value) {
+                if (value ?? false) {
+                  abandonedList = standByList +
+                      draftList
+                          .where((element) =>
+                              !element.meaningAnswered &&
+                              !element.readingAnswered)
+                          .toList();
+                  var abandonedListData =
+                      abandonedList.map((e) => e.data).toList();
+                  standByList = [];
+                  reviewItems = reviewItems
+                      .where((element) => !abandonedListData.contains(element))
+                      .toList();
+                  draftList = draftList
+                      .where((element) =>
+                          element.meaningAnswered || element.readingAnswered)
+                      .toList();
+
+                  if (draftList.isEmpty) {
+                    toResultPage();
+                  } else {
+                    pickFromDraft();
+                    setState(() {});
+                  }
+                }
+              },
+            );
+          },
+        ),
+        PopupMenuItem<int>(
+          value: 2,
+          child: const Text('Abandon section'),
+          onTap: () async {
+            await showAbandonDialog(context).then((confirm) {
+              if (confirm != null && confirm) {
+                toResultPage();
+              }
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<bool?> showConfirmDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Wrap up section?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
+    focusNodeMeaning.unfocus();
+    focusNodeReading.unfocus();
+
     super.dispose();
 
     if (completedList.isNotEmpty) {
