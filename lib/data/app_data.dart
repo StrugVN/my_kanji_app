@@ -13,7 +13,7 @@ import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppData {
+class AppData extends ChangeNotifier  {
   static final AppData _singleton = AppData._internal();
 
   String? apiKey;
@@ -37,7 +37,7 @@ class AppData {
     "vocab": true,
   };
 
-  int lessonBatchSize = 5;
+  int lessonBatchSize = 3;
 
   Map reviewSetting = {
     "radical": true,
@@ -45,7 +45,7 @@ class AppData {
     "vocab": true,
   };
 
-  int reviewDraftSize = 10;
+  int reviewDraftSize = 5;
 
   UserData userData = UserData();
 
@@ -122,6 +122,8 @@ class AppData {
     await prefs.setString('dateOfCache', DateTime.now().toString());
 
     dataIsLoaded = true;
+
+    notifyListeners();
   }
 
   void initData() {

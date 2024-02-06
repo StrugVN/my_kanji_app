@@ -171,7 +171,7 @@ class _LessonPageState extends State<LessonPage> {
                           );
                         });
                       } else {
-                        // Navigator.pop(context, true);
+                        Navigator.pop(context, true);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -245,8 +245,8 @@ class _LessonPageState extends State<LessonPage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Abandone section?'),
-        content: const Text('No item will be recorded'),
+        title: const Text('Abandone lesson?'),
+        // content: const Text('Leave lesson'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

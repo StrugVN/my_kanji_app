@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/component/selector.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/vocab.dart';
@@ -16,6 +17,7 @@ import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:core';
 import 'package:collection/collection.dart';
@@ -54,6 +56,15 @@ class _DashboardState extends State<Dashboard>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    return Consumer<AppData>(
+      builder: (context, appData, child) {
+        return dashboardBody();
+      },
+    );
+  }
+
+  Widget dashboardBody() {
     return Stack(
       children: [
         SingleChildScrollView(
@@ -83,13 +94,13 @@ class _DashboardState extends State<Dashboard>
               children: [
                 // //////////////////////////////////////////////////
                 greeting(),
-
+    
                 schedule(),
-
+    
                 progression(),
-
+    
                 criticalItem(),
-
+    
                 newItem(),
               ],
             ),

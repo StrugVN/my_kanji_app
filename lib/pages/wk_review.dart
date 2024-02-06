@@ -1,11 +1,15 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_respone.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
@@ -141,6 +145,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
         isReadingAsked = false;
       }
     }
+
+    focusNodeMeaning.requestFocus();
+    focusNodeReading.requestFocus();
   }
 
   // ================
@@ -331,6 +338,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                     fontSize: 18,
                   ),
                 ),
+                style: const TextStyle(fontSize: 20.0),
               ),
             ),
             isMeaningSlightlyWrong
@@ -405,6 +413,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                 fontSize: 18,
               ),
             ),
+            style: const TextStyle(fontSize: 20.0),
           ),
         ),
       );
@@ -458,7 +467,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
     result = isMeaningCorrect && isReadingCorrect;
   }
 
-  void recordAnswer() {
+  Future<void> recordAnswer() async {
     if (draftList.isEmpty) {
       toResultPage();
       return;
@@ -488,24 +497,36 @@ class _WkReviewPageState extends State<WkReviewPage> {
     } else {
       if (isReadingAsked) {
         draftList[currIndex].incorrectReadingAnswers += 1;
-
       } else {
         draftList[currIndex].incorrectMeaningAnswers += 1;
       }
     }
 
+    Future<void> requestTask = Future.delayed(Duration.zero);
+
     // -- Check if item is completed?
     if (draftList[currIndex].readingAnswered &&
         draftList[currIndex].meaningAnswered) {
+      // To do: Send review result/assignment init based on page type
+      if (isReview) {
+        requestTask =
+            sendReviewResult(draftList[currIndex]).onError((error, stackTrace) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("$char Unexpected error")));
+        });
+      } else {
+        requestTask = startItemAssignment(draftList[currIndex].data)
+            .onError((error, stackTrace) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("$char Unexpected error")));
+        });
+      }
+
       // Move item to completedList
       completedList.add(draftList[currIndex]);
       draftList.removeAt(currIndex);
 
-      print(" - $char added to completed list");
-
-      // To do: Send review result/assignment init based on page type
-      if (isReview) {
-      } else {}
+      print(" # $char added to completed list");
 
       // Draft new item
       if (standByList.isNotEmpty) {
@@ -515,6 +536,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
     // If draftList is empty <=> finished review
     if (draftList.isEmpty) {
+      await requestTask;
       toResultPage();
       return;
     }
@@ -537,39 +559,59 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   void toResultPage() {
-    ResultData incorrectData = ResultData(
-      data: completedList
-          .where((element) =>
-              (element.incorrectMeaningAnswers ?? 0) +
-                  (element.incorrectReadingAnswers ?? 0) >
-              0)
-          .map((e) => e.data)
-          .toList(),
-      dataLabel: "Incorrect items",
-      themeColor: Colors.red,
-    );
+    if (isReview) {
+      ResultData incorrectData = ResultData(
+        data: completedList
+            .where((element) =>
+                element.incorrectMeaningAnswers +
+                    element.incorrectReadingAnswers >
+                0)
+            .map((e) => e.data)
+            .toList(),
+        dataLabel: "Incorrect items",
+        themeColor: Colors.red,
+      );
 
-    ResultData correctData = ResultData(
-      data: completedList
-          .where((element) =>
-              (element.incorrectMeaningAnswers ?? 0) +
-                  (element.incorrectReadingAnswers ?? 0) ==
-              0)
-          .map((e) => e.data)
-          .toList(),
-      dataLabel: "Correct items",
-      themeColor: Colors.blue,
-    );
+      ResultData correctData = ResultData(
+        data: completedList
+            .where((element) =>
+                element.incorrectMeaningAnswers +
+                    element.incorrectReadingAnswers ==
+                0)
+            .map((e) => e.data)
+            .toList(),
+        dataLabel: "Correct items",
+        themeColor: Colors.blue,
+      );
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ResultPage(
-            listData: [correctData, incorrectData],
-            title: "Review result",
-            titleTheme: Colors.blue),
-      ),
-    );
+      Navigator.pop(context, true);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(
+              listData: [correctData, incorrectData],
+              title: "Review result",
+              titleTheme: Colors.blue),
+        ),
+      );
+    } else {
+      ResultData data = ResultData(
+        data: completedList.map((e) => e.data).toList(),
+        dataLabel: "New items learned",
+        themeColor: Colors.red,
+      );
+
+      Navigator.pop(context, true);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(
+              listData: [data], title: "Lesson result", titleTheme: Colors.red),
+        ),
+      );
+    }
   }
 
   void checkMeaningAnswer() {
@@ -688,6 +730,130 @@ class _WkReviewPageState extends State<WkReviewPage> {
     return const SizedBox.shrink();
   }
 
+  Future<void> startItemAssignment(item) async {
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (item is Kanji) {
+      kanji = item;
+    }
+    if (item is Vocab) {
+      vocab = item;
+    }
+
+    if (kanji != null) {
+      var srsData = kanji.srsData;
+      if (srsData != null) {
+        await assignmentStart(srsData.id).then((response) {
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content:
+                    Text("${kanji?.data?.characters} added to review queue")));
+          } else {
+            print(response.body);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    "${kanji?.data?.characters} error '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
+          }
+        }, onError: (error) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Error $error")));
+        });
+      }
+    }
+    if (vocab != null) {
+      var srsData = vocab.srsData;
+      if (srsData != null) {
+        await assignmentStart(srsData.id).then((response) {
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content:
+                    Text("${vocab?.data?.characters} added to review queue")));
+          } else {
+            print(response.body);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    "${vocab?.data?.characters} error '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
+          }
+        }, onError: (error) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Error $error")));
+        });
+      }
+    }
+  }
+
+  Future<void> sendReviewResult(ReviewItem data) async {
+    Kanji? kanji;
+    Vocab? vocab;
+
+    if (data.data is Kanji) {
+      kanji = data.data;
+    }
+    if (data.data is Vocab) {
+      vocab = data.data;
+    }
+
+    if (kanji != null) {
+      await createReview(kanji.id!, kanji.data!.characters!,
+              data.incorrectMeaningAnswers, data.incorrectReadingAnswers)
+          .onError(
+        (error, stackTrace) {
+          print(error);
+          print(stackTrace);
+
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Error $error")));
+        },
+      );
+    }
+    if (vocab != null) {
+      await createReview(vocab.id!, vocab.data!.characters!,
+              data.incorrectMeaningAnswers, data.incorrectReadingAnswers)
+          .onError(
+        (error, stackTrace) {
+          print(error);
+          print(stackTrace);
+
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Error $error")));
+        },
+      );
+    }
+  }
+
+  Future<void> createReview(
+      int id, String char, int meaningIncorrect, int readingIncorrect) async {
+    await reviewRequest(id, meaningIncorrect, readingIncorrect).then(
+      (response) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          WkReviewRespone body = WkReviewRespone.fromJson(
+              jsonDecode(response.body) as Map<String, dynamic>);
+
+          var srs = body.resourcesUpdated?.assignment?.data?.getSrs();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text("$char: ${srs?.label}"),
+                backgroundColor: srs?.color),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  "$char something went wrong. '${(jsonDecode(response.body) as Map<String, String>)["error"]}'"),
+            ),
+          );
+        }
+      },
+      onError: (error) {
+        print(error);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error $error")));
+      },
+    );
+  }
+
   // ---------------------------------
   Future<bool?> showAbandoneDialog(BuildContext context) {
     return showDialog<bool>(
@@ -737,6 +903,15 @@ class _WkReviewPageState extends State<WkReviewPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    if (completedList.isNotEmpty) {
+      appData.loadData();
+    }
   }
 }
 

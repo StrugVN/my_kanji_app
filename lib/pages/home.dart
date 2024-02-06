@@ -229,28 +229,14 @@ class _HomeState extends State<Home> {
         PopupMenuItem<int>(
           value: 1,
           child: const Text('Sync data'),
-          onTap: () async {
+          onTap: () {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text("Syncing data")));
             // Load data
-            showLoaderDialog(context, "Loading data");
-            await appData.loadData();
-
-            setState(() {
-              pageList = <Widget>[
-                Dashboard(
-                  key: UniqueKey(),
-                  createQuiz: createStudySet,
-                  changePageCallback: changePage,
-                ),
-                Review(
-                  key: UniqueKey(),
-                ),
-                Stuff(
-                  key: UniqueKey(),
-                ),
-              ];
+            appData.loadData().then((value) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text("Data synced")));
             });
-
-            Navigator.pop(context, true);
           },
         ),
         PopupMenuItem<int>(

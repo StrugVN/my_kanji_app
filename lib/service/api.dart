@@ -169,6 +169,48 @@ Future<List<WkReviewStatData>> getAllReviewStatAfter(updateAfter) async {
   return resultList;
 }
 
+Future<Response> assignmentStart(assignmentId) async {
+  Map<String, String> header = {
+    "Wanikani-Revision": "20170710",
+    "Authorization": appData.apiKey!,
+    "Content-Type": "application/json; charset=utf-8",
+  };
+
+  final uri = Uri.https(
+      wkAuthority, "$wkSrsStatistics/$assignmentId/start");
+
+  print(uri);
+
+  var response = await http.put(uri, headers: header);
+
+  return response;
+}
+
+Future<Response> reviewRequest(int subjectId, int meaningIncorrect, int readingIncorrect) async {
+  Map<String, String> header = {
+    "Wanikani-Revision": "20170710",
+    "Authorization": appData.apiKey!,
+    "Content-Type": "application/json; charset=utf-8",
+  };
+
+  final uri = Uri.https(
+      wkAuthority, wkReviewRequest);
+  
+  print(uri);
+
+  var body = {
+    "review": {
+        "subject_id": subjectId,
+        "incorrect_meaning_answers": meaningIncorrect,
+        "incorrect_reading_answers": readingIncorrect
+    }
+  };
+
+  var response = await http.put(uri, headers: header, body: body);
+
+  return response;
+}
+
 class SubjectQueryParam {
   List<String>? ids;
   List<String>? levels;

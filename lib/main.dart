@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (_) => AppData(),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
