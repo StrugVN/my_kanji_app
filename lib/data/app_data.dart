@@ -12,8 +12,9 @@ import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class AppData extends ChangeNotifier  {
+class AppData extends ChangeNotifier {
   static final AppData _singleton = AppData._internal();
 
   String? apiKey;
@@ -30,8 +31,8 @@ class AppData extends ChangeNotifier  {
   Map<String, Widget> characterCells = {};
 
   SourceTypeLabel stuffSourceLabel = SourceTypeLabel.Wanikani;
-
-  Map lessonSetting = {
+  // App setting ===========================================
+  Map<String, bool> lessonSetting = {
     "radical": true,
     "kanji": true,
     "vocab": true,
@@ -39,13 +40,15 @@ class AppData extends ChangeNotifier  {
 
   int lessonBatchSize = 3;
 
-  Map reviewSetting = {
+  Map<String, bool> reviewSetting = {
     "radical": true,
     "kanji": true,
     "vocab": true,
   };
 
   int reviewDraftSize = 5;
+
+  // App setting ----------------------------------------------
 
   UserData userData = UserData();
 
@@ -65,7 +68,7 @@ class AppData extends ChangeNotifier  {
     }
   }
 
-  void manualNotify(){
+  void manualNotify() {
     notifyListeners();
   }
 
@@ -81,7 +84,8 @@ class AppData extends ChangeNotifier  {
       loadVocabApi(),
       loadVocabPitchData(),
       getSrsData(),
-      getReviewStatData()
+      getReviewStatData(),
+      loadSetting(),
     ]);
 
     for (var element in allKanjiData!) {
@@ -297,9 +301,10 @@ class AppData extends ChangeNotifier  {
 
     if (reviewListAsString != null) {
       //1
-      List<WkReviewStatData> tempReviewList = (jsonDecode(reviewListAsString) as List)
-          .map((e) => WkReviewStatData.fromJson(e))
-          .toList();
+      List<WkReviewStatData> tempReviewList =
+          (jsonDecode(reviewListAsString) as List)
+              .map((e) => WkReviewStatData.fromJson(e))
+              .toList();
       DateTime date = DateTime.parse(dateString!);
 
       //1b
@@ -307,7 +312,8 @@ class AppData extends ChangeNotifier  {
           date.add(const Duration(days: -1)).toIso8601String());
 
       for (var updatedItem in updatedReviewData) {
-        int index = tempReviewList.indexWhere((item) => item.id == updatedItem.id);
+        int index =
+            tempReviewList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempReviewList[index] = updatedItem;
         }
@@ -318,7 +324,6 @@ class AppData extends ChangeNotifier  {
       //1a
       allReviewData = await getAllReviewStat();
     }
-    
 
     print("  Review data count: ${allReviewData!.length}");
   }
@@ -435,5 +440,50 @@ class AppData extends ChangeNotifier  {
     }
 
     return data;
+  }
+
+  Future<void> saveSetting() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    /*
+      appData.lessonSetting = lessonSetting;
+      appData.reviewSetting = reviewSetting;
+    */
+
+    await prefs.setInt('sLessonBatchSize', lessonBatchSize);
+    await prefs.setInt('sReviewDraftSize', reviewDraftSize);
+
+    await prefs.setBool('sLessonRadical', lessonSetting["radical"] ?? true);
+    await prefs.setBool('sLessonKanji', lessonSetting["kanji"] ?? true);
+    await prefs.setBool('sLessonVocab', lessonSetting["vocab"] ?? true);
+
+    await prefs.setBool('sReviewRadical', reviewSetting["radical"] ?? true);
+    await prefs.setBool('sReviewKanji', reviewSetting["kanji"] ?? true);
+    await prefs.setBool('sReviewVocab', reviewSetting["vocab"] ?? true);
+  }
+
+  Future<void> loadSetting() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    lessonBatchSize = prefs.getInt('sLessonBatchSize') ?? 3;
+    reviewDraftSize = prefs.getInt('sReviewDraftSize') ?? 5;
+
+    lessonSetting["radical"] = prefs.getBool('sLessonRadical') ?? true;
+    lessonSetting["kanji"] = prefs.getBool('sLessonKanji') ?? true;
+    lessonSetting["vocab"] = prefs.getBool('sLessonVocab') ?? true;
+
+    reviewSetting["radical"] = prefs.getBool('sReviewRadical') ?? true;
+    reviewSetting["kanji"] = prefs.getBool('sReviewKanji') ?? true;
+    reviewSetting["vocab"] = prefs.getBool('sReviewVocab') ?? true;
+  }
+
+  Future<void> saveApiKey() async {
+    const storage = FlutterSecureStorage();
+    await storage.write(key: 'apiKey', value: apiKey?.replaceAll("Bearer ", ""));
+  }
+
+  Future<String?> loadApiKey() async {
+    const storage = FlutterSecureStorage();
+    return await storage.read(key: 'apiKey');
   }
 }

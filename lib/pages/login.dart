@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/shared.dart';
@@ -70,6 +71,15 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     obscure = false;
     _notValid = false;
     _errorMessage = "";
+
+    loadCacheApiKey();
+  }
+
+  Future<void> loadCacheApiKey() async {
+    apiInput.text = await appData.loadApiKey() ?? "";
+    if(apiInput.text.isNotEmpty) {
+      login();
+    }
   }
 
   @override
@@ -153,17 +163,18 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                             padding: const EdgeInsets.only(left: 8, right: 8),
                             child: TextField(
                               onChanged: (String str) {
-                                if (str == "") {
-                                  setState(() {
-                                    _notValid = false;
-                                  });
-                                }
+                                setState(() {
+                                  _notValid = false;
+                                  _errorMessage = "";
+                                });
                               },
                               controller: apiInput,
                               obscureText: !obscure,
                               decoration: InputDecoration(
                                 hoverColor: null,
-                                errorText: _notValid ? "Invalid API key" : null,
+                                errorText: _errorMessage.isNotEmpty
+                                    ? _errorMessage
+                                    : null,
                                 prefixIcon: const Icon(Icons.key),
                                 border: _notValid
                                     ? const OutlineInputBorder(
@@ -224,10 +235,14 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   }
 
   login() async {
+    if (apiInput.text.isEmpty) {
+      setState(() {
+        _errorMessage = "Enter your api key";
+      });
+      return;
+    }
     // Do stuff
     showLoaderDialog(context, "Signing in...");
-
-    apiInput.text = "b56c0b53-7485-4ba0-b8bf-4e02a8d9a56f";
 
     final response = await getUser(apiInput.text);
 
@@ -235,6 +250,8 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
     if (response.statusCode == 200) {
       appData.apiKey = "Bearer ${apiInput.text}";
+
+      appData.saveApiKey();
 
       appData.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
@@ -251,12 +268,11 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       //
 
       Navigator.push(context, toHome());
-      
     } else {
       setState(() {
         _notValid = true;
 
-        _errorMessage = body["error"];
+        _errorMessage = "Invalid api key";
       });
       Navigator.pop(context);
       ScaffoldMessenger.of(context)

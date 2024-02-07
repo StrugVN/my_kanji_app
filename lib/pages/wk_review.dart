@@ -1025,6 +1025,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                     toResultPage();
                   } else {
                     pickFromDraft();
+                    result = null;
                     setState(() {});
                   }
                 }

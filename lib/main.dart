@@ -3,6 +3,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(ChangeNotifierProvider(
@@ -17,6 +18,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+       supportedLocales: const [
+        Locale('en', ''), 
+        Locale('ja', ''), 
+      ],
+      locale: const Locale('ja', ''),
       routes: {
         '/homePage': (context) => const Home(),
         '/login': (context) => const Login(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kana_kit/kana_kit.dart';
+import 'package:my_kanji_app/component/setting.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
@@ -227,6 +228,13 @@ class _HomeState extends State<Home> {
           MediaQuery.of(context).size.height * 0.05, 0, 0),
       items: <PopupMenuEntry<int>>[
         PopupMenuItem<int>(
+          value: 2,
+          child: const Text('Setting'),
+          onTap: () async {
+            openSettingPage();
+          },
+        ),
+        PopupMenuItem<int>(
           value: 1,
           child: const Text('Sync data'),
           onTap: () {
@@ -415,5 +423,28 @@ class _HomeState extends State<Home> {
         );
       });
     }
+  }
+
+  void openSettingPage() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: FractionallySizedBox(
+          heightFactor: 0.70,
+          child: Container(
+            width: MediaQuery.of(context).size.width *
+                0.95, // Adjust width as needed
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: const SettingPage(),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
   }
 }
