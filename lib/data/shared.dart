@@ -108,9 +108,11 @@ showLoaderDialog(BuildContext context, String? loadingText) {
         content: Row(
           children: [
             const CircularProgressIndicator(),
-            Container(
-                margin: const EdgeInsets.only(left: 10),
-                child: Text(loadingText ?? " ... ")),
+            Flexible (
+              child: Container(
+                  margin: const EdgeInsets.only(left: 10),
+                  child: FittedBox(child: Text(loadingText ?? " ... "))),
+            ),
           ],
         ),
       );

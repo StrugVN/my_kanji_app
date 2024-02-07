@@ -126,14 +126,14 @@ class _DashboardState extends State<Dashboard>
           Column(
             children: [
               Text(
-                helloAccordingToTime(),
+                appData.userData.data?.username != null ? helloAccordingToTime() : '',
                 style: const TextStyle(
                   fontSize: 24,
                   color: Colors.black,
                 ),
               ),
               Text(
-                appData.userData.data?.username ?? " お客さん",
+                appData.userData.data?.username ?? " ",
                 style: const TextStyle(
                   fontSize: 28,
                   color: Colors.black,
@@ -150,7 +150,7 @@ class _DashboardState extends State<Dashboard>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              " ${appData.userData.data?.level} ",
+              " ${appData.userData.data?.level ?? ''} ",
               style: const TextStyle(
                 fontSize: 48,
                 color: Colors.black,

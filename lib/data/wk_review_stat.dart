@@ -130,13 +130,6 @@ class SubjectReviewStat {
     percentageCorrect = json['percentage_correct'];
     hidden = json['hidden'];
 
-    /*
-    int correct = data['correct'];
-    int incorrect = data['incorrect'];
-    int maxStreak = data['max_streak'];
-    int currentStreak = data['current_streak'];
-    */
-
     meaningScore = calculateMemoryScore({
       "correct": meaningCorrect,
       "incorrect": meaningIncorrect,
@@ -169,9 +162,6 @@ class SubjectReviewStat {
     data['reading_current_streak'] = readingCurrentStreak;
     data['percentage_correct'] = percentageCorrect;
     data['hidden'] = hidden;
-    data['meaningScore'] = meaningScore;
-    data['readingScore'] = readingScore;
-    data['memoryScore'] = memoryScore;
     return data;
   }
 

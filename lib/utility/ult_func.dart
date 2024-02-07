@@ -23,10 +23,14 @@ String helloAccordingToTime() {
   }
 }
 
-Future<void> openWebsite(String url) async {
-  if (await canLaunchUrl(Uri.parse(url))) {
+Future<bool> openWebsite(String url) async {
+  try {
     await launchUrl(Uri.parse(url));
-  } else {}
+    return true;
+  } on Exception catch (e) {
+    print(e);
+    return false;
+  }
 }
 
 futureWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {

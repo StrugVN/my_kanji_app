@@ -78,12 +78,12 @@ class Vocab {
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
-    if (reviewData != null) {
-      data['reviewData'] = reviewData?.toJson();
-    }
-    if (srsData != null) {
-      data['srsData'] = srsData?.toJson();
-    }
+    // if (reviewData != null) {
+    //   data['reviewData'] = reviewData?.toJson();
+    // }
+    // if (srsData != null) {
+    //   data['srsData'] = srsData?.toJson();
+    // }
     return data;
   }
 }

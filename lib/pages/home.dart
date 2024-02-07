@@ -8,6 +8,7 @@ import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/login.dart';
 import 'package:my_kanji_app/pages/review.dart';
 import 'package:my_kanji_app/pages/archive.dart';
 import 'package:collection/collection.dart';
@@ -66,6 +67,27 @@ class _HomeState extends State<Home> {
         }
       });
     });
+
+    initHome();
+  }
+
+  void initHome() async {
+    //
+    await appData.loadUserData();
+    if (appData.userData.url != null) {
+      // Load data
+      appData.apiKey = "Bearer ${await appData.loadApiKey()}";
+      await appData.getData();
+    } else {
+      Navigator.pop(context, true);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Login.disableAutoLogin(),
+        ),
+      );
+    }
+    //
   }
 
   @override
@@ -85,16 +107,16 @@ class _HomeState extends State<Home> {
             );
           });
         } else {
-          await showLogOutDialog(context).then((confirm) {
+          await showExitDialog(context).then((confirm) async {
             if (confirm != null && confirm) {
-              Navigator.pop(context, true);
+              SystemNavigator.pop();
             }
           });
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("Home")),
+          title: const Center(child: Text("Golden Phoenix")),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [
@@ -221,11 +243,32 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Future<bool?> showExitDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit'),
+        content: const Text('Close the app?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void showAppBarMenu(BuildContext context) {
     showMenu<int>(
       context: context,
       position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width * 0.8,
           MediaQuery.of(context).size.height * 0.05, 0, 0),
+          
       items: <PopupMenuEntry<int>>[
         PopupMenuItem<int>(
           value: 2,
@@ -241,9 +284,26 @@ class _HomeState extends State<Home> {
             ScaffoldMessenger.of(context)
                 .showSnackBar(const SnackBar(content: Text("Syncing data")));
             // Load data
-            appData.loadData().then((value) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text("Data synced")));
+            appData.getData().then((value) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(!appData.networkError
+                      ? "Data synced"
+                      : "Network error")));
+            });
+          },
+        ),
+        PopupMenuItem<int>(
+          value: -1,
+          child: const Text('Force reload all data'),
+          onTap: () {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text("Reloading data")));
+            // Load data
+            appData.getDataForce().then((value) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(!appData.networkError
+                      ? "Data synced"
+                      : "Network error")));
             });
           },
         ),
@@ -251,15 +311,29 @@ class _HomeState extends State<Home> {
           value: 0,
           child: const Text('Log out'),
           onTap: () async {
-            await showLogOutDialog(context).then((value) {
+            await showLogOutDialog(context).then((value) async {
               if (value != null && value) {
-                Navigator.pop(context, true);
+                await logoutHandle(context);
               }
             });
           },
         ),
       ],
     );
+  }
+
+  Future<void> logoutHandle(BuildContext context) async {
+    await appData.logout();
+    bool isLastPage = ModalRoute.of(context)?.isFirst ?? false;
+    Navigator.pop(context, true);
+    if (isLastPage) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Login.disableAutoLogin(),
+        ),
+      );
+    }
   }
 
   void showAppBarSearch() {

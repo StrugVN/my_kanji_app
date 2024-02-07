@@ -40,77 +40,83 @@ Future getAllSubject(types) async {
 }
 
 Future getAllSubjectAfterUpdate(types, updateAfter) async {
-  Map<String, String> header = {
-    "Wanikani-Revision": "20170710",
-    "Authorization": "Bearer $freeApiKey",
-  };
+  try {
+    Map<String, String> header = {
+      "Wanikani-Revision": "20170710",
+      "Authorization": "Bearer $freeApiKey",
+    };
 
-  final uri = Uri.https(wkAuthority, wkSubjectPath, {
-    "types": types,
-    "updated_after": updateAfter,
-  });
+    final uri = Uri.https(wkAuthority, wkSubjectPath, {
+      "types": types,
+      "updated_after": updateAfter,
+    });
 
-  var response = await http.get(uri, headers: header);
+    var response = await http.get(uri, headers: header);
 
-  print(uri);
+    print(uri);
 
-  if (types == 'kanji') {
-    var data = KanjiResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
-
-    var resultList = data.data;
-
-    while (data.pages?.nextUrl != null) {
-      var next_url = data.pages!.nextUrl;
-
-      print(Uri.parse(next_url!));
-      response = await http.get(Uri.parse(next_url), headers: header);
-
-      data = KanjiResponse.fromJson(
+    if (types == 'kanji') {
+      var data = KanjiResponse.fromJson(
           jsonDecode(response.body) as Map<String, dynamic>);
 
-      resultList = (resultList! + data.data!);
+      var resultList = data.data;
+
+      while (data.pages?.nextUrl != null) {
+        var next_url = data.pages!.nextUrl;
+
+        print(Uri.parse(next_url!));
+        response = await http.get(Uri.parse(next_url), headers: header);
+
+        data = KanjiResponse.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
+
+        resultList = (resultList! + data.data!);
+      }
+
+      return resultList;
+    } else if (types == "vocabulary" || types == "kana_vocabulary") {
+      var data = VocabResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      var resultList = data.data;
+
+      while (data.pages?.nextUrl != null) {
+        var next_url = data.pages!.nextUrl;
+
+        print(Uri.parse(next_url!));
+        response = await http.get(Uri.parse(next_url), headers: header);
+
+        data = VocabResponse.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
+
+        resultList = (resultList! + data.data!);
+      }
+
+      return resultList;
+    } else if (types == "radical") {
+      var data = RadicalResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      var resultList = data.data;
+
+      while (data.pages?.nextUrl != null) {
+        var next_url = data.pages!.nextUrl;
+
+        print(Uri.parse(next_url!));
+        response = await http.get(Uri.parse(next_url), headers: header);
+
+        data = RadicalResponse.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>);
+
+        resultList = (resultList! + data.data!);
+      }
+
+      return resultList;
     }
-
-    return resultList;
-  } else if (types == "vocabulary" || types == "kana_vocabulary") {
-    var data = VocabResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
-
-    var resultList = data.data;
-
-    while (data.pages?.nextUrl != null) {
-      var next_url = data.pages!.nextUrl;
-
-      print(Uri.parse(next_url!));
-      response = await http.get(Uri.parse(next_url), headers: header);
-
-      data = VocabResponse.fromJson(
-          jsonDecode(response.body) as Map<String, dynamic>);
-
-      resultList = (resultList! + data.data!);
-    } 
-
-    return resultList;
-  } else if (types == "radical"){
-    var data = RadicalResponse.fromJson(
-        jsonDecode(response.body) as Map<String, dynamic>);
-
-    var resultList = data.data;
-
-    while (data.pages?.nextUrl != null) {
-      var next_url = data.pages!.nextUrl;
-
-      print(Uri.parse(next_url!));
-      response = await http.get(Uri.parse(next_url), headers: header);
-
-      data = RadicalResponse.fromJson(
-          jsonDecode(response.body) as Map<String, dynamic>);
-
-      resultList = (resultList! + data.data!);
-    } 
-
-    return resultList;
+  } on Exception catch (e) {
+    // TODO
+    print("Network error");
+    appData.networkError = true;
   }
 
   return null;
@@ -121,36 +127,43 @@ Future<List<WkSrsStatData>> getAllSrsStat() async {
 }
 
 Future<List<WkSrsStatData>> getAllSrsStatAfter(updateAfter) async {
-  Map<String, String> header = {
-    "Wanikani-Revision": "20170710",
-    "Authorization": appData.apiKey!,
-  };
+  try {
+    Map<String, String> header = {
+      "Wanikani-Revision": "20170710",
+      "Authorization": appData.apiKey!,
+    };
 
-  final uri =
-      Uri.https(wkAuthority, wkSrsStatistics, {"updated_after": updateAfter});
+    final uri =
+        Uri.https(wkAuthority, wkSrsStatistics, {"updated_after": updateAfter});
 
-  var response = await http.get(uri, headers: header);
+    var response = await http.get(uri, headers: header);
 
-  print(uri);
+    print(uri);
 
-  var data = WkSrsStatResponse.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>);
-
-  List<WkSrsStatData> resultList = data.data ?? [];
-
-  while (data.pages?.nextUrl != null) {
-    var next_url = data.pages!.nextUrl;
-
-    print(Uri.parse(next_url!));
-    response = await http.get(Uri.parse(next_url), headers: header);
-
-    data = WkSrsStatResponse.fromJson(
+    var data = WkSrsStatResponse.fromJson(
         jsonDecode(response.body) as Map<String, dynamic>);
 
-    resultList = (resultList + (data.data ?? []));
-  }
+    List<WkSrsStatData> resultList = data.data ?? [];
 
-  return resultList;
+    while (data.pages?.nextUrl != null) {
+      var next_url = data.pages!.nextUrl;
+
+      print(Uri.parse(next_url!));
+      response = await http.get(Uri.parse(next_url), headers: header);
+
+      data = WkSrsStatResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      resultList = (resultList + (data.data ?? []));
+    }
+
+    return resultList;
+  } on Exception catch (e) {
+    // TODO
+    print("Network error");
+    appData.networkError = true;
+  }
+  return [];
 }
 
 Future<List<WkReviewStatData>> getAllReviewStat() async {
@@ -158,36 +171,44 @@ Future<List<WkReviewStatData>> getAllReviewStat() async {
 }
 
 Future<List<WkReviewStatData>> getAllReviewStatAfter(updateAfter) async {
-  Map<String, String> header = {
-    "Wanikani-Revision": "20170710",
-    "Authorization": appData.apiKey!,
-  };
+  try {
+    Map<String, String> header = {
+      "Wanikani-Revision": "20170710",
+      "Authorization": appData.apiKey!,
+    };
 
-  final uri = Uri.https(
-      wkAuthority, wkReviewStatistics, {"updated_after": updateAfter});
+    final uri = Uri.https(
+        wkAuthority, wkReviewStatistics, {"updated_after": updateAfter});
 
-  var response = await http.get(uri, headers: header);
+    var response = await http.get(uri, headers: header);
 
-  print(uri);
+    print(uri);
 
-  var data = WkReviewStatRespone.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>);
-
-  List<WkReviewStatData> resultList = data.data ?? [];
-
-  while (data.pages?.nextUrl != null) {
-    var next_url = data.pages!.nextUrl;
-
-    print(Uri.parse(next_url!));
-    response = await http.get(Uri.parse(next_url), headers: header);
-
-    data = WkReviewStatRespone.fromJson(
+    var data = WkReviewStatRespone.fromJson(
         jsonDecode(response.body) as Map<String, dynamic>);
 
-    resultList = (resultList + (data.data ?? []));
+    List<WkReviewStatData> resultList = data.data ?? [];
+
+    while (data.pages?.nextUrl != null) {
+      var next_url = data.pages!.nextUrl;
+
+      print(Uri.parse(next_url!));
+      response = await http.get(Uri.parse(next_url), headers: header);
+
+      data = WkReviewStatRespone.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      resultList = (resultList + (data.data ?? []));
+    }
+
+    return resultList;
+  } on Exception catch (e) {
+    // TODO
+    print("Network error");
+    appData.networkError = true;
   }
 
-  return resultList;
+  return [];
 }
 
 Future<Response> assignmentStart(assignmentId) async {
@@ -197,8 +218,7 @@ Future<Response> assignmentStart(assignmentId) async {
     "Content-Type": "application/json; charset=utf-8",
   };
 
-  final uri = Uri.https(
-      wkAuthority, "$wkSrsStatistics/$assignmentId/start");
+  final uri = Uri.https(wkAuthority, "$wkSrsStatistics/$assignmentId/start");
 
   print(uri);
 
@@ -207,23 +227,23 @@ Future<Response> assignmentStart(assignmentId) async {
   return response;
 }
 
-Future<Response> reviewRequest(int subjectId, int meaningIncorrect, int readingIncorrect) async {
+Future<Response> reviewRequest(
+    int subjectId, int meaningIncorrect, int readingIncorrect) async {
   Map<String, String> header = {
     "Wanikani-Revision": "20170710",
     "Authorization": appData.apiKey!,
     "Content-Type": "application/json; charset=utf-8",
   };
 
-  final uri = Uri.https(
-      wkAuthority, wkReviewRequest);
-  
+  final uri = Uri.https(wkAuthority, wkReviewRequest);
+
   print(uri);
 
   var body = jsonEncode({
     "review": {
-        "subject_id": subjectId,
-        "incorrect_meaning_answers": meaningIncorrect,
-        "incorrect_reading_answers": readingIncorrect
+      "subject_id": subjectId,
+      "incorrect_meaning_answers": meaningIncorrect,
+      "incorrect_reading_answers": readingIncorrect
     }
   });
 

@@ -19,6 +19,8 @@ class AppData extends ChangeNotifier {
   static final AppData _singleton = AppData._internal();
 
   String? apiKey;
+  UserData userData = UserData();
+
   List<Kanji>? allKanjiData;
   List<Vocab>? allVocabData;
   List<Radical>? allRadicalData;
@@ -26,6 +28,7 @@ class AppData extends ChangeNotifier {
   List<WkSrsStatData>? allSrsData;
   List<WkReviewStatData>? allReviewData;
   bool dataIsLoaded = false;
+  bool networkError = false;
 
   // //////
   Map<String, SrsStage> formatMap = {};
@@ -50,9 +53,7 @@ class AppData extends ChangeNotifier {
 
   int reviewDraftSize = 5;
 
-  // App setting ----------------------------------------------
-
-  UserData userData = UserData();
+  //  ----------------------------------------------
 
   factory AppData() {
     return _singleton;
@@ -74,7 +75,7 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadData() async {
+  Future<void> getData() async {
     initData();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -154,8 +155,22 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> getDataForce() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // await prefs.remove('kanjiCache');
+    // await prefs.remove('vocabCache');
+    // await prefs.remove('radicalCache');
+    // await prefs.remove('srsCache');
+    // await prefs.remove('reviewCache');
+    await prefs.remove("dateOfCache");
+
+    await getData();
+  }
+
   void initData() {
     dataIsLoaded = false;
+    networkError = false;
     // formatMap = {};
     // characterCells = {};
   }
@@ -184,32 +199,37 @@ class AppData extends ChangeNotifier {
     String? kanjiListAsString = prefs.getString('kanjiCache');
     String? dateString = prefs.getString('dateOfCache');
 
-    if (kanjiListAsString != null) {
+    if (kanjiListAsString != null && dateString != null) {
       //1b
       List<Kanji> tempKanjiList = (jsonDecode(kanjiListAsString) as List)
           .map((e) => Kanji.fromJson(e))
           .toList();
+
       DateTime date = DateTime.parse(dateString!);
 
       List<Kanji> updatedKanji = [];
       updatedKanji = await getAllSubjectAfterUpdate(
               "kanji", date.add(const Duration(days: -1)).toIso8601String()) ??
-          [];
+          <Kanji>[];
 
       for (var updatedItem in updatedKanji) {
         int index =
             tempKanjiList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempKanjiList[index] = updatedItem;
+        } else {
+          tempKanjiList.add(updatedItem);
         }
       }
 
       allKanjiData = tempKanjiList;
     } else {
       //1a
-      var kanjiDataF = getAllSubject("kanji");
+      var kanjiDataF = await getAllSubject("kanji");
 
-      allKanjiData = await kanjiDataF ?? [];
+      if (kanjiDataF != null) {
+        allKanjiData = kanjiDataF;
+      }
     }
 
     print("  Kanji count: ${allKanjiData!.length}");
@@ -232,12 +252,12 @@ class AppData extends ChangeNotifier {
     String? vocabListAsString = prefs.getString('vocabCache');
     String? dateString = prefs.getString('dateOfCache');
 
-    if (vocabListAsString != null) {
+    if (vocabListAsString != null && dateString != null) {
       //1
       List<Vocab> tempVocabList = (jsonDecode(vocabListAsString) as List)
           .map((e) => Vocab.fromJson(e))
           .toList();
-      DateTime date = DateTime.parse(dateString!);
+      DateTime date = DateTime.parse(dateString);
 
       //1b
       var updatedVocab = getAllSubjectAfterUpdate(
@@ -246,14 +266,16 @@ class AppData extends ChangeNotifier {
           date.add(const Duration(days: -1)).toIso8601String());
 
       List<Vocab> updatedAllVocab = [];
-      updatedAllVocab =
-          (await updatedVocab ?? []) + (await updatedKanaVocab ?? []);
+      updatedAllVocab = (await updatedVocab ?? <Vocab>[]) +
+          (await updatedKanaVocab ?? <Vocab>[]);
 
       for (var updatedItem in updatedAllVocab) {
         int index =
             tempVocabList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempVocabList[index] = updatedItem;
+        } else {
+          tempVocabList.add(updatedItem);
         }
       }
 
@@ -263,7 +285,12 @@ class AppData extends ChangeNotifier {
       var getVocab = getAllSubject("vocabulary");
       var getKanaVocab = getAllSubject("kana_vocabulary");
 
-      allVocabData = (await getVocab ?? []) + (await getKanaVocab ?? []);
+      var tempVocabList =
+          (await getVocab ?? <Vocab>[]) + (await getKanaVocab ?? <Vocab>[]);
+
+      if (tempVocabList.isNotEmpty) {
+        allVocabData = tempVocabList;
+      }
     }
 
     print("  Vocab count: ${allVocabData!.length}");
@@ -286,12 +313,12 @@ class AppData extends ChangeNotifier {
     String? srsListAsString = prefs.getString('srsCache');
     String? dateString = prefs.getString('dateOfCache');
 
-    if (srsListAsString != null) {
+    if (srsListAsString != null && dateString != null) {
       //1
       List<WkSrsStatData> tempSrsList = (jsonDecode(srsListAsString) as List)
           .map((e) => WkSrsStatData.fromJson(e))
           .toList();
-      DateTime date = DateTime.parse(dateString!);
+      DateTime date = DateTime.parse(dateString);
 
       //1b
       var updatedSrsData = await getAllSrsStatAfter(
@@ -301,13 +328,18 @@ class AppData extends ChangeNotifier {
         int index = tempSrsList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempSrsList[index] = updatedItem;
+        } else {
+          tempSrsList.add(updatedItem);
         }
       }
 
       allSrsData = tempSrsList;
     } else {
       //1a
-      allSrsData = await getAllSrsStat();
+      var tempSrsData = await getAllSrsStat();
+      if (tempSrsData.isNotEmpty) {
+        allSrsData = tempSrsData;
+      }
     }
 
     print("  SRS data count: ${allSrsData!.length}");
@@ -319,13 +351,13 @@ class AppData extends ChangeNotifier {
     String? reviewListAsString = prefs.getString('reviewCache');
     String? dateString = prefs.getString('dateOfCache');
 
-    if (reviewListAsString != null) {
+    if (reviewListAsString != null && dateString != null) {
       //1
       List<WkReviewStatData> tempReviewList =
           (jsonDecode(reviewListAsString) as List)
               .map((e) => WkReviewStatData.fromJson(e))
               .toList();
-      DateTime date = DateTime.parse(dateString!);
+      DateTime date = DateTime.parse(dateString);
 
       //1b
       var updatedReviewData = await getAllReviewStatAfter(
@@ -336,13 +368,18 @@ class AppData extends ChangeNotifier {
             tempReviewList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempReviewList[index] = updatedItem;
+        } else {
+          tempReviewList.add(updatedItem);
         }
       }
 
       allReviewData = tempReviewList;
     } else {
       //1a
-      allReviewData = await getAllReviewStat();
+      var tempReviewData = await getAllReviewStat();
+      if (tempReviewData.isNotEmpty) {
+        allReviewData = tempReviewData;
+      }
     }
 
     print("  Review data count: ${allReviewData!.length}");
@@ -410,25 +447,6 @@ class AppData extends ChangeNotifier {
     Set<String> usedKanjiSet = {...usedKanji};
 
     return usedKanjiSet.containsAll(componentSet);
-  }
-
-  void getData() async {
-    var getKanji = getAllSubject("kanji");
-    var getVocab = getAllSubject("vocabulary");
-    var getKanaVocab = getAllSubject("kana_vocabulary");
-    final pitchDataF = rootBundle.loadString('assets/pitchdata.json');
-
-    allKanjiData = await getKanji;
-    pitchData = [];
-    for (var json in jsonDecode(await pitchDataF)) {
-      pitchData!.add(PitchData.fromJson(json));
-    }
-    allVocabData = await getVocab + await getKanaVocab;
-
-    print(allKanjiData!.length);
-    print(allVocabData!.length);
-
-    print(" -- Pitch data loaded: ${pitchData?.length}");
   }
 
   @Deprecated("Use load from local")
@@ -520,7 +538,7 @@ class AppData extends ChangeNotifier {
     String? radicalListAsString = prefs.getString('radicalCache');
     String? dateString = prefs.getString('dateOfCache');
 
-    if (radicalListAsString != null) {
+    if (radicalListAsString != null && dateString != null) {
       //1b
       List<Radical> tempRadicalList = (jsonDecode(radicalListAsString) as List)
           .map((e) => Radical.fromJson(e))
@@ -530,24 +548,48 @@ class AppData extends ChangeNotifier {
       List<Radical> updatedRadical = [];
       updatedRadical = await getAllSubjectAfterUpdate("radical",
               date.add(const Duration(days: -1)).toIso8601String()) ??
-          [];
+          <Radical>[];
 
       for (var updatedItem in updatedRadical) {
         int index =
             tempRadicalList.indexWhere((item) => item.id == updatedItem.id);
         if (index != -1) {
           tempRadicalList[index] = updatedItem;
+        } else {
+          tempRadicalList.add(updatedItem);
         }
       }
 
       allRadicalData = tempRadicalList;
     } else {
       //1a
-      var radicalDataF = getAllSubject("radical");
+      var radicalDataF = await getAllSubject("radical");
 
-      allRadicalData = await radicalDataF ?? [];
+      if (radicalDataF != null) {
+        allRadicalData = radicalDataF;
+      }
     }
 
     print("  Radical count: ${allRadicalData!.length}");
+  }
+
+  Future<void> saveUserData() async {
+    const storage = FlutterSecureStorage();
+    String userDataAsString = jsonEncode(userData);
+    await storage.write(key: 'userData', value: userDataAsString);
+  }
+
+  Future<void> loadUserData() async {
+    const storage = FlutterSecureStorage();
+    var userDataAsString = await storage.read(key: 'userData');
+    if (userDataAsString != null) {
+      userData = UserData.fromJson(jsonDecode(userDataAsString));
+    }
+  }
+
+  Future<void> logout() async {
+    const storage = FlutterSecureStorage();
+
+    await storage.delete(key: 'userData');
   }
 }

@@ -1,16 +1,23 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/login_animated.dart';
+import 'package:my_kanji_app/utility/ult_func.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({super.key}) : autoLogin = true;
+  const Login.disableAutoLogin({super.key}) : autoLogin = false;
+
+  final bool autoLogin;
 
   @override
   State<Login> createState() => _LoginState();
@@ -27,6 +34,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   late bool obscure;
   late bool _notValid;
   late String _errorMessage;
+  late final bool autoLogin;
 
   @override
   void initState() {
@@ -72,12 +80,14 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     _notValid = false;
     _errorMessage = "";
 
+    autoLogin = widget.autoLogin;
+
     loadCacheApiKey();
   }
 
   Future<void> loadCacheApiKey() async {
     apiInput.text = await appData.loadApiKey() ?? "";
-    if(apiInput.text.isNotEmpty) {
+    if (autoLogin && apiInput.text.isNotEmpty) {
       login();
     }
   }
@@ -216,11 +226,23 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 10),
                     FadeTransition(
                       opacity: _animacaoFade!,
-                      child: const Text(
-                        "I don't use Wanikani",
-                        style: TextStyle(
-                          color: Color.fromRGBO(173, 192, 249, 1),
-                          fontWeight: FontWeight.bold,
+                      child: GestureDetector(
+                        onTap: () async {
+                          bool launched = await openWebsite(
+                              "https://www.wanikani.com/settings/personal_access_tokens");
+                          if (!launched) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text("Failed to open token site")));
+                          }
+                        },
+                        child: const Text(
+                          "Get your key here",
+                          style: TextStyle(
+                            color: Color.fromRGBO(173, 192, 249, 1),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -244,11 +266,35 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     // Do stuff
     showLoaderDialog(context, "Signing in...");
 
-    final response = await getUser(apiInput.text);
+    Response? response;
 
-    var body = jsonDecode(response.body) as Map<String, dynamic>;
+    try {
+      response = await getUser(apiInput.text);
+    } on Exception catch (e) {
+      // TODO Handle login error
 
-    if (response.statusCode == 200) {
+      // Load cached userData
+      await appData.loadUserData();
+      if (appData.userData.url != null) {
+        Navigator.pop(context, true); // Pop loading
+
+        // Load data
+        showLoaderDialog(context, "Unable to connect, setting up offline mode");
+        appData.apiKey = "Bearer ${await appData.loadApiKey()}";
+        await appData.getData();
+
+        Navigator.pop(context, true); // Pop loading
+        //
+
+        Navigator.push(context, toHome());
+
+        return;
+      }
+    }
+
+    if (response != null && response.statusCode == 200) {
+      var body = jsonDecode(response.body) as Map<String, dynamic>;
+
       appData.apiKey = "Bearer ${apiInput.text}";
 
       appData.saveApiKey();
@@ -256,13 +302,15 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       appData.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
 
+      appData.saveUserData();
+
       appData.dataIsLoaded = false;
 
       Navigator.pop(context, true); // Pop loading
 
       // Load data
-      showLoaderDialog(context, "Loading data");
-      await appData.loadData();
+      showLoaderDialog(context, "Loading data\nFirst setup will take a while, please be patient");
+      await appData.getData();
 
       Navigator.pop(context, true); // Pop loading
       //
@@ -272,11 +320,11 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
       setState(() {
         _notValid = true;
 
-        _errorMessage = "Invalid api key";
+        _errorMessage = response != null ? "Invalid api key" : "Network error";
       });
       Navigator.pop(context);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(response.body)));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response?.body ?? "Network error")));
     }
   }
 }

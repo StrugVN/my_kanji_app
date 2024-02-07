@@ -666,10 +666,10 @@ class _VocabPageState extends State<VocabPage>
         ?.firstWhereOrNull((element) => element.data?.subjectId == vocab.id);
 
     if (reviewStat == null || srsStat == null) {
-      return const Column(
+      return Column(
         children: [
-          Divider(color: Colors.black),
-          Align(
+          const Divider(color: Colors.black),
+          const Align(
             alignment: Alignment.topLeft,
             child: Text(
               "Wanikani progression:",
@@ -679,9 +679,17 @@ class _VocabPageState extends State<VocabPage>
               ),
             ),
           ),
-          Text(
+          const Text(
             "Item is not yet learned",
             style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+          Text(
+            vocab.srsData?.data?.getUnlockededDateAsLocalTime() != null
+                ? "Item unlocked ${vocab.srsData?.data?.getUnlockededDateAsLocalTime()}"
+                : "Item is not yet unlocked",
+            style: const TextStyle(
               fontSize: 16,
             ),
           ),

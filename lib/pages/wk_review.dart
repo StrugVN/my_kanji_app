@@ -71,6 +71,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
     reviewItems = widget.reviewItems;
     isReview = widget.isReview;
 
+    // TODO: REMOVE
+    // reviewItems = appData.allRadicalData!.where((element) => element.data?.level == 9).map((e) => e as dynamic).toList();
+    //
+
     standByList = reviewItems.map((e) => ReviewItem(data: e)).toList();
 
     standByList.shuffle();
@@ -989,7 +993,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  "$char something went wrong. '${(jsonDecode(response.body) as Map<String, String>)["error"]}'"),
+                  "$char something went wrong. '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'"),
             ),
           );
         }
@@ -1147,7 +1151,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
     super.dispose();
 
     if (completedList.isNotEmpty) {
-      appData.loadData();
+      appData.getData();
     }
   }
 }

@@ -193,12 +193,7 @@ class _SettingPageState extends State<SettingPage> {
                     appData.reviewDraftSize = reviewDraftSize;
 
                     appData.saveSetting();
-
-                    print(appData.lessonSetting);
-                    print(lessonSetting);
-                    print(appData.reviewSetting);
-                    print(reviewSetting);
-
+                    
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(
