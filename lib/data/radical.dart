@@ -1,4 +1,6 @@
 import 'package:my_kanji_app/data/shared.dart';
+import 'package:my_kanji_app/data/wk_review_stat.dart';
+import 'package:my_kanji_app/data/wk_srs_stat.dart';
 
 class RadicalResponse {
   String? object;
@@ -53,6 +55,10 @@ class Radical {
   String? dataUpdatedAt;
   Data? data;
 
+   // ===
+  WkReviewStatData? reviewData;
+  WkSrsStatData? srsData;
+
   Radical({this.id, this.object, this.url, this.dataUpdatedAt, this.data});
 
   Radical.fromJson(Map<String, dynamic> json) {
@@ -71,6 +77,12 @@ class Radical {
     data['data_updated_at'] = dataUpdatedAt;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
+    }
+    if (reviewData != null) {
+      data['reviewData'] = reviewData?.toJson();
+    }
+    if (srsData != null) {
+      data['srsData'] = srsData?.toJson();
     }
     return data;
   }

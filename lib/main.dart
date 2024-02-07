@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/pages/home.dart';
@@ -21,6 +22,8 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        DefaultCupertinoLocalizations.delegate,
       ],
        supportedLocales: const [
         Locale('en', ''), 

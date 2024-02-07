@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/radical_info_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
+import 'package:collection/collection.dart';
+import 'package:my_kanji_app/service/api.dart';
+import 'package:my_kanji_app/utility/ult_func.dart';
 
 class ResultPage extends StatefulWidget {
   const ResultPage(
@@ -132,8 +138,7 @@ class _ResultPageState extends State<ResultPage> {
             Wrap(
               alignment: WrapAlignment.spaceBetween,
               children: [
-                for (var item in data.data)
-                  itemContainer(item),
+                for (var item in data.data) itemContainer(item),
               ],
             ),
           ],
@@ -145,12 +150,24 @@ class _ResultPageState extends State<ResultPage> {
   Widget itemContainer(dynamic item) {
     Kanji? kanji;
     Vocab? vocab;
+    Radical? radical;
 
     if (item is Kanji) {
       kanji = item;
     }
     if (item is Vocab) {
       vocab = item;
+    }
+    if (item is Radical) {
+      radical = item;
+    }
+
+    var svg = radical?.data!.characterImages
+        ?.firstWhereOrNull((element) => element.contentType == "image/svg+xml");
+
+    Future<String?>? svgString;
+    if (svg?.url != null) {
+      svgString = getSvgString(svg!.url!);
     }
 
     return GestureDetector(
@@ -173,7 +190,16 @@ class _ResultPageState extends State<ResultPage> {
               ),
             ),
           );
-        }
+        } // else if (radical != null) {
+        //   Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => RadicalPage(
+        //         radical: radical!,
+        //       ),
+        //     ),
+        //   );
+        // }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
@@ -182,17 +208,59 @@ class _ResultPageState extends State<ResultPage> {
           // color: kanji != null ? Colors.pink.shade600 : Colors.purple.shade800,
           color: (kanji != null
               ? Colors.pink.shade600
-              : (vocab != null ? Colors.purple.shade800 : Colors.grey)),
+              : (vocab != null
+                  ? Colors.purple.shade800
+                  : radical != null
+                      ? Colors.lightBlue
+                      : Colors.grey)),
         ),
-        child: Text(
-          (kanji != null
-                  ? kanji.data?.characters
-                  : (vocab != null ? vocab.data?.characters : "N/A")) ??
-              "N/A",
-          style: const TextStyle(fontSize: 28, color: Colors.white),
+        child: Column(
+          children: [
+            // if (kanji != null ||
+            //     vocab != null ||
+            //     radical?.data?.characters != null ||
+            //     (radical != null && svgString == null))
+            Text(
+              (kanji != null
+                      ? kanji.data?.characters
+                      : (vocab != null
+                          ? vocab.data?.characters
+                          : radical != null
+                              ? (radical.data?.characters ?? radical.data?.slug)
+                              : "N/A")) ??
+                  "N/A",
+              style: const TextStyle(fontSize: 28, color: Colors.white),
+            )
+            // else
+            //   futureWidget(getSvg(svgString), true, true),
+          ],
         ),
       ),
     );
+  }
+
+  Future<Widget> getSvg(Future<String?>? svgString) async {
+    if (svgString == null) {
+      return const SizedBox.shrink();
+    }
+    var svg = await svgString;
+
+    if (svg != null) {
+      return Container(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.05,
+          maxHeight: MediaQuery.of(context).size.width * 0.05,
+        ),
+        // height: MediaQuery.of(context).size.width * 0.05,
+        // width: MediaQuery.of(context).size.width * 0.05,
+        child: SvgPicture.string(
+          svg,
+          width: 50,
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 }
 

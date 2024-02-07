@@ -4,10 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/service/endpoints.dart';
+import 'package:html/parser.dart' as parser;
 
 final appData = AppData();
 
@@ -87,7 +89,26 @@ Future getAllSubjectAfterUpdate(types, updateAfter) async {
           jsonDecode(response.body) as Map<String, dynamic>);
 
       resultList = (resultList! + data.data!);
-    }
+    } 
+
+    return resultList;
+  } else if (types == "radical"){
+    var data = RadicalResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+
+    var resultList = data.data;
+
+    while (data.pages?.nextUrl != null) {
+      var next_url = data.pages!.nextUrl;
+
+      print(Uri.parse(next_url!));
+      response = await http.get(Uri.parse(next_url), headers: header);
+
+      data = RadicalResponse.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
+
+      resultList = (resultList! + data.data!);
+    } 
 
     return resultList;
   }
@@ -226,5 +247,28 @@ class SubjectQueryParam {
       'types': types,
       'slugs': slugs,
     };
+  }
+}
+
+Future<String?> getSvgString(String url) async {
+  // Fetch SVG content from the URL
+  final response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    // Parse the HTML response to extract the SVG content
+    final document = parser.parse(response.body);
+    final svgElement = document.querySelector('svg');
+
+    // Apply CSS styles to the SVG element
+    svgElement?.attributes['fill'] = 'none';
+    svgElement?.attributes['stroke'] = '#000';
+    svgElement?.attributes['stroke-linecap'] = 'square';
+    svgElement?.attributes['stroke-miterlimit'] = '2';
+    svgElement?.attributes['stroke-width'] = '68px';
+
+    // Generate the SVG string
+    final svgString = svgElement?.outerHtml;
+    return svgString;
+  } else {
+    return null;
   }
 }

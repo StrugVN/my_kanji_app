@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
@@ -20,6 +21,7 @@ class AppData extends ChangeNotifier {
   String? apiKey;
   List<Kanji>? allKanjiData;
   List<Vocab>? allVocabData;
+  List<Radical>? allRadicalData;
   List<PitchData>? pitchData;
   List<WkSrsStatData>? allSrsData;
   List<WkReviewStatData>? allReviewData;
@@ -82,6 +84,7 @@ class AppData extends ChangeNotifier {
     await Future.wait([
       loadKanjiApi(),
       loadVocabApi(),
+      loadRadicalApi(),
       loadVocabPitchData(),
       getSrsData(),
       getReviewStatData(),
@@ -118,13 +121,30 @@ class AppData extends ChangeNotifier {
       }
     }
 
+    for (var element in allRadicalData!) {
+      var srs =
+          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
+      var review = allReviewData!
+          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+
+      if (srs != null) {
+        element.srsData = srs;
+      }
+
+      if (review != null) {
+        element.reviewData = review;
+      }
+    }
+
     String kanjiDataAsString = jsonEncode(allKanjiData);
     String vocabDataAsString = jsonEncode(allVocabData);
+    String radicalDataAsString = jsonEncode(allRadicalData);
     String srsDataAsString = jsonEncode(allSrsData);
     String reviewDataAsString = jsonEncode(allReviewData);
 
     await prefs.setString('kanjiCache', kanjiDataAsString);
     await prefs.setString('vocabCache', vocabDataAsString);
+    await prefs.setString('radicalCache', radicalDataAsString);
     await prefs.setString('srsCache', srsDataAsString);
     await prefs.setString('reviewCache', reviewDataAsString);
     await prefs.setString('dateOfCache', DateTime.now().toString());
@@ -479,11 +499,55 @@ class AppData extends ChangeNotifier {
 
   Future<void> saveApiKey() async {
     const storage = FlutterSecureStorage();
-    await storage.write(key: 'apiKey', value: apiKey?.replaceAll("Bearer ", ""));
+    await storage.write(
+        key: 'apiKey', value: apiKey?.replaceAll("Bearer ", ""));
   }
 
   Future<String?> loadApiKey() async {
     const storage = FlutterSecureStorage();
     return await storage.read(key: 'apiKey');
+  }
+
+  Future<void> loadRadicalApi() async {
+    /// 1 Load local
+    ///   - 1a If not, load all.
+    ///   - 1b If is:
+    ///       + Then check update_after date of local cache.
+    /// 2 Then save to local with date
+
+    // 1
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? radicalListAsString = prefs.getString('radicalCache');
+    String? dateString = prefs.getString('dateOfCache');
+
+    if (radicalListAsString != null) {
+      //1b
+      List<Radical> tempRadicalList = (jsonDecode(radicalListAsString) as List)
+          .map((e) => Radical.fromJson(e))
+          .toList();
+      DateTime date = DateTime.parse(dateString!);
+
+      List<Radical> updatedRadical = [];
+      updatedRadical = await getAllSubjectAfterUpdate("radical",
+              date.add(const Duration(days: -1)).toIso8601String()) ??
+          [];
+
+      for (var updatedItem in updatedRadical) {
+        int index =
+            tempRadicalList.indexWhere((item) => item.id == updatedItem.id);
+        if (index != -1) {
+          tempRadicalList[index] = updatedItem;
+        }
+      }
+
+      allRadicalData = tempRadicalList;
+    } else {
+      //1a
+      var radicalDataF = getAllSubject("radical");
+
+      allRadicalData = await radicalDataF ?? [];
+    }
+
+    print("  Radical count: ${allRadicalData!.length}");
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/radical_info_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/pages/wk_review.dart';
 import 'package:my_kanji_app/service/api.dart';
@@ -77,6 +79,28 @@ class _LessonPageState extends State<LessonPage> {
           };
         }).toList();
 
+    newItemsList = newItemsList +
+        appData.allRadicalData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "level": element.data?.level,
+            "data": element,
+          };
+        }).toList();
+
     newItemsList.sort((a, b) {
       int createDateComparison = (a["level"] as int) - (b["level"] as int);
 
@@ -89,7 +113,7 @@ class _LessonPageState extends State<LessonPage> {
 
     lessonList = newItemsList.take(appData.lessonBatchSize).toList();
 
-    for (int ind = 0; ind < appData.lessonBatchSize; ind++) {
+    for (int ind = 0; ind < lessonList.length; ind++) {
       lessonPages.add(getInfoPage(lessonList[ind]["data"]));
     }
   }
@@ -156,12 +180,12 @@ class _LessonPageState extends State<LessonPage> {
                     child: const Icon(Icons.arrow_back),
                   ),
                   Text(
-                    "${index + 1}/${appData.lessonBatchSize}",
+                    "${index + 1}/${lessonList.length}",
                     style: const TextStyle(fontSize: 16, color: Colors.black),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      if (index + 1 < appData.lessonBatchSize) {
+                      if (index + 1 < lessonList.length) {
                         index = index + 1;
                         setState(() {
                           pageController.animateToPage(
@@ -184,12 +208,12 @@ class _LessonPageState extends State<LessonPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: index + 1 < appData.lessonBatchSize
+                      backgroundColor: index + 1 < lessonList.length
                           ? Colors.pink
                           : Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                    child: index + 1 < appData.lessonBatchSize
+                    child: index + 1 < lessonList.length
                         ? const Icon(Icons.arrow_forward)
                         : const Text("To Quiz!"),
                   ),
@@ -209,8 +233,8 @@ class _LessonPageState extends State<LessonPage> {
                   return lessonPages[index];
                 },
                 itemCount: lessonPages.length,
-                preloadPagesCount:
-                    5, // Preload adjacent pages for smoother transitions
+                preloadPagesCount: lessonPages
+                    .length, // Preload adjacent pages for smoother transitions
               ),
             ),
           ],
@@ -222,12 +246,16 @@ class _LessonPageState extends State<LessonPage> {
   Widget getInfoPage(dynamic item) {
     Kanji? kanji;
     Vocab? vocab;
+    Radical? radical;
 
     if (item is Kanji) {
       kanji = item;
     }
     if (item is Vocab) {
       vocab = item;
+    }
+    if (item is Radical) {
+      radical = item;
     }
 
     if (kanji != null) {
@@ -236,6 +264,10 @@ class _LessonPageState extends State<LessonPage> {
 
     if (vocab != null) {
       return VocabPage.hideAppBar(vocab: vocab);
+    }
+
+    if (radical != null) {
+      return RadicalPage(radical: radical);
     }
 
     return const SizedBox.shrink();

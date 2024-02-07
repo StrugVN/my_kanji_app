@@ -557,6 +557,28 @@ class _VocabPageState extends State<VocabPage>
             ),
           ),
         ),
+        // WK example
+        for (var item
+            in vocab.data?.contextSentences ?? <VocabContextSentences>[])
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  item.ja ?? "",
+                  style: const TextStyle(fontSize: 18),
+                ),
+                Text(
+                  " - ${item.en}",
+                  style: const TextStyle(fontSize: 17),
+                ),
+                const Gap(5),
+              ],
+            ),
+          ),
+        // -----------------
         for (var sentence in exampleList)
           Align(
             alignment: Alignment.centerLeft,

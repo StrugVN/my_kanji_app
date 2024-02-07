@@ -538,6 +538,29 @@ class VocabInfoCard extends StatelessWidget {
             ),
           ),
         ),
+        // WK example
+        for (var item
+            in item.data?.contextSentences ?? <VocabContextSentences>[])
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  item.ja ?? "",
+                  style: const TextStyle(fontSize: 18),
+                ),
+                Text(
+                  " - ${item.en}",
+                  style: const TextStyle(fontSize: 17),
+                ),
+                const Divider(
+                  thickness: 1.0,
+                ),
+              ],
+            ),
+          ),
         for (var sentence in exampleList)
           Align(
             alignment: Alignment.centerLeft,
