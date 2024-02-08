@@ -232,6 +232,7 @@ class _LessonPageState extends State<LessonPage> {
                               reviewItems:
                                   lessonList.map((e) => e["data"]).toList(),
                             ),
+                            settings: const RouteSettings(name: "reviewPage"),
                           ),
                         );
                       }

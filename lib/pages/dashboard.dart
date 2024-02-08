@@ -398,6 +398,7 @@ class _DashboardState extends State<Dashboard>
                       context,
                       MaterialPageRoute(
                         builder: (context) => LessonPage(newItemsList: newItemsList,),
+                        settings: const RouteSettings(name: "lessonPage"),
                       ),
                     );
                   }
@@ -435,6 +436,7 @@ class _DashboardState extends State<Dashboard>
                         builder: (context) => WkReviewPage(
                           reviewItems: reviewList,
                         ),
+                        settings: const RouteSettings(name: "reviewPage"),
                       ),
                     );
                   }

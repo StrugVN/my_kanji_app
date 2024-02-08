@@ -14,9 +14,11 @@ import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:unofficial_jisho_api/api.dart';
 
 class KanjiPage extends StatefulWidget {
-  KanjiPage({super.key, required this.kanji, this.navigationList}) : hideAppBar = false;
+  KanjiPage({super.key, required this.kanji, this.navigationList})
+      : hideAppBar = false;
 
-  KanjiPage.hideAppBar({super.key, required this.kanji, this.navigationList}) : hideAppBar = true;
+  KanjiPage.hideAppBar({super.key, required this.kanji, this.navigationList})
+      : hideAppBar = true;
 
   final Kanji kanji;
 
@@ -28,7 +30,8 @@ class KanjiPage extends StatefulWidget {
   State<KanjiPage> createState() => _KanjiPageState(kanji, navigationList);
 }
 
-class _KanjiPageState extends State<KanjiPage> with AutomaticKeepAliveClientMixin {
+class _KanjiPageState extends State<KanjiPage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   int numberOfExample = 3;
@@ -62,34 +65,38 @@ class _KanjiPageState extends State<KanjiPage> with AutomaticKeepAliveClientMixi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: !widget.hideAppBar ? AppBar(
-        title: Text(
-          kanji.data!.characters ?? "",
-          style: const TextStyle(color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.home,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.isFirst ||
-                  route.settings.name == '/homePage' ||
-                  route.settings.name == 'homePage');
-            },
-          ),
-        ],
-        backgroundColor: Colors.pink,
-      ) : null,
+      appBar: !widget.hideAppBar
+          ? AppBar(
+              title: Text(
+                kanji.data!.characters ?? "",
+                style: const TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.home,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) =>
+                        route.isFirst ||
+                        route.settings.name == '/homePage' ||
+                        route.settings.name == 'homePage' ||
+                        route.settings.name == 'lessonPage' ||
+                        route.settings.name == 'reviewPage');
+                  },
+                ),
+              ],
+              backgroundColor: Colors.pink,
+            )
+          : null,
       backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(

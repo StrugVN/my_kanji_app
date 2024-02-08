@@ -708,6 +708,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
       setState(() {
         isMeaningCorrect = meaning
             ?.where((e) =>
+                (e.acceptedAnswer != null && e.acceptedAnswer == true) &&
                 (e.meaning?.toLowerCase() as String)
                     .similarityTo(meaningInput.text.toLowerCase()) >=
                 0.75)
@@ -717,6 +718,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
         isMeaningSlightlyWrong = isMeaningCorrect &&
             meaning
                 ?.where((e) =>
+                    (e.acceptedAnswer != null && e.acceptedAnswer == true) &&
                     e.meaning?.toLowerCase() == meaningInput.text.toLowerCase())
                 .toList()
                 .isEmpty as bool;
@@ -760,7 +762,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
       setState(() {
         isReadingCorrect = reading
             .where((e) =>
-                e.reading?.toLowerCase() == readingInput.text.toLowerCase())
+                e.acceptedAnswer == true &&
+                e.reading == readingInput.text)
             .toList()
             .isNotEmpty;
 

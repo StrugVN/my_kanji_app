@@ -62,7 +62,9 @@ class _ResultPageState extends State<ResultPage> {
                 Navigator.of(context).popUntil((route) =>
                     route.isFirst ||
                     route.settings.name == '/homePage' ||
-                    route.settings.name == 'homePage');
+                    route.settings.name == 'homePage' ||
+                    route.settings.name == 'lessonPage' ||
+                    route.settings.name == 'reviewPage');
               },
             ),
           ],
