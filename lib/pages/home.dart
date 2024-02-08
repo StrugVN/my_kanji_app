@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kana_kit/kana_kit.dart';
@@ -22,11 +24,13 @@ import 'package:preload_page_view/preload_page_view.dart';
 class Home extends StatefulWidget {
   const Home({super.key});
 
+  static const platform = MethodChannel('app.channel.home');
+
   @override
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   int pageIndex = 0;
 
   late List<Widget> pageList;
@@ -44,7 +48,8 @@ class _HomeState extends State<Home> {
   var searchTextController = TextEditingController();
 
   var pageController = PreloadPageController(initialPage: 0);
-  // var pageController = PageController(initialPage: 0);
+
+  Timer? _timer;
 
   @override
   void initState() {
@@ -67,6 +72,10 @@ class _HomeState extends State<Home> {
         }
       });
     });
+
+    WidgetsBinding.instance.addObserver(this);
+
+    startSyncTimer();
 
     initHome();
   }
@@ -107,11 +116,12 @@ class _HomeState extends State<Home> {
             );
           });
         } else {
-          await showExitDialog(context).then((confirm) async {
-            if (confirm != null && confirm) {
-              SystemNavigator.pop();
-            }
-          });
+          _putAppInBackground();
+          // await showExitDialog(context).then((confirm) async {
+          //   if (confirm != null && confirm) {
+          //     SystemNavigator.pop();
+          //   }
+          // });
         }
       },
       child: Scaffold(
@@ -268,7 +278,6 @@ class _HomeState extends State<Home> {
       context: context,
       position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width * 0.8,
           MediaQuery.of(context).size.height * 0.05, 0, 0),
-          
       items: <PopupMenuEntry<int>>[
         PopupMenuItem<int>(
           value: 2,
@@ -289,6 +298,7 @@ class _HomeState extends State<Home> {
                   content: Text(!appData.networkError
                       ? "Data synced"
                       : "Network error")));
+              startSyncTimer();
             });
           },
         ),
@@ -304,6 +314,7 @@ class _HomeState extends State<Home> {
                   content: Text(!appData.networkError
                       ? "Data synced"
                       : "Network error")));
+              startSyncTimer();
             });
           },
         ),
@@ -520,5 +531,44 @@ class _HomeState extends State<Home> {
       ),
       isScrollControlled: true,
     );
+  }
+
+  void startSyncTimer() {
+    const Duration syncInterval = Duration(seconds: 5);
+    _timer?.cancel();
+    _timer = Timer.periodic(syncInterval, (timer) {
+      syncData();
+    });
+  }
+
+  void syncData() {
+    appData.autoDataSync();
+  }
+
+  void _putAppInBackground() {
+    try {
+      Home.platform.invokeMethod('putAppInBackground');
+    } catch (e) {
+      print("Failed to put app in background: '$e'.");
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      appData.autoDataSync();
+      startSyncTimer();
+    } else if (state == AppLifecycleState.paused){
+      _timer?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _timer?.cancel();
+    // TODO: implement dispose
+    super.dispose();
   }
 }

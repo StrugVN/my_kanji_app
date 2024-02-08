@@ -83,17 +83,20 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
           );
           return true;
         },
-        child: Column(
-          children: <Widget>[
-            getSelector(),
-            SubjectList(
-              data: dataList,
-              isToEN: isToEN,
-              kanjiOnFront: kanjiOnFront,
-              isAudio: isAudio,
-              dataCheckCallback: dataCallback,
-            ),
-          ],
+        child: Container(
+          decoration: BoxDecoration(color: Colors.grey.shade200),
+          child: Column(
+            children: <Widget>[
+              getSelector(),
+              SubjectList(
+                data: dataList,
+                isToEN: isToEN,
+                kanjiOnFront: kanjiOnFront,
+                isAudio: isAudio,
+                dataCheckCallback: dataCallback,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -21,6 +21,8 @@ class AppData extends ChangeNotifier {
   String? apiKey;
   UserData userData = UserData();
 
+  DateTime lastDataSync = DateTime.now();
+
   List<Kanji>? allKanjiData;
   List<Vocab>? allVocabData;
   List<Radical>? allRadicalData;
@@ -152,20 +154,26 @@ class AppData extends ChangeNotifier {
 
     dataIsLoaded = true;
 
+    lastDataSync = DateTime.now();
+
     notifyListeners();
   }
 
   Future<void> getDataForce() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // await prefs.remove('kanjiCache');
-    // await prefs.remove('vocabCache');
-    // await prefs.remove('radicalCache');
-    // await prefs.remove('srsCache');
-    // await prefs.remove('reviewCache');
     await prefs.remove("dateOfCache");
 
     await getData();
+  }
+
+  Future<void> autoDataSync() async {
+    DateTime now = DateTime.now();
+
+    if(now.hour - lastDataSync.hour >= 1){
+      await getData();
+      lastDataSync = DateTime.now();
+    }
   }
 
   void initData() {
