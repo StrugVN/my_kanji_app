@@ -126,7 +126,9 @@ class _DashboardState extends State<Dashboard>
           Column(
             children: [
               Text(
-                appData.userData.data?.username != null ? helloAccordingToTime() : '',
+                appData.userData.data?.username != null
+                    ? helloAccordingToTime()
+                    : '',
                 style: const TextStyle(
                   fontSize: 24,
                   color: Colors.black,
@@ -344,14 +346,12 @@ class _DashboardState extends State<Dashboard>
         .toList()
         .length;
 
-    var reviewData = appData.allSrsData!
-        .where((element) {
-          var nextReview = element.data?.getNextReviewAsDateTime();
-          return nextReview == null
-              ? false
-              : nextReview.toLocal().isBefore(DateTime.now());
-        })
-        .toList();
+    var reviewData = appData.allSrsData!.where((element) {
+      var nextReview = element.data?.getNextReviewAsDateTime();
+      return nextReview == null
+          ? false
+          : nextReview.toLocal().isBefore(DateTime.now());
+    }).toList();
 
     var reviewCount = reviewData.length;
 
@@ -373,7 +373,7 @@ class _DashboardState extends State<Dashboard>
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               TextSpan(
-                  text: ' review${lessonCount > 1 ? "s" : ""} available.\n'),
+                  text: ' review${reviewCount > 1 ? "s" : ""} available.\n'),
             ],
           ),
         ),
@@ -384,15 +384,27 @@ class _DashboardState extends State<Dashboard>
             children: [
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LessonPage(),
-                    ),
-                  );
+                  List<Map<String, Object?>> newItemsList = getLessonReview();
+
+                  if (newItemsList.isEmpty) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text("No lesson of current setting")));
+                      return;
+                    }
+
+                  if (lessonCount > 0) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LessonPage(newItemsList: newItemsList,),
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor:
+                      lessonCount > 0 ? Colors.blue : Colors.blue.shade200,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0)),
@@ -407,41 +419,29 @@ class _DashboardState extends State<Dashboard>
               ),
               ElevatedButton(
                 onPressed: () {
-                  var kanjiReviewList = appData.allKanjiData?.where((element) {
-                        var nextReview =
-                            element.srsData?.data?.getNextReviewAsDateTime();
-                        return nextReview == null
-                            ? false
-                            : nextReview.toLocal().isBefore(DateTime.now());
-                      }).toList() ??
-                      [];
+                  if (reviewCount > 0) {
+                    List<dynamic> reviewList = getReviewList();
 
-                  var vocabReviewList = appData.allVocabData?.where((element) {
-                        var nextReview =
-                            element.srsData?.data?.getNextReviewAsDateTime();
-                        return nextReview == null
-                            ? false
-                            : nextReview.toLocal().isBefore(DateTime.now());
-                      }).toList() ??
-                      [];
+                    if (reviewList.isEmpty) {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text("No review of current setting")));
+                      return;
+                    }
 
-                  var reviewList =
-                      kanjiReviewList.map((e) => e as dynamic).toList() +
-                          vocabReviewList.map((e) => e as dynamic).toList();
-                  
-                  print("${kanjiReviewList.length} ${vocabReviewList.length} ");
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => WkReviewPage(
-                        reviewItems: reviewList,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WkReviewPage(
+                          reviewItems: reviewList,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor:
+                      reviewCount > 0 ? Colors.blue : Colors.blue.shade200,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0)),
@@ -1490,6 +1490,140 @@ class _DashboardState extends State<Dashboard>
         ],
       ),
     ).then((value) {});
+  }
+
+  List<dynamic> getReviewList() {
+    var kanjiReviewList = appData.allKanjiData?.where((element) {
+          var nextReview = element.srsData?.data?.getNextReviewAsDateTime();
+          return nextReview == null
+              ? false
+              : nextReview.toLocal().isBefore(DateTime.now());
+        }).toList() ??
+        [];
+
+    var vocabReviewList = appData.allVocabData?.where((element) {
+          var nextReview = element.srsData?.data?.getNextReviewAsDateTime();
+          return nextReview == null
+              ? false
+              : nextReview.toLocal().isBefore(DateTime.now());
+        }).toList() ??
+        [];
+
+    var radicalReviewList = appData.allRadicalData?.where((element) {
+          var nextReview = element.srsData?.data?.getNextReviewAsDateTime();
+          return nextReview == null
+              ? false
+              : nextReview.toLocal().isBefore(DateTime.now());
+        }).toList() ??
+        [];
+
+    List<dynamic> reviewList = [];
+
+    if (appData.reviewSetting["kanji"] ?? false) {
+      reviewList =
+          reviewList + kanjiReviewList.map((e) => e as dynamic).toList();
+    }
+    if (appData.reviewSetting["vocab"] ?? false) {
+      reviewList =
+          reviewList + vocabReviewList.map((e) => e as dynamic).toList();
+    }
+    if (appData.reviewSetting["radical"] ?? false) {
+      reviewList =
+          reviewList + radicalReviewList.map((e) => e as dynamic).toList();
+    }
+
+    return reviewList;
+  }
+
+  List<Map<String, Object?>> getLessonReview() {
+    var lessonItem = appData.allSrsData!
+        .where((element) =>
+            element.data != null &&
+            element.data!.unlockedAt != null &&
+            element.data!.availableAt == null)
+        .toList();
+
+    List<Map<String, Object?>> newItemsList = [];
+
+    if (appData.lessonSetting["kanji"] ?? false) {
+      newItemsList = newItemsList +
+          appData.allKanjiData!
+              .where((element) =>
+                  lessonItem.firstWhereOrNull(
+                    (e) => e.data != null
+                        ? element.id == e.data!.subjectId!
+                        : false,
+                  ) !=
+                  null)
+              .map((element) {
+            var lessonItemStat = lessonItem.firstWhereOrNull(
+              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+            );
+            return {
+              "id": element.id,
+              "char": element.data!.characters,
+              "unlockedDate":
+                  lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+              "isKanji": true,
+              "level": element.data?.level,
+              "data": element,
+            };
+          }).toList();
+    }
+
+    if (appData.lessonSetting["vocab"] ?? false) {
+      newItemsList = newItemsList +
+          appData.allVocabData!
+              .where((element) =>
+                  lessonItem.firstWhereOrNull(
+                    (e) => e.data != null
+                        ? element.id == e.data!.subjectId!
+                        : false,
+                  ) !=
+                  null)
+              .map((element) {
+            var lessonItemStat = lessonItem.firstWhereOrNull(
+              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+            );
+            return {
+              "id": element.id,
+              "char": element.data!.characters,
+              "unlockedDate":
+                  lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+              "isKanji": false,
+              "level": element.data?.level,
+              "data": element,
+            };
+          }).toList();
+    }
+
+    if (appData.lessonSetting["radical"] ?? false) {
+      newItemsList = newItemsList +
+          appData.allRadicalData!
+              .where((element) =>
+                  lessonItem.firstWhereOrNull(
+                    (e) => e.data != null
+                        ? element.id == e.data!.subjectId!
+                        : false,
+                  ) !=
+                  null)
+              .map((element) {
+            var lessonItemStat = lessonItem.firstWhereOrNull(
+              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+            );
+            return {
+              "id": element.id,
+              "char": element.data!.characters,
+              "unlockedDate":
+                  lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+              "isKanji": false,
+              "level": element.data?.level,
+              "data": element,
+            };
+          }).toList();
+    }
+
+    return newItemsList;
   }
 }
 

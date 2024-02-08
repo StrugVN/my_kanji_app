@@ -45,7 +45,7 @@ class AppData extends ChangeNotifier {
     "vocab": true,
   };
 
-  int lessonBatchSize = 3;
+  int lessonBatchSize = 5;
 
   Map<String, bool> reviewSetting = {
     "radical": true,
@@ -53,7 +53,7 @@ class AppData extends ChangeNotifier {
     "vocab": true,
   };
 
-  int reviewDraftSize = 5;
+  int reviewDraftSize = 10;
 
   //  ----------------------------------------------
 

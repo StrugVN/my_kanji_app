@@ -20,8 +20,8 @@ class _SettingPageState extends State<SettingPage> {
     // TODO: implement initState
     super.initState();
 
-    lessonSetting = appData.lessonSetting;
-    reviewSetting = appData.reviewSetting;
+    lessonSetting = {...appData.lessonSetting};
+    reviewSetting = {...appData.reviewSetting};
     lessonBatchSize = appData.lessonBatchSize;
     reviewDraftSize = appData.reviewDraftSize;
   }
@@ -86,7 +86,7 @@ class _SettingPageState extends State<SettingPage> {
                 DropdownButton<int>(
                   menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
                   value: lessonBatchSize,
-                  items: [2, 3, 4, 5, 6, 7, 8, 9, 10]
+                  items: List<int>.generate(14, (index) => index + 2)
                       .map((value) => DropdownMenuItem<int>(
                             value: value,
                             child: Text('$value'),
@@ -153,7 +153,7 @@ class _SettingPageState extends State<SettingPage> {
                 DropdownButton<int>(
                   menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
                   value: reviewDraftSize,
-                  items: [2, 3, 4, 5, 6, 7, 8, 9, 10]
+                  items: List<int>.generate(19, (index) => index + 2)
                       .map((value) => DropdownMenuItem<int>(
                             value: value,
                             child: Text('$value'),

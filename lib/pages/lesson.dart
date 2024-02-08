@@ -11,7 +11,9 @@ import 'package:collection/collection.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
 class LessonPage extends StatefulWidget {
-  const LessonPage({super.key});
+  const LessonPage({super.key, this.newItemsList});
+
+  final List<Map<String, Object?>>? newItemsList;
 
   @override
   State<LessonPage> createState() => _LessonPageState();
@@ -24,7 +26,6 @@ class _LessonPageState extends State<LessonPage> {
 
   int index = 0;
 
-  // var pageController = PageController(initialPage: 0);
   var pageController = PreloadPageController(initialPage: 0);
 
   @override
@@ -38,68 +39,96 @@ class _LessonPageState extends State<LessonPage> {
             element.data!.availableAt == null)
         .toList();
 
-    var newItemsList = appData.allKanjiData!
-        .where((element) =>
-            lessonItem.firstWhereOrNull(
-              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-            ) !=
-            null)
-        .map((element) {
-      var lessonItemStat = lessonItem.firstWhereOrNull(
-        (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-      );
-      return {
-        "id": element.id,
-        "char": element.data!.characters,
-        "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-        "isKanji": true,
-        "level": element.data?.level,
-        "data": element,
-      };
-    }).toList();
-    newItemsList = newItemsList +
-        appData.allVocabData!
-            .where((element) =>
-                lessonItem.firstWhereOrNull(
-                  (e) =>
-                      e.data != null ? element.id == e.data!.subjectId! : false,
-                ) !=
-                null)
-            .map((element) {
-          var lessonItemStat = lessonItem.firstWhereOrNull(
-            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-          );
-          return {
-            "id": element.id,
-            "char": element.data!.characters,
-            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-            "isKanji": false,
-            "level": element.data?.level,
-            "data": element,
-          };
-        }).toList();
+    List<Map<String, Object?>> newItemsList = [];
 
-    newItemsList = newItemsList +
-        appData.allRadicalData!
-            .where((element) =>
-                lessonItem.firstWhereOrNull(
-                  (e) =>
-                      e.data != null ? element.id == e.data!.subjectId! : false,
-                ) !=
-                null)
-            .map((element) {
-          var lessonItemStat = lessonItem.firstWhereOrNull(
-            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-          );
-          return {
-            "id": element.id,
-            "char": element.data!.characters,
-            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-            "isKanji": false,
-            "level": element.data?.level,
-            "data": element,
-          };
-        }).toList();
+    if (widget.newItemsList != null || widget.newItemsList!.isEmpty) {
+      if (appData.lessonSetting["kanji"] ?? false) {
+        newItemsList = newItemsList +
+            appData.allKanjiData!
+                .where((element) =>
+                    lessonItem.firstWhereOrNull(
+                      (e) => e.data != null
+                          ? element.id == e.data!.subjectId!
+                          : false,
+                    ) !=
+                    null)
+                .map((element) {
+              var lessonItemStat = lessonItem.firstWhereOrNull(
+                (e) =>
+                    e.data != null ? element.id == e.data!.subjectId! : false,
+              );
+              return {
+                "id": element.id,
+                "char": element.data!.characters,
+                "unlockedDate":
+                    lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+                "isKanji": true,
+                "level": element.data?.level,
+                "data": element,
+              };
+            }).toList();
+      }
+
+      if (appData.lessonSetting["vocab"] ?? false) {
+        newItemsList = newItemsList +
+            appData.allVocabData!
+                .where((element) =>
+                    lessonItem.firstWhereOrNull(
+                      (e) => e.data != null
+                          ? element.id == e.data!.subjectId!
+                          : false,
+                    ) !=
+                    null)
+                .map((element) {
+              var lessonItemStat = lessonItem.firstWhereOrNull(
+                (e) =>
+                    e.data != null ? element.id == e.data!.subjectId! : false,
+              );
+              return {
+                "id": element.id,
+                "char": element.data!.characters,
+                "unlockedDate":
+                    lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+                "isKanji": false,
+                "level": element.data?.level,
+                "data": element,
+              };
+            }).toList();
+      }
+
+      if (appData.lessonSetting["radical"] ?? false) {
+        newItemsList = newItemsList +
+            appData.allRadicalData!
+                .where((element) =>
+                    lessonItem.firstWhereOrNull(
+                      (e) => e.data != null
+                          ? element.id == e.data!.subjectId!
+                          : false,
+                    ) !=
+                    null)
+                .map((element) {
+              var lessonItemStat = lessonItem.firstWhereOrNull(
+                (e) =>
+                    e.data != null ? element.id == e.data!.subjectId! : false,
+              );
+              return {
+                "id": element.id,
+                "char": element.data!.characters,
+                "unlockedDate":
+                    lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+                "isKanji": false,
+                "level": element.data?.level,
+                "data": element,
+              };
+            }).toList();
+      }
+
+      if (newItemsList.isEmpty) {
+        Navigator.pop(context, true);
+      }
+    } else{
+      newItemsList = widget.newItemsList!;
+    }
 
     newItemsList.sort((a, b) {
       int createDateComparison = (a["level"] as int) - (b["level"] as int);

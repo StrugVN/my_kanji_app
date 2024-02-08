@@ -126,7 +126,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("Golden Phoenix")),
+          title: const Center(child: Text("App name TBD")),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [
@@ -534,7 +534,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   }
 
   void startSyncTimer() {
-    const Duration syncInterval = Duration(seconds: 5);
+    const Duration syncInterval = Duration(minutes: 10);
     _timer?.cancel();
     _timer = Timer.periodic(syncInterval, (timer) {
       syncData();
