@@ -118,24 +118,61 @@ class _WkReviewPageState extends State<WkReviewPage> {
           ],
         ),
         backgroundColor: Colors.grey.shade300,
-        body: draftList.isNotEmpty
-            ? GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                },
-                child: Column(
-                  children: [
-                    getQuestionField(),
-                    getControllButtons(),
-                    getAnswerField(),
-                    if (showInfo)
-                      Expanded(child: getInfoPage(draftList[currIndex].data))
-                    else if (result != null)
-                      getInfoButton(),
-                  ],
-                ),
-              )
-            : const SizedBox.shrink(),
+        body: Stack(
+          children: [
+            // Container(
+            //   decoration: const BoxDecoration(
+            //     image: DecorationImage(
+            //       image: AssetImage('assets/images/window.jpg'),
+            //       fit: BoxFit.cover,
+            //     ),
+            //   ),
+            //   width: MediaQuery.of(context).size.width,
+            //   height: MediaQuery.of(context).size.height,
+            // ),
+            draftList.isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                    },
+                    child: Column(
+                      children: [
+                        getQuestionField(),
+                        getControllButtons(),
+                        getAnswerField(),
+                        if (showInfo && result != null && !result!)
+                          ElevatedButton(
+                            onPressed: () {
+                              focusNodeMeaning.unfocus();
+                              focusNodeReading.unfocus();
+                              setState(() {
+                                result = true;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    0.0), // Set to 0 for sharp corners
+                              ),
+                            ),
+                            child: const Text(
+                              "Set to skip",
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        if (showInfo)
+                          Expanded(
+                              child: getInfoPage(draftList[currIndex].data))
+                        else if (result != null)
+                          getInfoButton(),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
       ),
     );
   }
@@ -421,17 +458,13 @@ class _WkReviewPageState extends State<WkReviewPage> {
             onChanged: (String value) {
               int cursorPosition = readingInput.selection.baseOffset;
 
-              if (value.isNotEmpty && value[value.length - 1] == "n") {
-                if (value.length > 1 && value[value.length - 2] == "n") {
-                  readingInput.text =
-                      kanaKit.toHiragana(value.substring(0, value.length - 1));
-                } else {
-                  readingInput.text =
-                      "${kanaKit.toHiragana(value.substring(0, value.length - 1))}n";
-                }
-              } else {
-                readingInput.text = kanaKit.toHiragana(value);
-              }
+              String? latin = extractLatinPart(value);
+
+              if(latin == null || latin == "n" || latin == "ny") 
+                return;
+              
+              String higa = kanaKit.toHiragana(latin.replaceAll("nn", "n"));
+              readingInput.text = value.replaceAll(latin, higa);
 
               if (value.length != readingInput.text.length) {
                 cursorPosition =
@@ -708,7 +741,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
       setState(() {
         isMeaningCorrect = meaning
             ?.where((e) =>
-                (e.acceptedAnswer != null && e.acceptedAnswer == true) &&
                 (e.meaning?.toLowerCase() as String)
                     .similarityTo(meaningInput.text.toLowerCase()) >=
                 0.75)
@@ -718,7 +750,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
         isMeaningSlightlyWrong = isMeaningCorrect &&
             meaning
                 ?.where((e) =>
-                    (e.acceptedAnswer != null && e.acceptedAnswer == true) &&
                     e.meaning?.toLowerCase() == meaningInput.text.toLowerCase())
                 .toList()
                 .isEmpty as bool;
@@ -762,8 +793,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
       setState(() {
         isReadingCorrect = reading
             .where((e) =>
-                e.acceptedAnswer == true &&
-                e.reading == readingInput.text)
+                e.acceptedAnswer == true && e.reading == readingInput.text)
             .toList()
             .isNotEmpty;
 
@@ -1080,7 +1110,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
                       .toList();
                   draftList = draftList
                       .where((element) =>
-                          element.meaningAnswered || element.readingAnswered)
+                          element.meaningAnswered ||
+                          element.readingAnswered ||
+                          element.incorrectMeaningAnswers > 0 ||
+                          element.incorrectReadingAnswers > 0)
                       .toList();
 
                   if (draftList.isEmpty) {

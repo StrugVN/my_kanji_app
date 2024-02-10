@@ -96,6 +96,13 @@ class _DashboardState extends State<Dashboard>
                 // //////////////////////////////////////////////////
                 greeting(),
 
+                if(!appData.dataIsLoaded)
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(),
+                  ),
+
                 schedule(),
 
                 progression(),
@@ -152,7 +159,7 @@ class _DashboardState extends State<Dashboard>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              " ${appData.userData.data?.level ?? ''} ",
+              " ${appData.userData.data?.level ?? 0} ",
               style: const TextStyle(
                 fontSize: 48,
                 color: Colors.black,
@@ -186,15 +193,15 @@ class _DashboardState extends State<Dashboard>
           ];
         } else {
           children = const <Widget>[
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 2),
-              child: Text('Fetching data...'),
-            ),
+            // SizedBox(
+            //   width: 40,
+            //   height: 40,
+            //   child: CircularProgressIndicator(),
+            // ),
+            // Padding(
+            //   padding: EdgeInsets.only(top: 2),
+            //   child: Text('Fetching data...'),
+            // ),
           ];
         }
         return Center(
@@ -228,15 +235,15 @@ class _DashboardState extends State<Dashboard>
           ];
         } else {
           children = const <Widget>[
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 2),
-              child: Text('Fetching data...'),
-            ),
+            // SizedBox(
+            //   width: 40,
+            //   height: 40,
+            //   child: CircularProgressIndicator(),
+            // ),
+            // Padding(
+            //   padding: EdgeInsets.only(top: 2),
+            //   child: Text('Fetching data...'),
+            // ),
           ];
         }
         return Center(
@@ -271,15 +278,15 @@ class _DashboardState extends State<Dashboard>
           ];
         } else {
           children = const <Widget>[
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 2),
-              child: Text('Fetching data...'),
-            ),
+            // SizedBox(
+            //   width: 40,
+            //   height: 40,
+            //   child: CircularProgressIndicator(),
+            // ),
+            // Padding(
+            //   padding: EdgeInsets.only(top: 2),
+            //   child: Text('Fetching data...'),
+            // ),
           ];
         }
         return Center(
@@ -314,15 +321,15 @@ class _DashboardState extends State<Dashboard>
           ];
         } else {
           children = const <Widget>[
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 2),
-              child: Text('Fetching data...'),
-            ),
+            // SizedBox(
+            //   width: 40,
+            //   height: 40,
+            //   child: CircularProgressIndicator(),
+            // ),
+            // Padding(
+            //   padding: EdgeInsets.only(top: 2),
+            //   child: Text('Fetching data...'),
+            // ),
           ];
         }
         return Center(
@@ -387,17 +394,19 @@ class _DashboardState extends State<Dashboard>
                   List<Map<String, Object?>> newItemsList = getLessonReview();
 
                   if (newItemsList.isEmpty) {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("No lesson of current setting")));
-                      return;
-                    }
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("No lesson of current setting")));
+                    return;
+                  }
 
                   if (lessonCount > 0) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => LessonPage(newItemsList: newItemsList,),
+                        builder: (context) => LessonPage(
+                          newItemsList: newItemsList,
+                        ),
                         settings: const RouteSettings(name: "lessonPage"),
                       ),
                     );

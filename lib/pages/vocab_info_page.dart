@@ -704,11 +704,21 @@ class _VocabPageState extends State<VocabPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(color: Colors.black),
-        const Text(
-          "Wanikani progression:",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        GestureDetector(
+          onDoubleTap: () async {
+            bool launched = await openWebsite(
+                "https://www.wanikani.com/vocabulary/${vocab.data?.characters}");
+            if (!launched) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Failed to open site")));
+            }
+          },
+          child: const Text(
+            "Wanikani progression:",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         RichText(

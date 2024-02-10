@@ -15,7 +15,7 @@ String helloAccordingToTime() {
   } else if (hour >= 11 && hour <= 17) {
     return "こんにちは, ";
   } else if (hour >= 18 && hour <= 23) {
-    return "今晩は, ";
+    return "こんばんは, ";
   } else if (hour >= 0 && hour <= 2) {
     return "お早う, ";
   } else {
@@ -24,6 +24,7 @@ String helloAccordingToTime() {
 }
 
 Future<bool> openWebsite(String url) async {
+  print(url);
   try {
     await launchUrl(Uri.parse(url));
     return true;
@@ -259,4 +260,13 @@ Widget vocabBar(Vocab item, BuildContext context) {
 String toCamelCase(String text) {
   if (text.isEmpty) return '';
   return text[0].toUpperCase() + text.substring(1).toLowerCase();
+}
+
+String? extractLatinPart(String input) {
+  RegExp latinRegex = RegExp(r'[a-zA-Z]+');
+  Match? latinMatch = latinRegex.firstMatch(input);
+  if (latinMatch != null) {
+    return latinMatch.group(0) ?? null;
+  }
+  return null;
 }

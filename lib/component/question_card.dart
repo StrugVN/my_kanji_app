@@ -78,10 +78,9 @@ class _QuestionCardState extends State<QuestionCard> {
           .toList();
     }
 
-    if(widget.item.getData() is Kanji){
+    if (widget.item.getData() is Kanji) {
       kanjiOnFront = true;
-    }
-    else{
+    } else {
       kanjiOnFront = widget.kanjiOnFront;
     }
   }
@@ -320,7 +319,7 @@ class _QuestionCardState extends State<QuestionCard> {
     }
 
     if ((kanjiOnFront && widget.item.getData().data.readings != null) ||
-        widget.isAudio) {
+        widget.isAudio || !widget.isToEN) {
       widgets = widgets +
           [
             SizedBox(
@@ -357,20 +356,17 @@ class _QuestionCardState extends State<QuestionCard> {
                   onChanged: (String value) {
                     int cursorPosition = readingInput.selection.baseOffset;
 
-                    if (value.length > 0 && value[value.length - 1] == "n") {
-                      if (value.length > 1 && value[value.length - 2] == "n") {
-                        readingInput.text = kanaKit
-                            .toHiragana(value.substring(0, value.length - 1));
-                      } else {
-                        readingInput.text =
-                            "${kanaKit.toHiragana(value.substring(0, value.length - 1))}n";
-                      }
-                    } else {
-                      readingInput.text = kanaKit.toHiragana(value);
-                    }
+                    String? latin = extractLatinPart(value);
+
+                    if (latin == null || latin == "n" || latin == "ny") return;
+
+                    String higa =
+                        kanaKit.toHiragana(latin.replaceAll("nn", "n"));
+                    readingInput.text = value.replaceAll(latin, higa);
 
                     if (value.length != readingInput.text.length) {
-                      cursorPosition = cursorPosition - (value.length - readingInput.text.length);
+                      cursorPosition = cursorPosition -
+                          (value.length - readingInput.text.length);
                     }
 
                     readingInput.selection = TextSelection.fromPosition(

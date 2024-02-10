@@ -162,9 +162,31 @@ class _KanjiPageState extends State<KanjiPage>
                     ),
                     TextSpan(
                       text: kanji.data?.readings
-                          ?.map((e) => e.type == "onyomi" ? e.reading : null)
+                          ?.map((e) =>
+                              e.type == "onyomi" && !(e.acceptedAnswer ?? false)
+                                  ? e.reading
+                                  : null)
                           .whereNotNull()
                           .join(", "),
+                    ),
+                    if ((kanji.data!.readings
+                                ?.where((element) => element.type == "onyomi")
+                                .map((e) => e.acceptedAnswer)
+                                .whereNotNull()
+                                .toSet()
+                                .length ??
+                            0) >
+                        1)
+                      const TextSpan(text: ", "),
+                    TextSpan(
+                      text: kanji.data?.readings
+                          ?.map((e) =>
+                              e.type == "onyomi" && (e.acceptedAnswer ?? false)
+                                  ? e.reading
+                                  : null)
+                          .whereNotNull()
+                          .join(", "),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                   style: const TextStyle(
@@ -182,11 +204,33 @@ class _KanjiPageState extends State<KanjiPage>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if ((kanji.data!.readings
+                                ?.where((element) => element.type == "kunyomi")
+                                .map((e) => e.acceptedAnswer)
+                                .whereNotNull()
+                                .toSet()
+                                .length ??
+                            0) >
+                        1)
+                      const TextSpan(text: ", "),
                     TextSpan(
                       text: kanji.data?.readings
-                          ?.map((e) => e.type == "kunyomi" ? e.reading : null)
+                          ?.map((e) => e.type == "kunyomi" &&
+                                  !(e.acceptedAnswer ?? false)
+                              ? e.reading
+                              : null)
                           .whereNotNull()
                           .join(", "),
+                    ),
+                    TextSpan(
+                      text: kanji.data?.readings
+                          ?.map((e) =>
+                              e.type == "kunyomi" && (e.acceptedAnswer ?? false)
+                                  ? e.reading
+                                  : null)
+                          .whereNotNull()
+                          .join(", "),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                   style: const TextStyle(
@@ -642,11 +686,21 @@ class _KanjiPageState extends State<KanjiPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(color: Colors.black),
-        const Text(
-          "Wanikani progression:",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        GestureDetector(
+          onDoubleTap: () async {
+            bool launched = await openWebsite(
+               "https://www.wanikani.com/kanji/${kanji.data?.characters}");
+            if (!launched) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Failed to open site")));
+            }
+          },
+          child: const Text(
+            "Wanikani progression:",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         RichText(

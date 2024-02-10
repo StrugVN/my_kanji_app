@@ -181,6 +181,7 @@ class AppData extends ChangeNotifier {
     networkError = false;
     // formatMap = {};
     // characterCells = {};
+    notifyListeners();
   }
 
   @Deprecated("Use the api one")

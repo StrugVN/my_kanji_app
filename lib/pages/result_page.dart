@@ -70,11 +70,18 @@ class _ResultPageState extends State<ResultPage> {
           ],
           backgroundColor: titleTheme,
         ),
-        backgroundColor: Colors.grey.shade300,
+        backgroundColor: Colors.blueGrey.shade200,
         body: SingleChildScrollView(
           child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                // color: Colors.blueGrey.shade200,
+                // image: DecorationImage(
+                //   image: AssetImage('assets/images/white_with_border.jpg'),
+                //   fit: BoxFit.fill,
+                // ),
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,

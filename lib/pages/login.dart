@@ -124,24 +124,24 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                         sigmaX: _animacaoBlur!.value,
                         sigmaY: _animacaoBlur!.value,
                       ),
-                      child: Stack(
+                      child: const Stack(
                         children: [
-                          Positioned(
-                            left: 10,
-                            top: 20,
-                            child: FadeTransition(
-                              opacity: _animacaoFade!,
-                              child: Image.asset("assets/images/text2.png"),
-                            ),
-                          ),
-                          Positioned(
-                            top: 25,
-                            left: 50,
-                            child: FadeTransition(
-                              opacity: _animacaoFade!,
-                              child: Image.asset("assets/images/text1.png"),
-                            ),
-                          ),
+                          // Positioned(
+                          //   left: 10,
+                          //   top: 20,
+                          //   child: FadeTransition(
+                          //     opacity: _animacaoFade!,
+                          //     child: Image.asset("assets/images/text2.png"),
+                          //   ),
+                          // ),
+                          // Positioned(
+                          //   top: 25,
+                          //   left: 50,
+                          //   child: FadeTransition(
+                          //     opacity: _animacaoFade!,
+                          //     child: Image.asset("assets/images/text1.png"),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

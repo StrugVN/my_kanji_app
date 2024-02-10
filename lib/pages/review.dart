@@ -84,7 +84,12 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
           return true;
         },
         child: Container(
-          decoration: BoxDecoration(color: Colors.grey.shade200),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/lake.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
           child: Column(
             children: <Widget>[
               getSelector(),
@@ -262,7 +267,7 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
             "${isKanji != null ? (isKanji! ? "Kanji" : "Vocab") : "Critical item${dataList != null && dataList!.length > 1 ? "s" : ""}"} self-review in progress",
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 20,
+              fontSize: 16,
             ),
           ),
         ),

@@ -126,7 +126,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("App name TBD")),
+          title: const Center(child: Text("頑張ってよ、私")),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [
