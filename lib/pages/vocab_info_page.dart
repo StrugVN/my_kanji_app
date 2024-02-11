@@ -833,27 +833,18 @@ class _VocabPageState extends State<VocabPage>
           ),
         ),
         const Gap(5),
-        const Center(
-          child: Text(
-            "😬 Not fixing their weird ass encoding😬\nI'm not using these most of the time anyway",
-            style: TextStyle(
-              fontSize: 12,
-              fontStyle: FontStyle.italic,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const Gap(5),
         RichText(
           text: TextSpan(
             children: [
               const TextSpan(
                 text: " - Meaning: ",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              TextSpan(text: vocab.data?.meaningMnemonic ?? "")
+              // TextSpan(text: vocab.data?.meaningMnemonic ?? "")
+              for (var textSpan in buildWakiText(vocab.data?.meaningMnemonic ?? ""))
+                textSpan,
             ],
-            style: const TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
           ),
         ),
         const Gap(10),
@@ -862,11 +853,13 @@ class _VocabPageState extends State<VocabPage>
             children: [
               const TextSpan(
                 text: " - Reading: ",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              TextSpan(text: vocab.data?.readingMnemonic ?? "")
+              // TextSpan(text: vocab.data?.readingMnemonic ?? "")
+              for (var textSpan in buildWakiText(vocab.data?.readingMnemonic ?? ""))
+                textSpan,
             ],
-            style: const TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
           ),
         ),
         const Gap(10),

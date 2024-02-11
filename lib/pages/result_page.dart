@@ -70,7 +70,7 @@ class _ResultPageState extends State<ResultPage> {
           ],
           backgroundColor: titleTheme,
         ),
-        backgroundColor: Colors.blueGrey.shade200,
+        backgroundColor: Colors.blueGrey.shade100,
         body: SingleChildScrollView(
           child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
@@ -225,10 +225,10 @@ class _ResultPageState extends State<ResultPage> {
         ),
         child: Column(
           children: [
-            // if (kanji != null ||
-            //     vocab != null ||
-            //     radical?.data?.characters != null ||
-            //     (radical != null && svgString == null))
+            if (kanji != null ||
+                vocab != null ||
+                radical?.data?.characters != null ||
+                (radical != null && svgString == null))
             Text(
               (kanji != null
                       ? kanji.data?.characters
@@ -240,8 +240,8 @@ class _ResultPageState extends State<ResultPage> {
                   "N/A",
               style: const TextStyle(fontSize: 28, color: Colors.white),
             )
-            // else
-            //   futureWidget(getSvg(svgString), true, true),
+            else
+              futureSingleWidget(getSvg(svgString), true, true),
           ],
         ),
       ),
@@ -256,15 +256,10 @@ class _ResultPageState extends State<ResultPage> {
 
     if (svg != null) {
       return Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.05,
-          maxHeight: MediaQuery.of(context).size.width * 0.05,
-        ),
-        // height: MediaQuery.of(context).size.width * 0.05,
-        // width: MediaQuery.of(context).size.width * 0.05,
+        height: MediaQuery.of(context).size.height * 0.045,
+        width: MediaQuery.of(context).size.width * 0.07,
         child: SvgPicture.string(
           svg,
-          width: 50,
         ),
       );
     } else {

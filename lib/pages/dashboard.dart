@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
 import 'package:my_kanji_app/data/vocab.dart';
@@ -96,7 +97,7 @@ class _DashboardState extends State<Dashboard>
                 // //////////////////////////////////////////////////
                 greeting(),
 
-                if(!appData.dataIsLoaded)
+                if (!appData.dataIsLoaded)
                   SizedBox(
                     width: 40,
                     height: 40,
@@ -120,54 +121,59 @@ class _DashboardState extends State<Dashboard>
 
   // ///////////////////////////////////////////////////////////////////////////////
   greeting() {
-    return Container(
-      decoration: BoxDecoration(
-        // color: Colors.black12,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            children: [
-              Text(
-                appData.userData.data?.username != null
-                    ? helloAccordingToTime()
-                    : '',
-                style: const TextStyle(
-                  fontSize: 24,
-                  color: Colors.black,
+    return GestureDetector(
+      onDoubleTap: () async {
+        
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          // color: Colors.black12,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+        margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                Text(
+                  appData.userData.data?.username != null
+                      ? helloAccordingToTime()
+                      : '',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    color: Colors.black,
+                  ),
                 ),
+                Text(
+                  appData.userData.data?.username ?? " ",
+                  style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.lightBlue,
+                borderRadius: BorderRadius.circular(8),
               ),
-              Text(
-                appData.userData.data?.username ?? " ",
+              child: Text(
+                " ${appData.userData.data?.level ?? 0} ",
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 48,
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.lightBlue,
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              " ${appData.userData.data?.level ?? 0} ",
-              style: const TextStyle(
-                fontSize: 48,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

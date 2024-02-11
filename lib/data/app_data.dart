@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:my_kanji_app/component/selector.dart';
+import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/radical.dart';
@@ -27,6 +28,7 @@ class AppData extends ChangeNotifier {
   List<Vocab>? allVocabData;
   List<Radical>? allRadicalData;
   List<PitchData>? pitchData;
+  List<HanViet>? allHanVietData;
   List<WkSrsStatData>? allSrsData;
   List<WkReviewStatData>? allReviewData;
   bool dataIsLoaded = false;
@@ -89,6 +91,7 @@ class AppData extends ChangeNotifier {
       loadVocabApi(),
       loadRadicalApi(),
       loadVocabPitchData(),
+      loadHanVietData(),
       getSrsData(),
       getReviewStatData(),
       loadSetting(),
@@ -316,6 +319,12 @@ class AppData extends ChangeNotifier {
     print("  Pitch count: ${pitchData!.length}");
   }
 
+  Future<void> loadHanVietData() async {
+    allHanVietData = await appData.loadHanVietFromParts();
+
+    print("  HanViet count: ${allHanVietData!.length}");
+  }
+
   // For WK user only
   Future<void> getSrsData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -472,6 +481,21 @@ class AppData extends ChangeNotifier {
     print("  -- Loaded: $pitchJson");
     return pitchData;
   }
+
+  Future<List<HanViet>> loadHanVietFromParts() async {
+    List<HanViet> hanData = [];
+
+    String hanVietJson = "assets/handata.json";
+
+    String data = await rootBundle.loadString(hanVietJson);
+    final jsonS = jsonDecode(data);
+
+    for (var item in jsonS) {
+      hanData.add(HanViet.fromData(item));
+    }
+
+    return hanData;
+  } 
 
   @Deprecated("Use load from local")
   Future<List<PitchData>> loadPitchDataFromParts() async {

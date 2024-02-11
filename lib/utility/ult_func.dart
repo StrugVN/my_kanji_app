@@ -34,6 +34,7 @@ Future<bool> openWebsite(String url) async {
   }
 }
 
+@Deprecated("Refactor to futureSingleWidget")
 futureWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
   return FutureBuilder<Widget>(
     future: scheduleTask, // a previously-obtained Future
@@ -74,6 +75,45 @@ futureWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
           children: children,
         ),
       );
+    },
+  );
+}
+
+futureSingleWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
+  return FutureBuilder<Widget>(
+    future: scheduleTask, // a previously-obtained Future
+    builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+      List<Widget> children;
+      if (snapshot.hasData) {
+        children = <Widget>[
+          snapshot.data!,
+        ];
+      } else if (snapshot.hasError) {
+        children = showError
+            ? <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                      'Error: Cannot load new items list "${snapshot.error}"'),
+                ),
+              ]
+            : [const SizedBox.shrink()];
+      } else {
+        children = showError
+            ? const <Widget>[
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text('Fetching data...'),
+                ),
+              ]
+            : [const SizedBox.shrink()];
+      }
+      return children[0];
     },
   );
 }
@@ -269,4 +309,110 @@ String? extractLatinPart(String input) {
     return latinMatch.group(0) ?? null;
   }
   return null;
+}
+
+String capitalizeAfterBracket(String input) {
+  return input.split(' ').map((word) {
+    if (word.startsWith('[')) {
+      return toCamelCase(word.replaceAll('[', '').replaceAll(']', '')) + ':';
+    } else {
+      return word;
+    }
+  }).join(' ');
+}
+
+List<String> splitText(String text) {
+  final pattern = RegExp(
+    r"(,|\s+|\.|\()|(?<=[\w\)])\)"
+    r"|(<([^>]+?)>)(.*?)(</\2>)",
+  );
+
+  var result = <String>[];
+  var start = 0;
+  for (var match in pattern.allMatches(text)) {
+    // Add text before the match
+    if (match.start > start) {
+      result.add(text.substring(start, match.start));
+    }
+
+    // Add captured groups and individual delimiters
+    if (match.group(2) != null) {
+      result.add(match.group(0)!); // Add tag
+    } else {
+      result.add(text[match.start]); // Add individual delimiter (comma, period)
+    }
+
+    start = match.end;
+  }
+
+  // Add remaining text after the last match
+  if (start < text.length) {
+    result.add(text.substring(start));
+  }
+
+  return result.where((item) => item.isNotEmpty).toList();
+}
+
+List<TextSpan> buildWakiText(String text) {
+  final List<TextSpan> spans = [];
+  var defaultStyle = TextStyle(color: Colors.black);
+  var currentStyle = defaultStyle.copyWith();
+
+  for (var word in splitText(text)) {
+    bool backToDefault = false;
+    
+    if (word.contains('<radical>')) {
+      word = word.replaceAll("<radical>", "");
+      currentStyle = currentStyle.copyWith(backgroundColor: Colors.blue.shade600, color: Colors.white);
+    } 
+    if(word.contains('</radical>')){
+      word = word.replaceAll("</radical>", "");
+      backToDefault = true;
+    }
+    
+    if (word.contains('<kanji>')) {
+      word = word.replaceAll("<kanji>", "");
+      currentStyle = currentStyle.copyWith(backgroundColor: Colors.red.shade600, color: Colors.white);
+    }
+    if(word.contains('</kanji>')){
+      word = word.replaceAll("</kanji>", "");
+      backToDefault = true;
+    }
+
+    
+    if (word.contains('<ja>')) {
+      word = word.replaceAll("<ja>", "");
+      currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
+    } 
+    if(word.contains('</ja>')){
+      word = word.replaceAll("</ja>", "");
+      backToDefault = true;
+    }
+    
+    if (word.contains('<vocabulary>')) {
+      word = word.replaceAll("<vocabulary>", "");
+      currentStyle = currentStyle.copyWith(backgroundColor: Colors.purple, color: Colors.white);
+    } 
+    if(word.contains('</vocabulary>')){
+      word = word.replaceAll("</vocabulary>", "");
+      backToDefault = true;
+    }
+    
+    if (word.contains('<reading>')) {
+      word = word.replaceAll("<reading>", "");
+      currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
+    }
+    if(word.contains('</reading>')){
+      word = word.replaceAll("</reading>", "");
+      backToDefault = true;
+    }
+    
+    spans.add(TextSpan(text: word, style: currentStyle));
+
+    if(backToDefault){
+      currentStyle = defaultStyle.copyWith();
+    }
+  }
+
+  return spans;
 }
