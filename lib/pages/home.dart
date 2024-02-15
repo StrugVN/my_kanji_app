@@ -51,6 +51,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   Timer? _timer;
 
+  String toSearchString = "";
+
   @override
   void initState() {
     super.initState();
@@ -64,14 +66,15 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Archive(),
     ];
 
-    searchFocusNode.addListener(() {
-      setState(() {
-        isSearchOpen = searchFocusNode.hasFocus;
-        if (!isSearchOpen) {
-          searchTextController.text = "";
-        }
-      });
-    });
+    // searchFocusNode.addListener(() {
+    //   setState(() {
+    //     isSearchOpen = searchFocusNode.hasFocus;
+    //     if (!isSearchOpen) {
+    //       searchTextController.text = "";
+    //       toSearchString = "";
+    //     }
+    //   });
+    // });
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -153,7 +156,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
         body: GestureDetector(
           onTap: () {
-            FocusScope.of(context).requestFocus(FocusNode());
+            // FocusScope.of(context).requestFocus(FocusNode());
+            isSearchOpen = false;
+            setState(() {
+              searchTextController.text = "";
+              toSearchString = "";
+            });
           },
           child: Stack(
             children: [
@@ -179,8 +187,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 itemCount: pageList.length,
                 preloadPagesCount: 3,
               ),
-              if (isSearchOpen && searchTextController.text.isNotEmpty)
-                searchResult(searchTextController.text),
+              if (isSearchOpen && toSearchString.isNotEmpty)
+                searchResult(toSearchString),
             ],
           ),
         ),
@@ -220,15 +228,28 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             ? GestureDetector(
                 onTap: () => setState(() {
                   searchTextController.text = "";
+                  toSearchString = "";
                 }),
                 child: const Icon(Icons.close),
               )
             : const SizedBox.shrink(),
       ),
       onChanged: (value) {
-        _debouncer.run(() => setState(() {
-              searchTextController.text = value;
-            }));
+        if (toSearchString != "" && value != toSearchString) {
+          setState(() {
+            toSearchString = "";
+          });
+        }
+        
+        setState(() {
+          searchTextController.text = value;
+        });
+      },
+      onSubmitted: (text) {
+        FocusScope.of(context).requestFocus(searchFocusNode);
+        setState(() {
+          toSearchString = text;
+        });
       },
     );
   }
@@ -349,15 +370,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   void showAppBarSearch() {
     setState(() {
-      isSearchOpen = !isSearchOpen;
+      isSearchOpen = true;
       searchFocusNode.requestFocus();
+      searchTextController.text = toSearchString;
     });
   }
 
   void showSearchResult(String searchValue) {}
 
   Widget searchResult(String searchValue) {
-    if (searchValue.isNotEmpty) {
+    if (searchValue.isNotEmpty && appData.dataIsLoaded) {
       String searchJP = kanaKit.toHiragana(searchValue);
 
       print(searchJP);
@@ -381,25 +403,25 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       });
 
       var kanjiResult = appData.allKanjiData!.where((element) {
-        return ((element.data?.characters?.startsWith(searchJP) ?? false) ||
-            (element.data?.characters?.startsWith(searchValue) ?? false) ||
+        return ((element.data?.characters?.contains(searchJP) ?? false) ||
+            (element.data?.characters?.contains(searchValue) ?? false) ||
             element.data!.meanings!
                 .where((element) =>
                     element.meaning
                         ?.toLowerCase()
-                        .startsWith(searchValue.toLowerCase()) ??
+                        .contains(searchValue.toLowerCase()) ??
                     false)
                 .isNotEmpty ||
             element.data!.auxiliaryMeanings!
                 .where((element) =>
                     element.meaning
                         ?.toLowerCase()
-                        .startsWith(searchValue.toLowerCase()) ??
+                        .contains(searchValue.toLowerCase()) ??
                     false)
                 .isNotEmpty ||
             element.data!.readings!
                 .where(
-                    (element) => element.reading?.startsWith(searchJP) ?? false)
+                    (element) => element.reading?.contains(searchJP) ?? false)
                 .isNotEmpty);
       });
 
@@ -412,8 +434,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             element.data?.characters?.toLowerCase() ==
                 searchValue.toLowerCase() ||
             element.data!.meanings!
-                .where((element) =>
-                    element.meaning?.toLowerCase() == searchValue.toLowerCase())
+                .where((element) => (" ${element.meaning}".toLowerCase())
+                    .contains(" $searchValue".toLowerCase()))
                 .isNotEmpty ||
             (element.data!.readings != null &&
                 element.data!.readings!
@@ -423,16 +445,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       });
 
       var vocabResult = appData.allVocabData!.where((element) {
-        return ((element.data?.characters?.startsWith(searchJP) ?? false) ||
-            (element.data?.characters?.startsWith(searchValue) ?? false) ||
+        return ((element.data?.characters?.contains(searchJP) ?? false) ||
+            (element.data?.characters?.contains(searchValue) ?? false) ||
             element.data!.meanings!
                 .where((element) =>
-                    element.meaning?.startsWith(searchValue) ?? false)
+                    (" ${element.meaning}").contains(" $searchValue"))
                 .isNotEmpty ||
             (element.data!.readings != null &&
                 element.data!.readings!
                     .where((element) =>
-                        element.reading?.startsWith(searchJP) ?? false)
+                        element.reading?.contains(searchJP) ?? false)
                     .isNotEmpty));
       });
 
@@ -457,6 +479,29 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 for (var item in vocabExactResult) vocabBar(item, context),
                 for (var item in kanjiResult) kanjiBar(item, context),
                 for (var item in vocabResult) vocabBar(item, context),
+                if (kanjiExactResult.isEmpty &&
+                    vocabExactResult.isEmpty &&
+                    kanjiResult.isEmpty &&
+                    vocabResult.isEmpty)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black, width: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Center(
+                            child: Text(
+                          "No result",
+                          style: TextStyle(fontStyle: FontStyle.italic),
+                        )),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -559,7 +604,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       appData.autoDataSync();
       startSyncTimer();
-    } else if (state == AppLifecycleState.paused){
+    } else if (state == AppLifecycleState.paused) {
       _timer?.cancel();
     }
   }

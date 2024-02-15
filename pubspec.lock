@@ -634,6 +634,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  swipable_toggle_switch:
+    dependency: "direct main"
+    description:
+      name: swipable_toggle_switch
+      sha256: "5157680485c9ba6a919cf45e1bc01e2a23f4ccd8a0c432cdd6308d3616c19e35"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
+  swipeable_button_view:
+    dependency: "direct main"
+    description:
+      name: swipeable_button_view
+      sha256: "6fbe3fe9084d849828fa49bf1f5d48a107f7797e3c7eff41aa61541c0b6d97f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   syncfusion_flutter_charts:
     dependency: "direct main"
     description:

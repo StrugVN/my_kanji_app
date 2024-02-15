@@ -125,24 +125,35 @@ class _VocabPageState extends State<VocabPage>
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text("Wanikani lv${vocab.data?.level}"),
+                  Text(vocab.srsData?.data?.getSrs().label ?? ""),
                   futureWidget(getLevelTaught(), false, false),
                 ],
               ),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.shade800,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      vocab.data?.characters ?? "N/A",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 72,
+              GestureDetector(
+                onDoubleTap: () async {
+                  bool launched = await openWebsite(
+                      "https://www.wanikani.com/vocabulary/${vocab.data?.characters}");
+                  if (!launched) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Failed to open site")));
+                  }
+                },
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade800,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        vocab.data?.characters ?? "N/A",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 72,
+                        ),
                       ),
                     ),
                   ),
@@ -841,7 +852,8 @@ class _VocabPageState extends State<VocabPage>
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               // TextSpan(text: vocab.data?.meaningMnemonic ?? "")
-              for (var textSpan in buildWakiText(vocab.data?.meaningMnemonic ?? ""))
+              for (var textSpan
+                  in buildWakiText(vocab.data?.meaningMnemonic ?? ""))
                 textSpan,
             ],
             style: const TextStyle(color: Colors.black, fontSize: 16),
@@ -856,7 +868,8 @@ class _VocabPageState extends State<VocabPage>
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               // TextSpan(text: vocab.data?.readingMnemonic ?? "")
-              for (var textSpan in buildWakiText(vocab.data?.readingMnemonic ?? ""))
+              for (var textSpan
+                  in buildWakiText(vocab.data?.readingMnemonic ?? ""))
                 textSpan,
             ],
             style: const TextStyle(color: Colors.black, fontSize: 16),

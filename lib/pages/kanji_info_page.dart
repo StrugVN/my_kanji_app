@@ -126,17 +126,28 @@ class _KanjiPageState extends State<KanjiPage>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.pinkAccent.shade400,
-                    ),
-                    child: Text(
-                      kanji.data?.characters ?? "N/A",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 96,
+                  GestureDetector(
+                    onDoubleTap: () async {
+                      bool launched = await openWebsite(
+                          "https://www.wanikani.com/kanji/${kanji.data?.characters}");
+                      if (!launched) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Failed to open site")));
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.pinkAccent.shade400,
+                      ),
+                      child: Text(
+                        kanji.data?.characters ?? "N/A",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 96,
+                        ),
                       ),
                     ),
                   ),
@@ -913,7 +924,12 @@ class _KanjiPageState extends State<KanjiPage>
           child: Column(
             children: [
               char,
-              Text(r.data?.meanings?.map((e) => e.acceptedAnswer == true ? e.meaning : null).join(", ") ?? "",
+              Text(
+                  r.data?.meanings
+                          ?.map((e) =>
+                              e.acceptedAnswer == true ? e.meaning : null)
+                          .join(", ") ??
+                      "",
                   style: const TextStyle(fontSize: 16, color: Colors.white)),
             ],
           ),

@@ -136,7 +136,9 @@ class _LessonPageState extends State<LessonPage> {
       if (createDateComparison != 0) {
         return createDateComparison;
       } else {
-        return (a["id"] as int) - (b["id"] as int);
+        // return (a["id"] as int) - (b["id"] as int);
+        return (a["unlockedDate"] as DateTime)
+        .compareTo(b["unlockedDate"] as DateTime);
       }
     });
 

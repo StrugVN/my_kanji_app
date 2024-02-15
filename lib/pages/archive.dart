@@ -360,7 +360,7 @@ class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
     }
   }
 
-  void createFormatMap() async {
+  Future<void> createFormatMap() async {
     await AppData().assertDataIsLoaded();
 
     if (appData.characterCells.isNotEmpty) {
@@ -388,6 +388,13 @@ class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
 
     setState(() {});
     appData.manualNotify();
+  }
+
+  void resetMap() async {
+    print("Reset archive");
+    appData.formatMap = {};
+    appData.characterCells = {};
+    await createFormatMap();
   }
 
   @override

@@ -20,6 +20,7 @@ import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:collection/collection.dart';
+import 'package:swipeable_button_view/swipeable_button_view.dart';
 
 class WkReviewPage extends StatefulWidget {
   const WkReviewPage({super.key, required this.reviewItems}) : isReview = true;
@@ -140,28 +141,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
                         getQuestionField(),
                         getControllButtons(),
                         getAnswerField(),
-                        if (showInfo && result != null && !result!)
-                          ElevatedButton(
-                            onPressed: () {
-                              focusNodeMeaning.unfocus();
-                              focusNodeReading.unfocus();
-                              setState(() {
-                                result = true;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    0.0), // Set to 0 for sharp corners
-                              ),
-                            ),
-                            child: const Text(
-                              "Set to skip",
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ),
+                        if (result == null || !result!) swipeToSkipButton(),
+                        // if (showInfo && result != null && !result!)
+                        //   setToSkipButton(),
                         if (showInfo)
                           Expanded(
                               child: getInfoPage(draftList[currIndex].data))
@@ -234,7 +216,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: result == null
-                  ? Colors.blue
+                  ? Colors.red
                   : const Color.fromARGB(255, 128, 195, 250),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
@@ -460,9 +442,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
               String? latin = extractLatinPart(value);
 
-              if(latin == null || latin == "n" || latin == "ny") 
-                return;
-              
+              if (latin == null || latin == "n" || latin == "ny") return;
+
               String higa = kanaKit.toHiragana(latin.replaceAll("nn", "n"));
               readingInput.text = value.replaceAll(latin, higa);
 
@@ -637,6 +618,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   void toResultPage() {
+    if (completedList.isNotEmpty) {
+      appData.getData();
+    }
     if (isReview) {
       ResultData incorrectData = ResultData(
         data: completedList
@@ -701,20 +685,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   void checkMeaningAnswer() {
-    // Kanji? kanji;
-    // Vocab? vocab;
-    // Radical? radical;
-
-    // if (draftList[currIndex].data is Kanji) {
-    //   kanji = draftList[currIndex].data;
-    // }
-    // if (draftList[currIndex].data is Vocab) {
-    //   vocab = draftList[currIndex].data;
-    // }
-    // if (draftList[currIndex].data is Radical) {
-    //   radical = draftList[currIndex].data;
-    // }
-
     if (meaningInput.text.trim() == "") {
       setState(() {
         isMeaningCorrect = true;
@@ -723,11 +693,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
       meaningInput.text = meaningInput.text.trim();
     } else {
-      // var meaning =
-      //     kanji != null ? kanji.data?.meanings : vocab!.data?.meanings;
-      // var auxMeaning = kanji != null
-      //     ? kanji.data?.auxiliaryMeanings
-      //     : vocab!.data?.auxiliaryMeanings;
       var meaning = draftList[currIndex].data.data?.meanings;
       var auxMeaning = draftList[currIndex].data.data?.auxiliaryMeanings;
 
@@ -873,97 +838,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
             .showSnackBar(SnackBar(content: Text("Error $error")));
       });
     }
-
-    // Kanji ? kanji;
-    // Vocab? vocab;
-
-    // if (item is Kanji) {
-    //   kanji = item;
-    // }
-    // if (item is Vocab) {
-    //   vocab = item;
-    // }
-
-    // if (kanji != null) {
-    //   var srsData = kanji.srsData;
-    //   if (srsData != null) {
-    //     await assignmentStart(srsData.id).then((response) {
-    //       if (response.statusCode == 200 || response.statusCode == 201) {
-    //         ScaffoldMessenger.of(context).showSnackBar(
-    //           SnackBar(
-    //             content: Center(
-    //               child: FittedBox(
-    //                 fit: BoxFit.scaleDown,
-    //                 child: RichText(
-    //                   text: TextSpan(
-    //                     children: <TextSpan>[
-    //                       TextSpan(
-    //                         text: kanji?.data?.characters,
-    //                         style: const TextStyle(fontSize: 20),
-    //                       ),
-    //                       const TextSpan(
-    //                         text: " added to review queue",
-    //                         style: TextStyle(fontSize: 14),
-    //                       ),
-    //                     ],
-    //                   ),
-    //                 ),
-    //               ),
-    //             ),
-    //           ),
-    //         );
-    //       } else {
-    //         print(response.body);
-    //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //             content: Text(
-    //                 "${kanji?.data?.characters} error '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
-    //       }
-    //     }, onError: (error) {
-    //       ScaffoldMessenger.of(context)
-    //           .showSnackBar(SnackBar(content: Text("Error $error")));
-    //     });
-    //   }
-    // }
-    // if (vocab != null) {
-    //   var srsData = vocab.srsData;
-    //   if (srsData != null) {
-    //     await assignmentStart(srsData.id).then((response) {
-    //       if (response.statusCode == 200 || response.statusCode == 201) {
-    //         ScaffoldMessenger.of(context).showSnackBar(
-    //           SnackBar(
-    //             content: Center(
-    //               child: FittedBox(
-    //                 fit: BoxFit.scaleDown,
-    //                 child: RichText(
-    //                   text: TextSpan(
-    //                     children: <TextSpan>[
-    //                       TextSpan(
-    //                         text: vocab?.data?.characters,
-    //                         style: const TextStyle(fontSize: 20),
-    //                       ),
-    //                       const TextSpan(
-    //                         text: " added to review queue",
-    //                         style: TextStyle(fontSize: 14),
-    //                       ),
-    //                     ],
-    //                   ),
-    //                 ),
-    //               ),
-    //             ),
-    //           ),
-    //         );
-    //       } else {
-    //         print(response.body);
-    //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //             content: Text(
-    //                 "${vocab?.data?.characters} error '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
-    //       }
-    //     }, onError: (error) {
-    //       ScaffoldMessenger.of(context)
-    //           .showSnackBar(SnackBar(content: Text("Error $error")));
-    //     });
-    //   }
-    // }
   }
 
   Future<void> sendReviewResult(ReviewItem data) async {
@@ -1185,10 +1059,59 @@ class _WkReviewPageState extends State<WkReviewPage> {
     focusNodeReading.unfocus();
 
     super.dispose();
+  }
 
-    if (completedList.isNotEmpty) {
-      appData.getData();
-    }
+  setToSkipButton() {
+    return ElevatedButton(
+      onPressed: () {
+        focusNodeMeaning.unfocus();
+        focusNodeReading.unfocus();
+        setState(() {
+          result = true;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(0.0), // Set to 0 for sharp corners
+        ),
+      ),
+      child: const Text(
+        "Set to skip",
+        style: TextStyle(fontSize: 18),
+      ),
+    );
+  }
+
+  swipeToSkipButton() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+      child: SwipeableButtonView(
+        buttonText: 'Slide to skip',
+        buttontextstyle: const TextStyle(color: Colors.white, fontSize: 18),
+        buttonWidget: Container(
+          child: Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.grey,
+          ),
+        ),
+        activeColor: Colors.lightBlue,
+        onWaitingProcess: () {
+          setState(() {
+            meaningInput.text = "";
+            readingInput.text = "";
+            focusNodeMeaning.unfocus();
+            focusNodeReading.unfocus();
+            showInfo = true;
+            result = true;
+          });
+        },
+        onFinish: () async {},
+      ),
+    );
   }
 }
 

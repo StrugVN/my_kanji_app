@@ -110,6 +110,8 @@ class _DashboardState extends State<Dashboard>
 
                 criticalItem(),
 
+                currentKanjiProgress(),
+
                 newItem(),
               ],
             ),
@@ -122,9 +124,7 @@ class _DashboardState extends State<Dashboard>
   // ///////////////////////////////////////////////////////////////////////////////
   greeting() {
     return GestureDetector(
-      onDoubleTap: () async {
-        
-      },
+      onDoubleTap: () async {},
       child: Container(
         decoration: BoxDecoration(
           // color: Colors.black12,
@@ -303,6 +303,11 @@ class _DashboardState extends State<Dashboard>
         );
       },
     );
+  }
+  // ///////////////////////////////////////////////////////////////////////////////
+
+  currentKanjiProgress() {
+    return futureSingleWidget(currentKanjiProgressDetails(), false, false);
   }
 
   // ///////////////////////////////////////////////////////////////////////////////
@@ -1641,6 +1646,103 @@ class _DashboardState extends State<Dashboard>
     }
 
     return newItemsList;
+  }
+
+  Future<Widget> currentKanjiProgressDetails() async {
+    await appData.assertDataIsLoaded();
+
+    var kanjiOfCurrentLevel = appData.allKanjiData
+        ?.where(
+            (element) => element.data?.level == appData.userData.data?.level)
+        .toList();
+    
+    kanjiOfCurrentLevel?.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.black12,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          title: Center(
+            child: Text(
+              '    WK Level ${appData.userData.data?.level ?? "?"}',
+              style:
+                  const TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold),
+            ),
+          ),
+          children: [
+            if (kanjiOfCurrentLevel?.isNotEmpty ?? false)
+              Wrap(
+                children: [
+                  for (var item in kanjiOfCurrentLevel!)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => KanjiPage(
+                              kanji: item,
+                            ),
+                          ),
+                        );
+                      },
+                      child: itemCell(item.data?.characters ?? "NA"),
+                    ),
+                ],
+              )
+          ],
+        ),
+      ),
+    );
+  }
+
+  itemCell(String s) {
+    var format = getFormat(s);
+
+    return GestureDetector(
+      onTap: () {
+        var kanji = appData.allKanjiData!
+            .firstWhereOrNull((element) => element.data?.characters == s);
+
+        if (kanji != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => KanjiPage(
+                kanji: kanji,
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        decoration: BoxDecoration(color: format.color),
+        child: Text(
+          s,
+          style: TextStyle(
+            color: format.textColor,
+            fontSize: 26,
+          ),
+        ),
+      ),
+    );
+  }
+
+  SrsStage getFormat(String s) {
+    if (appData.formatMap[s] == null) {
+      return SrsStage.notExist;
+    } else {
+      return appData.formatMap[s]!;
+    }
   }
 }
 
