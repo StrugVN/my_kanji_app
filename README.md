@@ -1,5 +1,5 @@
 # my_kanji_app
 
-An FE app for [Wanikani](https://www.wanikani.com/) I **terrible coded** while learning Flutter.
+An FE app for [Wanikani](https://www.wanikani.com/) I **terribly coded** while learning Flutter.
 
-This is for me personally use only. 
+This is for my personally use only. 
