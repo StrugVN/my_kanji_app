@@ -41,7 +41,7 @@ class _LessonPageState extends State<LessonPage> {
 
     List<Map<String, Object?>> newItemsList = [];
 
-    if (widget.newItemsList != null || widget.newItemsList!.isEmpty) {
+    if (widget.newItemsList == null || widget.newItemsList!.isEmpty) {
       if (appData.lessonSetting["kanji"] ?? false) {
         newItemsList = newItemsList +
             appData.allKanjiData!

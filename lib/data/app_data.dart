@@ -94,6 +94,7 @@ class AppData extends ChangeNotifier {
       loadHanVietData(),
       getSrsData(),
       getReviewStatData(),
+      getUserData(),
       loadSetting(),
     ]);
 
@@ -182,8 +183,8 @@ class AppData extends ChangeNotifier {
   void initData() {
     dataIsLoaded = false;
     networkError = false;
-    // formatMap = {};
-    // characterCells = {};
+    formatMap = {};
+    characterCells = {};
     notifyListeners();
   }
 
@@ -401,6 +402,15 @@ class AppData extends ChangeNotifier {
     }
 
     print("  Review data count: ${allReviewData!.length}");
+  }
+
+  Future<void> getUserData() async {
+    var newUserData = await getUserInfo();
+
+    if(newUserData != null){
+      userData = newUserData;
+      saveUserData();
+    }
   }
 
   List<Kanji> getListKanjiFromLocal(

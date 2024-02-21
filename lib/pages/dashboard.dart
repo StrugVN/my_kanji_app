@@ -124,7 +124,34 @@ class _DashboardState extends State<Dashboard>
   // ///////////////////////////////////////////////////////////////////////////////
   greeting() {
     return GestureDetector(
-      onDoubleTap: () async {},
+      onDoubleTap: () async {
+        List<Map<String, Object?>> newItemsList = appData.allRadicalData!
+              .where((element) {
+                return element.data?.level == 9 && element.data?.characters == null;
+              })
+              .map((element) {
+            return {
+              "id": element.id,
+              "char": element.data!.characters,
+              "unlockedDate": DateTime.now(),
+              "isKanji": false,
+              "level": element.data?.level,
+              "data": element,
+            };
+          }).toList();
+
+        print("${newItemsList.length}");
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LessonPage(
+              newItemsList: newItemsList,
+            ),
+            settings: const RouteSettings(name: "lessonPage"),
+          ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           // color: Colors.black12,

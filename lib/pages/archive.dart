@@ -55,8 +55,6 @@ class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     scrollController.addListener(_scrollListener);
-
-    createFormatMap();
   }
 
   @override
@@ -64,6 +62,7 @@ class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
     super.build(context);
     return Consumer<AppData>(
       builder: (context, appData, child) {
+        createFormatMap();
         return stuffBody();
       },
     );

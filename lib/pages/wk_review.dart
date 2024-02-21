@@ -328,7 +328,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                   ),
                 )
               else
-                futureWidget(getSvg(svgString), true, true),
+                futureSingleWidget(getSvg(svgString), true, true),
             ],
           ),
         ),

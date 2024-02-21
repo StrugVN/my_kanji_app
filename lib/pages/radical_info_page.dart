@@ -69,7 +69,7 @@ class _RadicalPageState extends State<RadicalPage> {
                 decoration: const BoxDecoration(
                   color: Colors.blue,
                 ),
-                child: futureWidget(getSvg(), true, true),
+                child: futureSingleWidget(getSvg(), true, true),
               )
             else
               Container(

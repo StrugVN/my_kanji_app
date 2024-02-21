@@ -5,8 +5,26 @@ import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'dart:io';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:window_size/window_size.dart';
 
 void main() {
+  if (Platform.isWindows || Platform.isLinux) {
+    // Initialize FFI
+    WidgetsFlutterBinding.ensureInitialized();
+
+    setWindowTitle("Waki Droid");
+
+    doWhenWindowReady(() {
+      const initialSize = Size(420, 760);
+      appWindow.minSize = const Size(420*0.6, 760*0.6);
+      appWindow.size = initialSize;
+      appWindow.alignment = Alignment.center;
+      appWindow.show();
+    });
+  }
+
   runApp(ChangeNotifierProvider(
     create: (_) => AppData(),
     child: const MyApp(),

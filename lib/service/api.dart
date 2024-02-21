@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/radical.dart';
+import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
@@ -22,6 +23,19 @@ Future<Response> getUser(String apiKey) {
   };
 
   return http.get(Uri.parse(userEndpoint), headers: header);
+}
+
+Future<UserData?> getUserInfo() async {
+  Map<String, String> header = {
+    "Wanikani-Revision": "20170710",
+    "Authorization": appData.apiKey ?? "",
+  };
+
+  var response = await http.get(Uri.parse(userEndpoint), headers: header);
+  if(response.statusCode == 200)
+    return UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  else
+    return null;
 }
 
 Future<Response> getSubject(SubjectQueryParam param) {

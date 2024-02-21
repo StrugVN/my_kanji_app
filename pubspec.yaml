@@ -57,6 +57,12 @@ dependencies:
     sdk: flutter
   swipable_toggle_switch: ^0.0.1
   swipeable_button_view: ^0.0.2
+  bitsdojo_window: ^0.1.6
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+      ref: fd519be1e8398c6b6c2062c2447bac960a71bc02
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +73,10 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
   image_path: "assets/images/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/images/icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
