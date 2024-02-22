@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,7 @@ import 'package:my_kanji_app/service/api.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:io';
 
 class AppData extends ChangeNotifier {
   static final AppData _singleton = AppData._internal();
@@ -82,8 +84,6 @@ class AppData extends ChangeNotifier {
   Future<void> getData() async {
     initData();
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
     print("  -- Data loading initialized --");
 
     await Future.wait([
@@ -143,18 +143,9 @@ class AppData extends ChangeNotifier {
       }
     }
 
-    String kanjiDataAsString = jsonEncode(allKanjiData);
-    String vocabDataAsString = jsonEncode(allVocabData);
-    String radicalDataAsString = jsonEncode(allRadicalData);
-    String srsDataAsString = jsonEncode(allSrsData);
-    String reviewDataAsString = jsonEncode(allReviewData);
-
-    await prefs.setString('kanjiCache', kanjiDataAsString);
-    await prefs.setString('vocabCache', vocabDataAsString);
-    await prefs.setString('radicalCache', radicalDataAsString);
-    await prefs.setString('srsCache', srsDataAsString);
-    await prefs.setString('reviewCache', reviewDataAsString);
-    await prefs.setString('dateOfCache', DateTime.now().toString());
+    if (!Platform.isWindows) {
+      saveCache(null);
+    }
 
     dataIsLoaded = true;
 
@@ -174,7 +165,7 @@ class AppData extends ChangeNotifier {
   Future<void> autoDataSync() async {
     DateTime now = DateTime.now();
 
-    if(now.hour - lastDataSync.hour >= 1){
+    if (now.hour - lastDataSync.hour >= 1) {
       await getData();
       lastDataSync = DateTime.now();
     }
@@ -407,7 +398,7 @@ class AppData extends ChangeNotifier {
   Future<void> getUserData() async {
     var newUserData = await getUserInfo();
 
-    if(newUserData != null){
+    if (newUserData != null) {
       userData = newUserData;
       saveUserData();
     }
@@ -505,7 +496,7 @@ class AppData extends ChangeNotifier {
     }
 
     return hanData;
-  } 
+  }
 
   @Deprecated("Use load from local")
   Future<List<PitchData>> loadPitchDataFromParts() async {
@@ -634,5 +625,31 @@ class AppData extends ChangeNotifier {
     const storage = FlutterSecureStorage();
 
     await storage.delete(key: 'userData');
+  }
+
+  Future<void> saveCache(dynamic) async {
+    String kanjiDataAsString = jsonEncode(allKanjiData);
+    String vocabDataAsString = jsonEncode(allVocabData);
+    String radicalDataAsString = jsonEncode(allRadicalData);
+    String srsDataAsString = jsonEncode(allSrsData);
+    String reviewDataAsString = jsonEncode(allReviewData);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('kanjiCache', kanjiDataAsString);
+    prefs.setString('vocabCache', vocabDataAsString);
+    prefs.setString('radicalCache', radicalDataAsString);
+    prefs.setString('srsCache', srsDataAsString);
+    prefs.setString('reviewCache', reviewDataAsString);
+    prefs.setString('dateOfCache', DateTime.now().toString());
+  }
+
+  // void _heavyOperationWrapper(dynamic message) {
+  //     saveCache();
+  // }
+
+  Future<void> offloadSaveCacheOperation() async {
+    // ReceivePort receivePort = ReceivePort();
+    Isolate.spawn(saveCache, null);
   }
 }
