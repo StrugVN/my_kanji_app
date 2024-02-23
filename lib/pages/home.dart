@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -337,6 +338,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       : "Network error")));
               startSyncTimer();
             });
+          },
+        ),
+        if(Platform.isWindows)
+        PopupMenuItem<int>(
+          value: 3,
+          child: const Text('Save cache'),
+          onTap: () async {
+            showLoaderDialog(context, "Saving cache...");
+            await appData.saveCache(null);
+            Navigator.pop(context);
           },
         ),
         PopupMenuItem<int>(

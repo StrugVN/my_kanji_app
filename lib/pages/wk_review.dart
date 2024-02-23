@@ -205,27 +205,25 @@ class _WkReviewPageState extends State<WkReviewPage> {
         children: [
           ElevatedButton(
             onPressed: () {
-              if (result == null) {
-                focusNodeMeaning.unfocus();
-                focusNodeReading.unfocus();
-                setState(() {
-                  result = false;
-                  showInfo = true;
-                });
-              }
+              meaningInput.text = "";
+              readingInput.text = "";
+              focusNodeMeaning.unfocus();
+              focusNodeReading.unfocus();
+              setState(() {
+                result = false;
+                showInfo = true;
+              });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: result == null
-                  ? Colors.red
-                  : const Color.fromARGB(255, 128, 195, 250),
+              backgroundColor: result == null || result == true ? Colors.red : Colors.red.shade300,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(0.0),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 15),
             ),
-            child: const Text(
-              "Don't know",
+            child: Text(
+              result == null ? "Don't know" : "Set as wrong",
               style: TextStyle(fontSize: 18),
             ),
           ),
@@ -831,7 +829,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
           print(response.body);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(
-                  "${item.data?.characters ?? item.data?.slug} error '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
+                  "${item.data?.characters ?? "Radical  ${item.data?.slug.toUpperCase()} "} error \n'${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'")));
         }
       }, onError: (error) {
         ScaffoldMessenger.of(context)
@@ -841,8 +839,12 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   Future<void> sendReviewResult(ReviewItem data) async {
-    await createReview(data.data.id!, data.data.data!.slug!,
-            data.incorrectMeaningAnswers, data.incorrectReadingAnswers)
+    await createReview(
+            data.data.id!,
+            data.data.data!.characters ??
+                "Radical  ${data.data.data!.slug.toUpperCase()}",
+            data.incorrectMeaningAnswers,
+            data.incorrectReadingAnswers)
         .onError(
       (error, stackTrace) {
         print(error);
@@ -900,7 +902,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  "$char something went wrong. '${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'"),
+                  "$char something went wrong. \n'${(jsonDecode(response.body) as Map<String, dynamic>)["error"]}'"),
             ),
           );
         }
@@ -1090,7 +1092,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       child: SwipeableButtonView(
-        buttonText: 'Slide to skip',
+        buttonText: 'Set as correct',
         buttontextstyle: const TextStyle(color: Colors.white, fontSize: 18),
         buttonWidget: Container(
           child: Icon(

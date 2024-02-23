@@ -9,6 +9,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
@@ -125,32 +126,31 @@ class _DashboardState extends State<Dashboard>
   greeting() {
     return GestureDetector(
       onDoubleTap: () async {
-        List<Map<String, Object?>> newItemsList = appData.allRadicalData!
-              .where((element) {
-                return element.data?.level == 9 && element.data?.characters == null;
-              })
-              .map((element) {
-            return {
-              "id": element.id,
-              "char": element.data!.characters,
-              "unlockedDate": DateTime.now(),
-              "isKanji": false,
-              "level": element.data?.level,
-              "data": element,
-            };
-          }).toList();
+        // List<Map<String, Object?>> newItemsList =
+        //     appData.allRadicalData!.where((element) {
+        //   return element.data?.level == 9 && element.data?.characters == null;
+        // }).map((element) {
+        //   return {
+        //     "id": element.id,
+        //     "char": element.data!.characters,
+        //     "unlockedDate": DateTime.now(),
+        //     "isKanji": false,
+        //     "level": element.data?.level,
+        //     "data": element,
+        //   };
+        // }).toList();
 
-        print("${newItemsList.length}");
+        // print("${newItemsList.length}");
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LessonPage(
-              newItemsList: newItemsList,
-            ),
-            settings: const RouteSettings(name: "lessonPage"),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => LessonPage(
+        //       newItemsList: newItemsList,
+        //     ),
+        //     settings: const RouteSettings(name: "lessonPage"),
+        //   ),
+        // );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -1363,6 +1363,7 @@ class _DashboardState extends State<Dashboard>
       );
       return {
         "id": element.id,
+        "level": element.data?.level,
         "char": element.data!.characters,
         "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
         "isKanji": true,
@@ -1383,6 +1384,29 @@ class _DashboardState extends State<Dashboard>
           );
           return {
             "id": element.id,
+            "level": element.data?.level,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "data": element,
+          };
+        }).toList();
+
+    newItemsList = newItemsList +
+        appData.allRadicalData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "level": element.data?.level,
             "char": element.data!.characters,
             "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
             "isKanji": false,
@@ -1682,7 +1706,7 @@ class _DashboardState extends State<Dashboard>
         ?.where(
             (element) => element.data?.level == appData.userData.data?.level)
         .toList();
-    
+
     kanjiOfCurrentLevel?.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
     return Container(

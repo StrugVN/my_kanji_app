@@ -19,10 +19,10 @@ void main() {
 
     doWhenWindowReady(() {
       const initialSize = Size(420, 760);
-      appWindow.minSize = const Size(420*0.6, 760*0.6);
+      appWindow.minSize = const Size(420, 760);
       appWindow.size = initialSize;
       appWindow.alignment = Alignment.center;
-      appWindow.show();
+      // appWindow.show();
     });
   }
 
@@ -32,21 +32,8 @@ void main() {
   ));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget  {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,22 +55,5 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       },
       home: const Home(),
     );
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      // Call your function when the app goes into the paused state
-      print('Window is closing...');
-      appData.saveCache(null);
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    // TODO: implement dispose
-    super.dispose();
   }
 }
