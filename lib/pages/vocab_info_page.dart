@@ -16,6 +16,7 @@ import 'package:unofficial_jisho_api/api.dart';
 import 'package:unofficial_jisho_api/api.dart' as jisho;
 import 'package:collection/collection.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:translator/translator.dart';
 
 class VocabPage extends StatefulWidget {
   VocabPage({super.key, required this.vocab, this.navigationList})
@@ -54,6 +55,10 @@ class _VocabPageState extends State<VocabPage>
 
   AudioPlayer audioPlayer = AudioPlayer();
 
+  final translator = GoogleTranslator();
+
+  List<String> viMeaning = [];
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +82,10 @@ class _VocabPageState extends State<VocabPage>
           .where((element) => element.metadata?.gender == "female")
           .toList();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      genViMeaning();
+    });
   }
 
   @override
@@ -158,6 +167,13 @@ class _VocabPageState extends State<VocabPage>
                     ),
                   ),
                 ),
+              ),
+              Text(
+                vocab.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                style: const TextStyle(
+                  fontSize: 21,
+                ),
+                textAlign: TextAlign.center,
               ),
               Text(
                 vocab.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
@@ -890,5 +906,16 @@ class _VocabPageState extends State<VocabPage>
         ),
       ],
     );
+  }
+  
+  Future genViMeaning() async {
+    for(Meanings meaning in vocab.data?.meanings ?? []){
+      String vi = (await translator.translate(meaning.meaning ?? "", from: 'ja', to: 'vi')).text;
+      viMeaning.add(vi);
+    }
+
+    setState(() {
+      
+    });
   }
 }
