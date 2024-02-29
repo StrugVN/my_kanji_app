@@ -57,7 +57,7 @@ class _VocabPageState extends State<VocabPage>
 
   final translator = GoogleTranslator();
 
-  List<String> viMeaning = [];
+  String? meaningVi;
 
   @override
   void initState() {
@@ -175,8 +175,9 @@ class _VocabPageState extends State<VocabPage>
                 ),
                 textAlign: TextAlign.center,
               ),
+              const Divider(),
               Text(
-                vocab.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                meaningVi ?? "",
                 style: const TextStyle(
                   fontSize: 21,
                 ),
@@ -909,10 +910,7 @@ class _VocabPageState extends State<VocabPage>
   }
   
   Future genViMeaning() async {
-    for(Meanings meaning in vocab.data?.meanings ?? []){
-      String vi = (await translator.translate(meaning.meaning ?? "", from: 'ja', to: 'vi')).text;
-      viMeaning.add(vi);
-    }
+    meaningVi = toCamelCase((await translator.translate(vocab.data?.characters ?? "", from: 'ja', to: 'vi')).text);
 
     setState(() {
       

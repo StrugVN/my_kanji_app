@@ -18,7 +18,7 @@ void main() {
     setWindowTitle("Waki Droid");
 
     doWhenWindowReady(() {
-      const initialSize = Size(420, 760);
+      const initialSize = Size(480, 780);
       appWindow.minSize = const Size(420, 760);
       appWindow.size = initialSize;
       appWindow.alignment = Alignment.center;

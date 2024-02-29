@@ -86,7 +86,7 @@ class _SettingPageState extends State<SettingPage> {
                 DropdownButton<int>(
                   menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
                   value: lessonBatchSize,
-                  items: List<int>.generate(14, (index) => index + 2)
+                  items: List<int>.generate(15, (index) => index + 1)
                       .map((value) => DropdownMenuItem<int>(
                             value: value,
                             child: Text('$value'),
@@ -153,7 +153,7 @@ class _SettingPageState extends State<SettingPage> {
                 DropdownButton<int>(
                   menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
                   value: reviewDraftSize,
-                  items: List<int>.generate(19, (index) => index + 2)
+                  items: List<int>.generate(15, (index) => index + 1)
                       .map((value) => DropdownMenuItem<int>(
                             value: value,
                             child: Text('$value'),

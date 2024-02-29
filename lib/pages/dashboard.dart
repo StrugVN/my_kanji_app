@@ -1414,8 +1414,10 @@ class _DashboardState extends State<Dashboard>
           };
         }).toList();
 
-    newItemsList.sort((a, b) => (b["unlockedDate"] as DateTime)
-        .compareTo(a["unlockedDate"] as DateTime));
+    newItemsList.sort((a, b) {
+      return (b["unlockedDate"] as DateTime)
+          .compareTo(a["unlockedDate"] as DateTime);
+    });
 
     return Container(
       width: double.infinity,
@@ -1427,6 +1429,25 @@ class _DashboardState extends State<Dashboard>
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: GestureDetector(
         onTap: () {
+          var _newList = newItemsList;
+          _newList.sort((a, b) {
+            int levelCompare = (a["level"] as int) - (b["level"] as int);
+
+            if (levelCompare != 0) return levelCompare;
+
+            int typeCompare = (a["data"] is Radical ? 1 : 0) +
+                (a["data"] is Kanji ? 2 : 0) +
+                (a["data"] is Vocab ? 3 : 0) -
+                ((b["data"] is Radical ? 1 : 0) +
+                    (b["data"] is Kanji ? 2 : 0) +
+                    (b["data"] is Vocab ? 3 : 0));
+
+            if (typeCompare != 0) return typeCompare;
+
+            return (a["unlockedDate"] as DateTime)
+                .compareTo(b["unlockedDate"] as DateTime);
+          });
+
           Navigator.push(
             context,
             MaterialPageRoute(

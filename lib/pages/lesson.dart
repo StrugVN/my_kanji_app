@@ -126,20 +126,26 @@ class _LessonPageState extends State<LessonPage> {
       if (newItemsList.isEmpty) {
         Navigator.pop(context, true);
       }
-    } else{
+    } else {
       newItemsList = widget.newItemsList!;
     }
 
     newItemsList.sort((a, b) {
-      int createDateComparison = (a["level"] as int) - (b["level"] as int);
+      int levelCompare = (a["level"] as int) - (b["level"] as int);
 
-      if (createDateComparison != 0) {
-        return createDateComparison;
-      } else {
-        // return (a["id"] as int) - (b["id"] as int);
-        return (a["unlockedDate"] as DateTime)
-        .compareTo(b["unlockedDate"] as DateTime);
-      }
+      if (levelCompare != 0) return levelCompare;
+
+      int typeCompare = (a["data"] is Radical ? 1 : 0) +
+          (a["data"] is Kanji ? 2 : 0) +
+          (a["data"] is Vocab ? 3 : 0) -
+          ((b["data"] is Radical ? 1 : 0) +
+              (b["data"] is Kanji ? 2 : 0) +
+              (b["data"] is Vocab ? 3 : 0));
+
+      if (typeCompare != 0) return typeCompare;
+
+      return (a["unlockedDate"] as DateTime)
+          .compareTo(b["unlockedDate"] as DateTime);
     });
 
     lessonList = newItemsList.take(appData.lessonBatchSize).toList();

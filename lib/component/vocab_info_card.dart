@@ -65,6 +65,16 @@ class VocabInfoCard extends StatelessWidget {
                   ),
                 );
               },
+              onDoubleTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VocabPage(
+                      vocab: item,
+                    ),
+                  ),
+                );
+              },
               child: RichText(
                 text: TextSpan(
                   children: [

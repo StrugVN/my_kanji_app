@@ -44,8 +44,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   final kanaKit = const KanaKit();
 
-  final _debouncer = Debouncer(duration: const Duration(milliseconds: 500));
-
   var searchTextController = TextEditingController();
 
   var pageController = PreloadPageController(initialPage: 0);
@@ -241,10 +239,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             toSearchString = "";
           });
         }
-        
-        setState(() {
-          searchTextController.text = value;
-        });
       },
       onSubmitted: (text) {
         FocusScope.of(context).requestFocus(searchFocusNode);
