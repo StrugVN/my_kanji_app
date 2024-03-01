@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart';
 import 'package:kana_kit/kana_kit.dart';
@@ -17,6 +19,7 @@ import 'package:my_kanji_app/pages/radical_info_page.dart';
 import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/service/api.dart';
+import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:collection/collection.dart';
@@ -65,6 +68,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
   final kanaKit = const KanaKit();
   // ----
 
+  final FocusNode kbListenerFocus = FocusNode();
+
+  Debouncer _debouncer = Debouncer(duration: Duration(microseconds: 500));
+
   @override
   void initState() {
     super.initState();
@@ -103,57 +110,102 @@ class _WkReviewPageState extends State<WkReviewPage> {
           }
         });
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: isReview ? const Text("Review") : const Text("Quiz"),
-          backgroundColor: Colors.blue,
-          actions: [
-            if (isReview)
-              IconButton(
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: Colors.black,
-                ),
-                onPressed: () => showAppBarMenu(context),
-              ),
-          ],
-        ),
-        backgroundColor: Colors.grey.shade300,
-        body: Stack(
-          children: [
-            // Container(
-            //   decoration: const BoxDecoration(
-            //     image: DecorationImage(
-            //       image: AssetImage('assets/images/window.jpg'),
-            //       fit: BoxFit.cover,
-            //     ),
-            //   ),
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            // ),
-            draftList.isNotEmpty
-                ? GestureDetector(
-                    onTap: () {
-                      FocusScope.of(context).requestFocus(FocusNode());
-                    },
-                    child: Column(
-                      children: [
-                        getQuestionField(),
-                        getControllButtons(),
-                        getAnswerField(),
-                        if (result == null || !result!) swipeToSkipButton(),
-                        // if (showInfo && result != null && !result!)
-                        //   setToSkipButton(),
-                        if (showInfo)
-                          Expanded(
-                              child: getInfoPage(draftList[currIndex].data))
-                        else if (result != null)
-                          getInfoButton(),
-                      ],
+      child: RawKeyboardListener(
+        focusNode: kbListenerFocus,
+        onKey: (RawKeyEvent event) async {
+          if (!Platform.isWindows && !Platform.isLinux) return;
+          if(event.runtimeType != RawKeyDownEvent) return;
+
+          if (event.logicalKey == LogicalKeyboardKey.enter &&
+              result != null &&
+              !focusNodeMeaning.hasFocus &&
+              !focusNodeReading.hasFocus ) {
+            print("Key pressed");
+            if (result == null) {
+              onSubmitPressed();
+            } else {
+              recordAnswer();
+            }
+          } else if (event.logicalKey == LogicalKeyboardKey.equal ||
+              event.logicalKey == LogicalKeyboardKey.period) {
+            meaningInput.text = "";
+            readingInput.text = "";
+            focusNodeMeaning.unfocus();
+            focusNodeReading.unfocus();
+
+            setState(() {
+              showInfo = true;
+              result = true;
+            });
+          } else if (event.logicalKey == LogicalKeyboardKey.minus ||
+              event.logicalKey == LogicalKeyboardKey.comma) {
+            meaningInput.text = "";
+            readingInput.text = "";
+            focusNodeMeaning.unfocus();
+            focusNodeReading.unfocus();
+
+            setState(() {
+              showInfo = true;
+              result = false;
+            });
+          }
+
+          await Future.delayed(Duration(milliseconds: 500));
+          kbListenerFocus.requestFocus();
+        },
+        child: GestureDetector(
+          onTap: () {
+            // When tapped, request focus for RawKeyboardListener
+            kbListenerFocus.requestFocus();
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: isReview ? const Text("Review") : const Text("Quiz"),
+              backgroundColor: Colors.blue,
+              actions: [
+                if (isReview)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: Colors.black,
                     ),
-                  )
-                : const SizedBox.shrink(),
-          ],
+                    onPressed: () => showAppBarMenu(context),
+                  ),
+              ],
+            ),
+            backgroundColor: Colors.grey.shade300,
+            body: Stack(
+              children: [
+                // Container(
+                //   decoration: const BoxDecoration(
+                //     image: DecorationImage(
+                //       image: AssetImage('assets/images/window.jpg'),
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                //   width: MediaQuery.of(context).size.width,
+                //   height: MediaQuery.of(context).size.height,
+                // ),
+                draftList.isNotEmpty
+                    ? Column(
+                        children: [
+                          getQuestionField(),
+                          getControllButtons(),
+                          getAnswerField(),
+                          if (result == null || !result!) swipeToSkipButton(),
+                          // if (showInfo && result != null && !result!)
+                          //   setToSkipButton(),
+                          if (showInfo)
+                            Expanded(
+                                child: getInfoPage(draftList[currIndex].data))
+                          else if (result != null)
+                            getInfoButton(),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -215,7 +267,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: result == null || result == true ? Colors.red : Colors.red.shade300,
+              backgroundColor: result == null || result == true
+                  ? Colors.red
+                  : Colors.red.shade300,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(0.0),
@@ -1109,12 +1163,25 @@ class _WkReviewPageState extends State<WkReviewPage> {
             focusNodeReading.unfocus();
             showInfo = true;
             result = true;
+            kbListenerFocus.requestFocus();
           });
         },
         onFinish: () async {},
       ),
     );
   }
+
+  // void _startHoldTimer() {
+  //   _holdTimer?.cancel();
+  //   _holdTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+  //     if (_isKeyPressed) {
+  //       print('Key held for ${timer.tick * 100} milliseconds');
+  //       // Adjust the duration as needed
+  //     } else {
+  //       timer.cancel();
+  //     }
+  //   });
+  // }
 }
 
 class ReviewItem {

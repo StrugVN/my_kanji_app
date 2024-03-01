@@ -18,7 +18,6 @@ import 'package:my_kanji_app/pages/result_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:my_kanji_app/pages/wk_review.dart';
 import 'package:my_kanji_app/service/api.dart';
-import 'package:my_kanji_app/utility/debouncer.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
