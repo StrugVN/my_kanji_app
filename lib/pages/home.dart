@@ -85,9 +85,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   void initHome() async {
     //
     await appData.loadUserData();
-    if (appData.userData.url != null) {
+    var apiKey = await appData.loadApiKey();
+    if (appData.userData.url != null && apiKey != null && apiKey.isNotEmpty) {
       // Load data
-      appData.apiKey = "Bearer ${await appData.loadApiKey()}";
+      appData.apiKey = "Bearer $apiKey";
       await appData.getData();
     } else {
       Navigator.pop(context, true);

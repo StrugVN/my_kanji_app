@@ -150,7 +150,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
             });
           }
 
-          await Future.delayed(Duration(milliseconds: 500));
+          await Future.delayed(Duration(milliseconds: 200));
           kbListenerFocus.requestFocus();
         },
         child: GestureDetector(

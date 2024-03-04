@@ -297,7 +297,7 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
 
       appData.apiKey = "Bearer ${apiInput.text}";
 
-      appData.saveApiKey();
+      await appData.saveApiKey();
 
       appData.userData =
           UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);

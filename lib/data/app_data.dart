@@ -557,7 +557,9 @@ class AppData extends ChangeNotifier {
 
   Future<String?> loadApiKey() async {
     const storage = FlutterSecureStorage();
-    return await storage.read(key: 'apiKey');
+    var key = await storage.read(key: 'apiKey');
+    print(" - Loaded key: $key");
+    return key;
   }
 
   Future<void> loadRadicalApi() async {
@@ -625,6 +627,7 @@ class AppData extends ChangeNotifier {
     const storage = FlutterSecureStorage();
 
     await storage.delete(key: 'userData');
+    await storage.delete(key: 'apiKey');
   }
 
   Future<void> saveCache(dynamic) async {
