@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:window_size/window_size.dart';
+import 'dart:ui' as ui;
 
 void main() {
   if (Platform.isWindows || Platform.isLinux) {

@@ -179,11 +179,11 @@ class _VocabPageState extends State<VocabPage>
               Text(
                 meaningVi ?? "",
                 style: const TextStyle(
-                  fontSize: 21,
+                  fontSize: 19,
                 ),
                 textAlign: TextAlign.center,
               ),
-              getTextOfVocab(),
+              const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -197,6 +197,8 @@ class _VocabPageState extends State<VocabPage>
                   ),
                 ],
               ),
+              getTextOfVocab(),
+              
               getUsedKanji(),
               futureWidget(getExample(), true, true),
               getWkInfo(),

@@ -355,7 +355,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(5),
+          // padding: const EdgeInsets.all(5),
           width: double.infinity,
           decoration: BoxDecoration(
               color: kanji != null
