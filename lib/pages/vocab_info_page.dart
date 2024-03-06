@@ -257,12 +257,13 @@ class _VocabPageState extends State<VocabPage>
       return Column(
         children: [
           getPitch(char, char),
+          getAudio(char),
         ],
       );
     }
   }
 
-  getAudio(String char) {
+  Widget getAudio(String char) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
