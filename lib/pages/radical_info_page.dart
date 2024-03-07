@@ -9,9 +9,13 @@ import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 
 class RadicalPage extends StatefulWidget {
-  const RadicalPage({super.key, required this.radical});
+  RadicalPage({super.key, required this.radical}) : hideAppBar = false;
+  RadicalPage.hideAppBar({super.key, required this.radical})
+      : hideAppBar = true;
 
   final Radical radical;
+
+  bool hideAppBar;
 
   @override
   State<RadicalPage> createState() => _RadicalPageState();
@@ -39,80 +43,114 @@ class _RadicalPageState extends State<RadicalPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (radical.data?.characters != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
+    return Scaffold(
+      appBar: !widget.hideAppBar
+          ? AppBar(
+              title: Text(
+                radical.data!.characters ?? radical.data!.slug ?? "",
+                style: const TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
                 ),
-                child: Text(
-                  radical.data?.characters ?? "N/A",
-                  style: const TextStyle(
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.home,
                     color: Colors.white,
-                    fontSize: 96,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) =>
+                        route.isFirst ||
+                        route.settings.name == '/homePage' ||
+                        route.settings.name == 'homePage' ||
+                        route.settings.name == 'lessonPage' ||
+                        route.settings.name == 'reviewPage');
+                  },
+                ),
+              ],
+              backgroundColor: Colors.blue,
+            )
+          : null,
+      body: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (radical.data?.characters != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: Text(
+                    radical.data?.characters ?? "N/A",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 96,
+                    ),
+                  ),
+                )
+              else if (radical.data?.characters == null && svg?.url != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: futureSingleWidget(getSvg(), true, true),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: Text(
+                    radical.data?.slug ?? "N/A",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 96,
+                    ),
                   ),
                 ),
-              )
-            else if (radical.data?.characters == null && svg?.url != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: futureSingleWidget(getSvg(), true, true),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                margin: const EdgeInsets.symmetric(horizontal: 5),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: Text(
-                  radical.data?.slug ?? "N/A",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 96,
-                  ),
+              Text(
+                'Wanikani lv.${radical.data!.level}',
+              ),
+              const Divider(),
+              Text(
+                radical.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+                style: const TextStyle(fontSize: 24),
+                textAlign: TextAlign.left,
+              ),
+              getUsedInKanji(),
+              const Divider(),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: " - Meaning mnemonic: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    // TextSpan(text: radical.data?.meaningMnemonic ?? ""),
+                    for (var textSpan
+                        in buildWakiText(radical.data?.meaningMnemonic ?? ""))
+                      textSpan,
+                  ],
+                  style: const TextStyle(color: Colors.black, fontSize: 20),
                 ),
               ),
-            Text(
-              'Wanikani lv.${radical.data!.level}',
-            ),
-            const Divider(),
-            Text(
-              radical.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
-              style: const TextStyle(fontSize: 24),
-              textAlign: TextAlign.left,
-            ),
-            getUsedInKanji(),
-            
-            const Divider(),
-            RichText(
-              text: TextSpan(
-                children: [
-                  const TextSpan(
-                    text: " - Meaning mnemonic: ",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(text: radical.data?.meaningMnemonic ?? "")
-                ],
-                style: const TextStyle(color: Colors.black, fontSize: 20),
-              ),
-            ),
-
-            
-          ],
+            ],
+          ),
         ),
       ),
     );

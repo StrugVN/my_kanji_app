@@ -110,17 +110,21 @@ class _WkReviewPageState extends State<WkReviewPage> {
           }
         });
       },
-      child: RawKeyboardListener(
+      child: KeyboardListener(
         focusNode: kbListenerFocus,
-        onKey: (RawKeyEvent event) async {
+        onKeyEvent: (KeyEvent event) async {
           if (!Platform.isWindows && !Platform.isLinux) return;
-          if(event.runtimeType != RawKeyDownEvent) return;
+          if (event.runtimeType != KeyDownEvent ||
+              (event.logicalKey != LogicalKeyboardKey.enter &&
+              event.logicalKey != LogicalKeyboardKey.equal &&
+              event.logicalKey != LogicalKeyboardKey.period &&
+              event.logicalKey != LogicalKeyboardKey.minus &&
+              event.logicalKey != LogicalKeyboardKey.comma)) return;
 
           if (event.logicalKey == LogicalKeyboardKey.enter &&
               result != null &&
               !focusNodeMeaning.hasFocus &&
-              !focusNodeReading.hasFocus ) {
-            print("Key pressed");
+              !focusNodeReading.hasFocus) {
             if (result == null) {
               onSubmitPressed();
             } else {
@@ -539,25 +543,28 @@ class _WkReviewPageState extends State<WkReviewPage> {
   }
 
   Widget getInfoButton() {
-    return ElevatedButton(
-      onPressed: () {
-        focusNodeMeaning.unfocus();
-        focusNodeReading.unfocus();
-        setState(() {
-          showInfo = true;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(0.0), // Set to 0 for sharp corners
+    return Container(
+      padding: EdgeInsets.only(top: 10),
+      child: ElevatedButton(
+        onPressed: () {
+          focusNodeMeaning.unfocus();
+          focusNodeReading.unfocus();
+          setState(() {
+            showInfo = true;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(0.0), // Set to 0 for sharp corners
+          ),
         ),
-      ),
-      child: const Text(
-        "Item info",
-        style: TextStyle(fontSize: 18),
+        child: const Text(
+          "Item info",
+          style: TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
@@ -836,15 +843,24 @@ class _WkReviewPageState extends State<WkReviewPage> {
     }
 
     if (kanji != null) {
-      return KanjiPage.hideAppBar(kanji: kanji);
+      if(isReadingAsked)
+        return KanjiPage.readingReviewInfo(kanji: kanji);
+      else
+        return KanjiPage.meaningReviewInfo(kanji: kanji);
+
+      // return KanjiPage.hideAppBar(kanji: kanji);
     }
 
     if (vocab != null) {
-      return VocabPage.hideAppBar(vocab: vocab);
+      if(isReadingAsked)
+        return VocabPage.readingReviewInfo(vocab: vocab);
+      else
+        return VocabPage.meaningReviewInfo(vocab: vocab);
+      // return VocabPage.hideAppBar(vocab: vocab);
     }
 
     if (radical != null) {
-      return RadicalPage(radical: radical);
+      return RadicalPage.hideAppBar(radical: radical);
     }
 
     return const SizedBox.shrink();

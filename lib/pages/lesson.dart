@@ -305,7 +305,7 @@ class _LessonPageState extends State<LessonPage> {
     }
 
     if (radical != null) {
-      return RadicalPage(radical: radical);
+      return RadicalPage.hideAppBar(radical: radical);
     }
 
     return const SizedBox.shrink();

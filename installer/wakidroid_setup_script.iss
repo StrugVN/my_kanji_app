@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "WakiDroid"
-#define MyAppVersion "1.0"
-#define MyAppPublisher "Self Pub"
+#define MyAppVersion "1.0.0"
+#define MyAppPublisher "Me, lol"
 #define MyAppURL "https://github.com/StrugVN/"
 #define MyAppExeName "WakiDroid.exe"
 
@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputDir=C:\Users\Lenovo\Desktop\work\test flutter\my_kanji_app\installer
-OutputBaseFilename=wakidroid_setup
+OutputBaseFilename=wakidroid_{#MyAppVersion}_setup
 SetupIconFile=C:\Users\Lenovo\Desktop\work\test flutter\my_kanji_app\windows\runner\resources\app_icon.ico
 Compression=lzma
 SolidCompression=yes

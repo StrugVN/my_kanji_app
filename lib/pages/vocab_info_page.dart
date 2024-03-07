@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:gap/gap.dart';
 import 'package:my_kanji_app/component/vocab_info_card.dart';
 import 'package:my_kanji_app/data/app_data.dart';
@@ -20,16 +21,34 @@ import 'package:translator/translator.dart';
 
 class VocabPage extends StatefulWidget {
   VocabPage({super.key, required this.vocab, this.navigationList})
-      : hideAppBar = false;
+      : hideAppBar = false,
+        hideMeaning = false,
+        hideReading = false;
 
   VocabPage.hideAppBar({super.key, required this.vocab, this.navigationList})
-      : hideAppBar = true;
+      : hideAppBar = true,
+        hideMeaning = false,
+        hideReading = false;
+
+  VocabPage.readingReviewInfo(
+      {super.key, required this.vocab, this.navigationList})
+      : hideAppBar = true,
+        hideMeaning = true,
+        hideReading = false;
+
+  VocabPage.meaningReviewInfo(
+      {super.key, required this.vocab, this.navigationList})
+      : hideAppBar = true,
+        hideMeaning = false,
+        hideReading = true;
 
   final Vocab vocab;
 
   final List<Vocab>? navigationList;
 
   bool hideAppBar;
+  bool hideMeaning;
+  bool hideReading;
 
   @override
   State<VocabPage> createState() => _VocabPageState(vocab, navigationList);
@@ -168,21 +187,49 @@ class _VocabPageState extends State<VocabPage>
                   ),
                 ),
               ),
-              Text(
-                vocab.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
-                style: const TextStyle(
-                  fontSize: 21,
+              if (!widget.hideMeaning)
+                getMeaning()
+              else
+                Container(
+                  alignment: Alignment.center,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Click to show",
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              setState(() {
+                                widget.hideMeaning = !widget.hideMeaning;
+                              });
+                            },
+                        ),
+                        TextSpan(
+                          text: " meaning",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              setState(() {
+                                widget.hideMeaning = !widget.hideMeaning;
+                              });
+                            },
+                        ),
+                      ],
+                      style: TextStyle(
+                        color: Colors.grey.shade800,
+                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const Divider(),
-              Text(
-                meaningVi ?? "",
-                style: const TextStyle(
-                  fontSize: 19,
-                ),
-                textAlign: TextAlign.center,
-              ),
               const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -198,7 +245,6 @@ class _VocabPageState extends State<VocabPage>
                 ],
               ),
               getTextOfVocab(),
-              
               getUsedKanji(),
               futureWidget(getExample(), true, true),
               getWkInfo(),
@@ -207,6 +253,32 @@ class _VocabPageState extends State<VocabPage>
           ),
         ),
       ),
+    );
+  }
+
+  Column getMeaning() {
+    return Column(
+      children: [
+        Text(
+          vocab.data?.meanings!.map((e) => e.meaning).join(", ") ?? "",
+          style: const TextStyle(
+            fontSize: 21,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.2),
+          child: const Divider(),
+        ),
+        Text(
+          meaningVi ?? "",
+          style: const TextStyle(
+            fontSize: 19,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
@@ -221,38 +293,77 @@ class _VocabPageState extends State<VocabPage>
     var readings = vocab.data!.readings;
 
     if (readings != null) {
-      return Center(
-        child: Column(
-          children: [
-            Column(
-              children: readings.map<Widget>((reading) {
-                return Column(
-                  children: [
-                    const Divider(),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: reading.reading,
-                            style: const TextStyle(
-                              color: Colors.black,
-                            ),
-                          )
-                        ],
-                        style: const TextStyle(
-                          fontSize: 32,
-                        ),
+      if (!widget.hideReading)
+        return Center(
+          child: Column(
+            children: readings.map<Widget>((reading) {
+              return Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: MediaQuery.of(context).size.width * 0.2),
+                    child: const Divider(),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: reading.reading,
+                          style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        )
+                      ],
+                      style: const TextStyle(
+                        fontSize: 32,
                       ),
                     ),
-                    getPitch(char, reading.reading),
-                    getAudio(reading.reading ?? ""),
-                  ],
-                );
-              }).toList(),
-            )
-          ],
-        ),
-      );
+                  ),
+                  getPitch(char, reading.reading),
+                  getAudio(reading.reading ?? ""),
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      else
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          margin: const EdgeInsets.fromLTRB(5, 15, 0, 0),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade400,
+          ),
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: "Click to show",
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      setState(() {
+                        widget.hideReading = !widget.hideReading;
+                      });
+                    },
+                ),
+                TextSpan(
+                  text: " reading",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      setState(() {
+                        widget.hideReading = !widget.hideReading;
+                      });
+                    },
+                ),
+              ],
+              style: TextStyle(
+                color: Colors.grey.shade800,
+                fontSize: 18,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        );
     } else {
       return Column(
         children: [
@@ -911,12 +1022,12 @@ class _VocabPageState extends State<VocabPage>
       ],
     );
   }
-  
-  Future genViMeaning() async {
-    meaningVi = toCamelCase((await translator.translate(vocab.data?.characters ?? "", from: 'ja', to: 'vi')).text);
 
-    setState(() {
-      
-    });
+  Future genViMeaning() async {
+    meaningVi = toCamelCase((await translator
+            .translate(vocab.data?.characters ?? "", from: 'ja', to: 'vi'))
+        .text);
+
+    setState(() {});
   }
 }
