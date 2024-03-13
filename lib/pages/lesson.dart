@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
@@ -27,6 +30,8 @@ class _LessonPageState extends State<LessonPage> {
   int index = 0;
 
   var pageController = PreloadPageController(initialPage: 0);
+
+  final FocusNode kbListenerFocus = FocusNode();
 
   @override
   void initState() {
@@ -168,114 +173,175 @@ class _LessonPageState extends State<LessonPage> {
           }
         });
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Lesson"),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
+      child: KeyboardListener(
+        focusNode: kbListenerFocus,
+        onKeyEvent: (KeyEvent event) async {
+          if (!Platform.isWindows && !Platform.isLinux) return;
+
+          if (event.runtimeType != KeyDownEvent ||
+              (event.logicalKey != LogicalKeyboardKey.arrowRight &&
+                  event.logicalKey != LogicalKeyboardKey.arrowLeft)) return;
+
+          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            if (index + 1 < lessonList.length) {
+              index = index + 1;
+              setState(() {
+                pageController.jumpToPage(index);
+                // pageController.animateToPage(
+                //   index,
+                //   duration: const Duration(milliseconds: 500),
+                //   curve: Curves.ease,
+                // );
+              });
+            } else {
+              Navigator.pop(context, true);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WkReviewPage.createLessonQuiz(
+                    reviewItems: lessonList.map((e) => e["data"]).toList(),
+                  ),
+                  settings: const RouteSettings(name: "reviewPage"),
+                ),
+              );
+            }
+          }
+
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+            if (index - 1 >= 0) {
+              index = index - 1;
+              setState(() {
+                pageController.jumpToPage(index);
+                // pageController.animateToPage(
+                //   index,
+                //   duration: const Duration(milliseconds: 500),
+                //   curve: Curves.ease,
+                // );
+              });
+            }
+          }
+
+          await Future.delayed(const Duration(milliseconds: 500));
+          kbListenerFocus.requestFocus();
+        },
+        child: GestureDetector(
+          onTap: () {
+            // When tapped, request focus for RawKeyboardListener
+            kbListenerFocus.requestFocus();
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text("Lesson"),
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+                onPressed: () async => await showAbandoneDialog(context).then(
+                  (confirm) {
+                    if (confirm != null && confirm) {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                ),
+              ),
+              backgroundColor: Colors.pink,
             ),
-            onPressed: () async => await showAbandoneDialog(context).then(
-              (confirm) {
-                if (confirm != null && confirm) {
-                  Navigator.pop(context, true);
-                }
-              },
+            backgroundColor: Colors.grey.shade300,
+            body: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          if (index - 1 >= 0) {
+                            index = index - 1;
+                            setState(() {
+                              pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.ease,
+                              );
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: index > 0
+                              ? Colors.pink
+                              : const Color.fromARGB(255, 255, 175, 202),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Icon(Icons.arrow_back),
+                      ),
+                      Text(
+                        "${index + 1}/${lessonList.length}",
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (index + 1 < lessonList.length) {
+                            index = index + 1;
+                            setState(() {
+                              pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.ease,
+                              );
+                            });
+                          } else {
+                            Navigator.pop(context, true);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    WkReviewPage.createLessonQuiz(
+                                  reviewItems:
+                                      lessonList.map((e) => e["data"]).toList(),
+                                ),
+                                settings:
+                                    const RouteSettings(name: "reviewPage"),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: index + 1 < lessonList.length
+                              ? Colors.pink
+                              : Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: index + 1 < lessonList.length
+                            ? const Icon(Icons.arrow_forward)
+                            : const Text("To Quiz!"),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: PreloadPageView.builder(
+                    controller: pageController,
+                    onPageChanged: (i) {
+                      setState(() {
+                        index = i;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return lessonPages[index];
+                    },
+                    itemCount: lessonPages.length,
+                    preloadPagesCount: lessonPages
+                        .length, // Preload adjacent pages for smoother transitions
+                  ),
+                ),
+              ],
             ),
           ),
-          backgroundColor: Colors.pink,
-        ),
-        backgroundColor: Colors.grey.shade300,
-        body: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(5),
-              margin: const EdgeInsets.all(5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      if (index - 1 >= 0) {
-                        index = index - 1;
-                        setState(() {
-                          pageController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.ease,
-                          );
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: index > 0
-                          ? Colors.pink
-                          : const Color.fromARGB(255, 255, 175, 202),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Icon(Icons.arrow_back),
-                  ),
-                  Text(
-                    "${index + 1}/${lessonList.length}",
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (index + 1 < lessonList.length) {
-                        index = index + 1;
-                        setState(() {
-                          pageController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.ease,
-                          );
-                        });
-                      } else {
-                        Navigator.pop(context, true);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => WkReviewPage.createLessonQuiz(
-                              reviewItems:
-                                  lessonList.map((e) => e["data"]).toList(),
-                            ),
-                            settings: const RouteSettings(name: "reviewPage"),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: index + 1 < lessonList.length
-                          ? Colors.pink
-                          : Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: index + 1 < lessonList.length
-                        ? const Icon(Icons.arrow_forward)
-                        : const Text("To Quiz!"),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            Expanded(
-              child: PreloadPageView.builder(
-                controller: pageController,
-                onPageChanged: (i) {
-                  setState(() {
-                    index = i;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return lessonPages[index];
-                },
-                itemCount: lessonPages.length,
-                preloadPagesCount: lessonPages
-                    .length, // Preload adjacent pages for smoother transitions
-              ),
-            ),
-          ],
         ),
       ),
     );

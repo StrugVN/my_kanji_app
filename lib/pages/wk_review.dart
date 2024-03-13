@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart';
 import 'package:kana_kit/kana_kit.dart';
@@ -116,10 +117,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
           if (!Platform.isWindows && !Platform.isLinux) return;
           if (event.runtimeType != KeyDownEvent ||
               (event.logicalKey != LogicalKeyboardKey.enter &&
-              event.logicalKey != LogicalKeyboardKey.equal &&
-              event.logicalKey != LogicalKeyboardKey.period &&
-              event.logicalKey != LogicalKeyboardKey.minus &&
-              event.logicalKey != LogicalKeyboardKey.comma)) return;
+                  event.logicalKey != LogicalKeyboardKey.equal &&
+                  event.logicalKey != LogicalKeyboardKey.period &&
+                  event.logicalKey != LogicalKeyboardKey.minus &&
+                  event.logicalKey != LogicalKeyboardKey.comma)) return;
 
           if (event.logicalKey == LogicalKeyboardKey.enter &&
               result != null &&
@@ -128,7 +129,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
             if (result == null) {
               onSubmitPressed();
             } else {
-              recordAnswer();
+              await recordAnswer();
             }
           } else if (event.logicalKey == LogicalKeyboardKey.equal ||
               event.logicalKey == LogicalKeyboardKey.period) {
@@ -156,6 +157,13 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
           await Future.delayed(Duration(milliseconds: 200));
           kbListenerFocus.requestFocus();
+          if (result == null) {
+            if (isReadingAsked) {
+              focusNodeReading.requestFocus();
+            } else {
+              focusNodeMeaning.requestFocus();
+            }
+          }
         },
         child: GestureDetector(
           onTap: () {
@@ -247,8 +255,11 @@ class _WkReviewPageState extends State<WkReviewPage> {
       }
     }
 
-    focusNodeMeaning.requestFocus();
-    focusNodeReading.requestFocus();
+    if (isReadingAsked) {
+      focusNodeReading.requestFocus();
+    } else {
+      focusNodeMeaning.requestFocus();
+    }
   }
 
   // ================
@@ -289,8 +300,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
             "${completedList.length}/${reviewItems.length}",
             style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
-          ElevatedButton.icon(
-            onPressed: () {
+          Listener(
+            onPointerDown: (details) {
+              print(details);
               focusNodeMeaning.unfocus();
               focusNodeReading.unfocus();
               if (result == null) {
@@ -299,26 +311,31 @@ class _WkReviewPageState extends State<WkReviewPage> {
                 recordAnswer();
               }
             },
-            icon: result != null
-                ? result!
-                    ? const Icon(
-                        Icons.check,
-                        color: Colors.lightGreen,
-                      )
-                    : const Icon(
-                        Icons.close,
-                        color: Colors.red,
-                      )
-                : const SizedBox.shrink(),
-            label: Text(
-              result == null ? "Submit" : "Next",
-              style: const TextStyle(fontSize: 18),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(0.0),
+            child: ElevatedButton.icon(
+              onPressed: ()  {
+                
+              },
+              icon: result != null
+                  ? result!
+                      ? const Icon(
+                          Icons.check,
+                          color: Colors.lightGreen,
+                        )
+                      : const Icon(
+                          Icons.close,
+                          color: Colors.red,
+                        )
+                  : const SizedBox.shrink(),
+              label: Text(
+                result == null ? "Submit" : "Next",
+                style: const TextStyle(fontSize: 18),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0.0),
+                ),
               ),
             ),
           )
@@ -843,7 +860,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
     }
 
     if (kanji != null) {
-      if(isReadingAsked)
+      if (isReadingAsked)
         return KanjiPage.readingReviewInfo(kanji: kanji);
       else
         return KanjiPage.meaningReviewInfo(kanji: kanji);
@@ -852,7 +869,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
     }
 
     if (vocab != null) {
-      if(isReadingAsked)
+      if (isReadingAsked)
         return VocabPage.readingReviewInfo(vocab: vocab);
       else
         return VocabPage.meaningReviewInfo(vocab: vocab);
