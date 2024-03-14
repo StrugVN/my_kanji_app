@@ -88,8 +88,9 @@ class _VocabPageState extends State<VocabPage>
       Navigator.of(context).pop();
     }
 
-    example = jisho.searchForExamples(vocab.data!.characters!);
-    print(vocab.data!.characters!);
+    String exampleSearchText = vocab.data!.characters!.replaceAll('〜', '');
+    example = jisho.searchForExamples(exampleSearchText);
+    print(vocab.data!.characters! + " / " + exampleSearchText);
 
     List<VocabPronunciationAudios>? audioData = vocab.data?.pronunciationAudios;
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/notifier.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
@@ -7,6 +9,7 @@ import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:unofficial_jisho_api/api.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 String helloAccordingToTime() {
   int hour = DateTime.now().hour;
@@ -79,7 +82,8 @@ futureWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
   );
 }
 
-futureSingleWidget(Future<Widget> scheduleTask, bool showError, bool showLoading) {
+futureSingleWidget(
+    Future<Widget> scheduleTask, bool showError, bool showLoading) {
   return FutureBuilder<Widget>(
     future: scheduleTask, // a previously-obtained Future
     builder: (BuildContext context, AsyncSnapshot<Widget> snapshot) {
@@ -360,56 +364,58 @@ List<TextSpan> buildWakiText(String text) {
 
   for (var word in splitText(text)) {
     bool backToDefault = false;
-    
+
     if (word.contains('<radical>')) {
       word = word.replaceAll("<radical>", "");
-      currentStyle = currentStyle.copyWith(backgroundColor: Colors.blue.shade600, color: Colors.white);
-    } 
-    if(word.contains('</radical>')){
+      currentStyle = currentStyle.copyWith(
+          backgroundColor: Colors.blue.shade600, color: Colors.white);
+    }
+    if (word.contains('</radical>')) {
       word = word.replaceAll("</radical>", "");
       backToDefault = true;
     }
-    
+
     if (word.contains('<kanji>')) {
       word = word.replaceAll("<kanji>", "");
-      currentStyle = currentStyle.copyWith(backgroundColor: Colors.red.shade600, color: Colors.white);
+      currentStyle = currentStyle.copyWith(
+          backgroundColor: Colors.red.shade600, color: Colors.white);
     }
-    if(word.contains('</kanji>')){
+    if (word.contains('</kanji>')) {
       word = word.replaceAll("</kanji>", "");
       backToDefault = true;
     }
 
-    
     if (word.contains('<ja>')) {
       word = word.replaceAll("<ja>", "");
       currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
-    } 
-    if(word.contains('</ja>')){
+    }
+    if (word.contains('</ja>')) {
       word = word.replaceAll("</ja>", "");
       backToDefault = true;
     }
-    
+
     if (word.contains('<vocabulary>')) {
       word = word.replaceAll("<vocabulary>", "");
-      currentStyle = currentStyle.copyWith(backgroundColor: Colors.purple, color: Colors.white);
-    } 
-    if(word.contains('</vocabulary>')){
+      currentStyle = currentStyle.copyWith(
+          backgroundColor: Colors.purple, color: Colors.white);
+    }
+    if (word.contains('</vocabulary>')) {
       word = word.replaceAll("</vocabulary>", "");
       backToDefault = true;
     }
-    
+
     if (word.contains('<reading>')) {
       word = word.replaceAll("<reading>", "");
       currentStyle = currentStyle.copyWith(fontWeight: FontWeight.bold);
     }
-    if(word.contains('</reading>')){
+    if (word.contains('</reading>')) {
       word = word.replaceAll("</reading>", "");
       backToDefault = true;
     }
-    
+
     spans.add(TextSpan(text: word, style: currentStyle));
 
-    if(backToDefault){
+    if (backToDefault) {
       currentStyle = defaultStyle.copyWith();
     }
   }

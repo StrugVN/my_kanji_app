@@ -9,6 +9,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
+import 'package:my_kanji_app/data/notifier.dart';
 import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_srs_stat.dart';
@@ -23,6 +24,8 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:core';
 import 'package:collection/collection.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class Dashboard extends StatefulWidget {
   const Dashboard(
@@ -124,32 +127,22 @@ class _DashboardState extends State<Dashboard>
   // ///////////////////////////////////////////////////////////////////////////////
   greeting() {
     return GestureDetector(
+      onLongPress: () {
+        print("Create notification");
+        Notifier.showNotification(
+          title: 'TEST',
+          message: 'Body text ...',
+          payload: '',
+        );
+      },
       onDoubleTap: () async {
-        // List<Map<String, Object?>> newItemsList =
-        //     appData.allRadicalData!.where((element) {
-        //   return element.data?.level == 9 && element.data?.characters == null;
-        // }).map((element) {
-        //   return {
-        //     "id": element.id,
-        //     "char": element.data!.characters,
-        //     "unlockedDate": DateTime.now(),
-        //     "isKanji": false,
-        //     "level": element.data?.level,
-        //     "data": element,
-        //   };
-        // }).toList();
-
-        // print("${newItemsList.length}");
-
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => LessonPage(
-        //       newItemsList: newItemsList,
-        //     ),
-        //     settings: const RouteSettings(name: "lessonPage"),
-        //   ),
-        // );
+        print("Create notification");
+        Notifier.scheduleNotification(
+            title: 'TEST',
+            message: 'Body text ...',
+            payload: '',
+            scheduledTime:
+                tz.TZDateTime.now(tz.local).add(Duration(seconds: 3)));
       },
       child: Container(
         decoration: BoxDecoration(

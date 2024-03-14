@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/notifier.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
 import 'package:my_kanji_app/service/api.dart';
@@ -10,11 +11,21 @@ import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:window_size/window_size.dart';
 import 'dart:ui' as ui;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
-void main() {
+Future<void> main() async {
+  // Initialize FFI
+  WidgetsFlutterBinding.ensureInitialized();
+
+  _configureLocalTimeZone();
+
+  if(Platform.isAndroid){
+    Notifier.init();
+  }
+
   if (Platform.isWindows || Platform.isLinux) {
-    // Initialize FFI
-    WidgetsFlutterBinding.ensureInitialized();
 
     setWindowTitle("Waki Droid");
 
@@ -57,4 +68,11 @@ class MyApp extends StatelessWidget  {
       home: const Home(),
     );
   }
+}
+
+Future<void> _configureLocalTimeZone() async {
+  tz.initializeTimeZones();
+  final String timeZoneName = "Asia/Ho_Chi_Minh";
+  print("init time zone: $timeZoneName");
+  tz.setLocalLocation(tz.getLocation(timeZoneName));
 }
