@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/data/notifier.dart';
 import 'package:my_kanji_app/pages/home.dart';
 import 'package:my_kanji_app/pages/login.dart';
@@ -12,21 +13,20 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:window_size/window_size.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   // Initialize FFI
   WidgetsFlutterBinding.ensureInitialized();
 
-  _configureLocalTimeZone();
+  if (Platform.isAndroid) {
+    Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
 
-  if(Platform.isAndroid){
-    Notifier.init();
+    // SETUP NOTIFICATIONS
+    createReminderTask();
   }
 
   if (Platform.isWindows || Platform.isLinux) {
-
     setWindowTitle("Waki Droid");
 
     doWhenWindowReady(() {
@@ -44,7 +44,7 @@ Future<void> main() async {
   ));
 }
 
-class MyApp extends StatelessWidget  {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
@@ -56,9 +56,9 @@ class MyApp extends StatelessWidget  {
         GlobalCupertinoLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
       ],
-       supportedLocales: const [
-        Locale('en', ''), 
-        Locale('ja', ''), 
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('ja', ''),
       ],
       locale: const Locale('ja', ''),
       routes: {
@@ -70,9 +70,31 @@ class MyApp extends StatelessWidget  {
   }
 }
 
-Future<void> _configureLocalTimeZone() async {
-  tz.initializeTimeZones();
-  final String timeZoneName = "Asia/Ho_Chi_Minh";
-  print("init time zone: $timeZoneName");
-  tz.setLocalLocation(tz.getLocation(timeZoneName));
+@pragma('vm:entry-point')
+void callbackDispatcher() async {
+  print("Background task started...");
+
+  Workmanager().executeTask((task, inputData) async {
+    await Notifier.notifyReviewReminder();
+    return Future.value(true);
+  });
+}
+
+void createReminderTask() {
+  Workmanager().cancelByTag(TASK_REVIEW_REMINDER_TAG);
+
+  DateTime now = DateTime.now();
+  DateTime nextHour = DateTime(now.year, now.month, now.day, now.hour + 1, 1);
+  Duration initialDelay = nextHour.difference(now);
+
+  Workmanager().registerPeriodicTask(
+    TASK_REVIEW_REMINDER_ID,
+    TASK_REVIEW_REMINDER_NAME,
+    tag: TASK_REVIEW_REMINDER_TAG,
+    initialDelay: initialDelay,
+    frequency: const Duration(hours: 1),
+  );
+
+  print(
+      "Created periodic task: $TASK_REVIEW_REMINDER_ID - $TASK_REVIEW_REMINDER_NAME - $TASK_REVIEW_REMINDER_TAG - ${initialDelay.inMinutes} minutes - 1 hour frequency");
 }

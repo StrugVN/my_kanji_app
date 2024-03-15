@@ -32,7 +32,7 @@ Future<UserData?> getUserInfo() async {
   };
 
   var response = await http.get(Uri.parse(userEndpoint), headers: header);
-  if(response.statusCode == 200)
+  if (response.statusCode == 200)
     return UserData.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   else
     return null;
@@ -150,9 +150,9 @@ Future<List<WkSrsStatData>> getAllSrsStatAfter(updateAfter) async {
     final uri =
         Uri.https(wkAuthority, wkSrsStatistics, {"updated_after": updateAfter});
 
-    var response = await http.get(uri, headers: header);
-
     print(uri);
+
+    var response = await http.get(uri, headers: header);
 
     var data = WkSrsStatResponse.fromJson(
         jsonDecode(response.body) as Map<String, dynamic>);
@@ -172,9 +172,10 @@ Future<List<WkSrsStatData>> getAllSrsStatAfter(updateAfter) async {
     }
 
     return resultList;
-  } on Exception catch (e) {
+  } on Exception catch (e, stackTrace) {
     // TODO
     print("Network error");
+    print(stackTrace);
     appData.networkError = true;
   }
   return [];

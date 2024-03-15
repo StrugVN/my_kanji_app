@@ -1,26 +1,29 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+import 'package:my_kanji_app/data/constant.dart';
+import 'package:my_kanji_app/service/api.dart';
 
 class Notifier {
-  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  static final platformChannelSpecifics = new NotificationDetails(
+    android: AndroidNotificationDetails(
+      'wkdrd_channel_id',
+      'Wakidroid Channel',
+      channelDescription: 'Wakidroid Channel Description',
+      importance: Importance.defaultImportance,
+      priority: Priority.high,
+      showWhen: false,
+      playSound: false,
+      icon: '@mipmap/launcher_icon',
+    ),
+  );
 
-  static final int REVIEW_REMINDER_NOTIFICATION_ID = 0; 
+  static Future<FlutterLocalNotificationsPlugin> _getNotiPlugins() async {
+    FlutterLocalNotificationsPlugin notiPlugs =
+        new FlutterLocalNotificationsPlugin();
+    var android = new AndroidInitializationSettings('@mipmap/launcher_icon');
+    var settings = new InitializationSettings(android: android);
+    await notiPlugs.initialize(settings);
 
-  static init() async {
-    // Initialization Settings for Android
-    AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    // General Initialization Settings
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    return notiPlugs;
   }
 
   static Future<void> showNotification({
@@ -28,55 +31,62 @@ class Notifier {
     required String message,
     required String payload,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'wkdrd_channel_id',
-      'Wakidroid Channel',
-      channelDescription: 'Wakidroid Channel Description',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: false,
-    );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-    await Notifier.flutterLocalNotificationsPlugin.show(
+    var notiPlugs = await _getNotiPlugins();
+
+    await notiPlugs.show(
       REVIEW_REMINDER_NOTIFICATION_ID,
       title,
       message,
       platformChannelSpecifics,
       payload: payload,
     );
+
+    print("Notification shown: $title - $message - $payload");
   }
 
-  static Future<void> scheduleNotification({
-    required String title,
-    required String message,
-    required String payload,
-    required TZDateTime scheduledTime,
-  }) async {
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      REVIEW_REMINDER_NOTIFICATION_ID,
-      title,
-      message,
-      scheduledTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'wkdrd_channel_id',
-          'Wakidroid Channel',
-          channelDescription: 'Wakidroid Channel Description',
-          importance: Importance.high,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.alarmClock,
-      // androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    print("Notification scheduled at: $scheduledTime");
-    print("Now: ${tz.TZDateTime.now(tz.local)}");
-  }
+  static Future<void> notifyReviewReminder() async {
+    print("Debugger: notifyReviewReminder__6");
+    try {
+      var notiPlugs = await _getNotiPlugins();
 
-  static Future<void> cancelNotification() async {
-    await flutterLocalNotificationsPlugin.cancel(REVIEW_REMINDER_NOTIFICATION_ID);
+      appData.apiKey = "Bearer ${await appData.loadApiKey()}";
+      // print("Key: ${appData.apiKey} loaded @ ${DateTime.now()}");
+
+      var srsData = await appData.getSrsData();
+      // print("SRS data loaded: ${srsData.length} items @ ${DateTime.now()}");
+
+      var lessonCount = appData.allSrsData!
+          .where((element) =>
+              element.data != null &&
+              element.data!.unlockedAt != null &&
+              element.data!.availableAt == null)
+          .toList()
+          .length;
+
+      var reviewData = appData.allSrsData!.where((element) {
+        var nextReview = element.data?.getNextReviewAsDateTime();
+        return nextReview == null
+            ? false
+            : nextReview.toLocal().isBefore(DateTime.now());
+      }).toList();
+
+      var reviewCount = reviewData.length;
+
+      if (reviewCount == 0) {
+        print("No review available");
+        return;
+      }
+
+      await notiPlugs.show(
+        REVIEW_REMINDER_NOTIFICATION_ID,
+        "Review reminder",
+        "You have ${reviewCount} review${reviewCount > 1 ? 's' : ''} and ${lessonCount} lesson${lessonCount > 1 ? 's' : ''} available",
+        platformChannelSpecifics,
+        payload: "payload",
+      );
+    } catch (e, stackTrace) {
+      print("Error: $e");
+      print("StackTrace: $stackTrace");
+    }
   }
 }

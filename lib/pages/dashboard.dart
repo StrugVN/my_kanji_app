@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/component/selector.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
@@ -26,6 +27,8 @@ import 'dart:core';
 import 'package:collection/collection.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart';
+import 'package:uuid/uuid.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard(
@@ -128,21 +131,19 @@ class _DashboardState extends State<Dashboard>
   greeting() {
     return GestureDetector(
       onLongPress: () {
-        print("Create notification");
-        Notifier.showNotification(
-          title: 'TEST',
-          message: 'Body text ...',
-          payload: '',
-        );
+        // print("Cancel notification");
+        // Workmanager().cancelAll();
       },
       onDoubleTap: () async {
-        print("Create notification");
-        Notifier.scheduleNotification(
-            title: 'TEST',
-            message: 'Body text ...',
-            payload: '',
-            scheduledTime:
-                tz.TZDateTime.now(tz.local).add(Duration(seconds: 3)));
+        // print("Create notification scheduled");
+
+        // Workmanager().registerPeriodicTask(
+        //   TASK_REVIEW_REMINDER_ID,
+        //   TASK_REVIEW_REMINDER_NAME,
+        //   tag: TASK_REVIEW_REMINDER_TAG,
+        //   initialDelay: Duration(seconds: 5),
+        //   frequency: const Duration(minutes: 16),
+        // );
       },
       child: Container(
         decoration: BoxDecoration(

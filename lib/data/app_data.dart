@@ -318,7 +318,7 @@ class AppData extends ChangeNotifier {
   }
 
   // For WK user only
-  Future<void> getSrsData() async {
+  Future<List<WkSrsStatData>> getSrsData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? srsListAsString = prefs.getString('srsCache');
     String? dateString = prefs.getString('dateOfCache');
@@ -344,15 +344,17 @@ class AppData extends ChangeNotifier {
       }
 
       allSrsData = tempSrsList;
+
+      return allSrsData!;
     } else {
       //1a
       var tempSrsData = await getAllSrsStat();
       if (tempSrsData.isNotEmpty) {
         allSrsData = tempSrsData;
       }
-    }
 
-    print("  SRS data count: ${allSrsData!.length}");
+      return allSrsData!;
+    }
   }
 
   // For WK user only
