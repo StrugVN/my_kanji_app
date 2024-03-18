@@ -76,23 +76,40 @@ void callbackDispatcher() async {
 
   Workmanager().executeTask((task, inputData) async {
     await Notifier.notifyReviewReminder();
+
+    // Cancel and prepare next task
+    Workmanager().cancelByTag(TASK_REVIEW_REMINDER_TAG);
+
+    DateTime now = DateTime.now();
+    DateTime nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
+    Duration initialDelay = nextHour.difference(now);
+
+    Workmanager().registerOneOffTask(
+      TASK_REVIEW_REMINDER_ID + "_${nextHour.hour}",
+      TASK_REVIEW_REMINDER_NAME,
+      tag: TASK_REVIEW_REMINDER_TAG,
+      initialDelay: initialDelay,
+    );
+
+    print("Background task completed...");
+
     return Future.value(true);
   });
 }
 
-void createReminderTask() {
+void createReminderTask() async {
   Workmanager().cancelByTag(TASK_REVIEW_REMINDER_TAG);
 
   DateTime now = DateTime.now();
-  DateTime nextHour = DateTime(now.year, now.month, now.day, now.hour + 1, 1);
+  DateTime nextHour = DateTime(now.year, now.month, now.day, now.hour + 1);
   Duration initialDelay = nextHour.difference(now);
 
-  Workmanager().registerPeriodicTask(
-    TASK_REVIEW_REMINDER_ID,
+  Workmanager().registerOneOffTask(
+    TASK_REVIEW_REMINDER_ID + "_${nextHour.hour}",
     TASK_REVIEW_REMINDER_NAME,
     tag: TASK_REVIEW_REMINDER_TAG,
     initialDelay: initialDelay,
-    frequency: const Duration(hours: 1),
+    // frequency: const Duration(hours: 1),
   );
 
   print(

@@ -137,12 +137,12 @@ class _DashboardState extends State<Dashboard>
       onDoubleTap: () async {
         // print("Create notification scheduled");
 
-        // Workmanager().registerPeriodicTask(
-        //   TASK_REVIEW_REMINDER_ID,
+        // Workmanager().registerOneOffTask(
+        //   TASK_REVIEW_REMINDER_ID + "_test",
         //   TASK_REVIEW_REMINDER_NAME,
         //   tag: TASK_REVIEW_REMINDER_TAG,
         //   initialDelay: Duration(seconds: 5),
-        //   frequency: const Duration(minutes: 16),
+        //   // frequency: const Duration(hours: 1),
         // );
       },
       child: Container(

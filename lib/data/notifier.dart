@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/service/api.dart';
+import 'package:intl/intl.dart';
 
 class Notifier {
   static final platformChannelSpecifics = new NotificationDetails(
@@ -8,11 +9,12 @@ class Notifier {
       'wkdrd_channel_id',
       'Wakidroid Channel',
       channelDescription: 'Wakidroid Channel Description',
-      importance: Importance.defaultImportance,
-      priority: Priority.high,
-      showWhen: false,
+      importance: Importance.low,
+      priority: Priority.max,
+      showWhen: true,
       playSound: false,
-      icon: '@mipmap/launcher_icon',
+      icon: '@mipmap/icon_noti',
+      subText: ''
     ),
   );
 
@@ -79,8 +81,8 @@ class Notifier {
 
       await notiPlugs.show(
         REVIEW_REMINDER_NOTIFICATION_ID,
-        "Review reminder",
-        "You have ${reviewCount} review${reviewCount > 1 ? 's' : ''} and ${lessonCount} lesson${lessonCount > 1 ? 's' : ''} available",
+        "There${reviewCount > 1 ? "'re" : "'s"} item${reviewCount > 1 ? 's' : ''} to review!",
+        "You have ${reviewCount} review${reviewCount > 1 ? 's' : ''} and ${lessonCount} lesson${lessonCount > 1 ? 's' : ''} available.",
         platformChannelSpecifics,
         payload: "payload",
       );
