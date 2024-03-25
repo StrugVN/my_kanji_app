@@ -4,7 +4,7 @@
     <application
         android:label="Waki Droid"
         android:name="${applicationName}"
-        android:icon="@mipmap/icon_noti">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
