@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
@@ -76,6 +77,8 @@ class _KanjiPageState extends State<KanjiPage>
   WkSrsStatData? srsStat;
   HanViet? hanViet;
 
+  bool showReadingInKata = appData.showReadingInKata;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -135,181 +138,226 @@ class _KanjiPageState extends State<KanjiPage>
             )
           : null,
       backgroundColor: Colors.grey.shade300,
-      body: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onDoubleTap: () async {
-                      bool launched = await openWebsite(
-                          "https://www.wanikani.com/kanji/${kanji.data?.characters}");
-                      if (!launched) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Failed to open site")));
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.pinkAccent.shade400,
-                      ),
-                      child: Text(
-                        kanji.data?.characters ?? "N/A",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 96,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onDoubleTap: () async {
+                          bool launched = await openWebsite(
+                              "https://www.wanikani.com/kanji/${kanji.data?.characters}");
+                          if (!launched) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Failed to open site")));
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.pinkAccent.shade400,
+                          ),
+                          child: Text(
+                            kanji.data?.characters ?? "N/A",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 96,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Flexible(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (srsStat?.data != null)
-                            Text(
-                              'Srs: ${srsStat?.data?.getSrs().label}',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          Text(
-                            'Wanikani lv.${kanji.data!.level}, JLPT N${jlpt(kanji.data!.characters!)}',
-                          ),
-                          futureWidget(getUsageRate(), false, false),
-                          const Divider(),
-                          if (!widget.hideMeaning)
-                            getMeaning()
-                          else
-                            Container(
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade400,
+                      Flexible(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (srsStat?.data != null)
+                                Text(
+                                  'Srs: ${srsStat?.data?.getSrs().label}',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              Text(
+                                'Wanikani lv.${kanji.data!.level}, JLPT N${jlpt(kanji.data!.characters!)}',
                               ),
-                              child: RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: "Click to show",
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          setState(() {
-                                            widget.hideMeaning =
-                                                !widget.hideMeaning;
-                                          });
-                                        },
-                                    ),
-                                    TextSpan(
-                                      text: " meaning",
+                              futureWidget(getUsageRate(), false, false),
+                              const Divider(),
+                              if (!widget.hideMeaning)
+                                getMeaning()
+                              else
+                                Container(
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: "Click to show",
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              setState(() {
+                                                widget.hideMeaning =
+                                                    !widget.hideMeaning;
+                                              });
+                                            },
+                                        ),
+                                        TextSpan(
+                                          text: " meaning",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              setState(() {
+                                                widget.hideMeaning =
+                                                    !widget.hideMeaning;
+                                              });
+                                            },
+                                        ),
+                                      ],
                                       style: TextStyle(
-                                          fontWeight: FontWeight.w600),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          setState(() {
-                                            widget.hideMeaning =
-                                                !widget.hideMeaning;
-                                          });
-                                        },
+                                        color: Colors.grey.shade800,
+                                        fontSize: 18,
+                                        fontStyle: FontStyle.italic,
+                                      ),
                                     ),
-                                  ],
-                                  style: TextStyle(
-                                    color: Colors.grey.shade800,
-                                    fontSize: 18,
-                                    fontStyle: FontStyle.italic,
                                   ),
                                 ),
-                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  if (!widget.hideReading)
+                    getReading()
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      margin: const EdgeInsets.fromLTRB(5, 15, 0, 0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                      ),
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "Click to show",
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    widget.hideReading = !widget.hideReading;
+                                  });
+                                },
                             ),
-                        ],
+                            TextSpan(
+                              text: " reading",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    widget.hideReading = !widget.hideReading;
+                                  });
+                                },
+                            ),
+                          ],
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontSize: 18,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
                     ),
-                  )
-                ],
-              ),
-              if (!widget.hideReading)
-                getReading()
-              else
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  margin: const EdgeInsets.fromLTRB(5, 15, 0, 0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
-                  ),
-                  child: RichText(
+                  const Divider(),
+                  RichText(
                     text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "Click to show",
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              setState(() {
-                                widget.hideReading = !widget.hideReading;
-                              });
-                            },
+                      children: <TextSpan>[
+                        const TextSpan(
+                          text: 'Bộ: ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         TextSpan(
-                          text: " reading",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              setState(() {
-                                widget.hideReading = !widget.hideReading;
-                              });
-                            },
+                          text: hanViet?.data?.radical,
                         ),
                       ],
-                      style: TextStyle(
-                        color: Colors.grey.shade800,
+                      style: const TextStyle(
                         fontSize: 18,
-                        fontStyle: FontStyle.italic,
+                        color: Colors.black,
                       ),
                     ),
                   ),
-                ),
-              const Divider(),
-              RichText(
-                text: TextSpan(
-                  children: <TextSpan>[
-                    const TextSpan(
-                      text: 'Bộ: ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  const Divider(color: Colors.black),
+                  futureWidget(stroke(), true, true),
+                  futureWidget(getExample(), false, false),
+                  getRelatedVocab(),
+                  getVisualySimilar(),
+                  getWkInfo(),
+                  mnemonic(),
+                ],
+              ),
+            ),
+          ),
+          if (!widget.hideReading)
+            Positioned(
+              top: MediaQuery.of(context).size.height / 3,
+              right: 5,
+              child: Material(
+                color: showReadingInKata
+                    ? Colors.purple.shade400
+                    : Colors.blue.shade400,
+                borderRadius: BorderRadius.circular(50),
+                child: InkWell(
+                  onTap: () {
+                    // Scroll to top animation
+                    setState(() {
+                      showReadingInKata = !showReadingInKata;
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                            top: 0,
+                            right: 9,
+                            child: Text(
+                              !showReadingInKata ? "あ" : "ア",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            )),
+                        Text(
+                          "⇌",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
-                    TextSpan(
-                      text: hanViet?.data?.radical,
-                    ),
-                  ],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.black,
                   ),
                 ),
               ),
-              const Divider(color: Colors.black),
-              futureWidget(stroke(), true, true),
-              futureWidget(getExample(), false, false),
-              getRelatedVocab(),
-              getVisualySimilar(),
-              getWkInfo(),
-              mnemonic(),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -379,7 +427,9 @@ class _KanjiPageState extends State<KanjiPage>
                 text: kanji.data?.readings
                     ?.map((e) =>
                         e.type == "onyomi" && !(e.acceptedAnswer ?? false)
-                            ? e.reading
+                            ? (!showReadingInKata
+                                ? e.reading
+                                : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
@@ -397,7 +447,9 @@ class _KanjiPageState extends State<KanjiPage>
                 text: kanji.data?.readings
                     ?.map((e) =>
                         e.type == "onyomi" && (e.acceptedAnswer ?? false)
-                            ? e.reading
+                            ? (!showReadingInKata
+                                ? e.reading
+                                : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
@@ -432,7 +484,9 @@ class _KanjiPageState extends State<KanjiPage>
                 text: kanji.data?.readings
                     ?.map((e) =>
                         e.type == "kunyomi" && !(e.acceptedAnswer ?? false)
-                            ? e.reading
+                            ? (!showReadingInKata
+                                ? e.reading
+                                : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
@@ -441,7 +495,9 @@ class _KanjiPageState extends State<KanjiPage>
                 text: kanji.data?.readings
                     ?.map((e) =>
                         e.type == "kunyomi" && (e.acceptedAnswer ?? false)
-                            ? e.reading
+                            ? (!showReadingInKata
+                                ? e.reading
+                                : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
@@ -662,6 +718,15 @@ class _KanjiPageState extends State<KanjiPage>
     );
 
     for (var vocab in relatedVocab) {
+      var mainReading = vocab.data?.readings
+              ?.firstWhereOrNull((item) => item.primary == true)
+              ?.reading ??
+          "N/A";
+
+      if (showReadingInKata) {
+        mainReading = KanaKit().toKatakana(mainReading);
+      }
+
       widgets.add(
         GestureDetector(
           onTap: () {
@@ -702,11 +767,7 @@ class _KanjiPageState extends State<KanjiPage>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          vocab.data?.readings
-                                  ?.firstWhereOrNull(
-                                      (item) => item.primary == true)
-                                  ?.reading ??
-                              "N/A",
+                          mainReading,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,
@@ -777,6 +838,15 @@ class _KanjiPageState extends State<KanjiPage>
     var gridList = <Widget>[];
 
     for (var kanji in similarKanji) {
+      var mainReading = kanji.data?.readings
+              ?.firstWhereOrNull((item) => item.primary == true)
+              ?.reading ??
+          "N/A";
+
+      if (showReadingInKata) {
+        mainReading = KanaKit().toKatakana(mainReading);
+      }
+
       gridList.add(
         GestureDetector(
           onTap: () {
@@ -807,11 +877,7 @@ class _KanjiPageState extends State<KanjiPage>
                   ),
                 ),
                 Text(
-                  kanji.data?.readings
-                          ?.firstWhereOrNull((item) => item.primary == true)
-                          ?.reading ??
-                      "N/A" ??
-                      "N/A",
+                  mainReading,
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,
@@ -1030,7 +1096,7 @@ class _KanjiPageState extends State<KanjiPage>
 
       radicalWidgets.add(
         GestureDetector(
-          onTap: (){
+          onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(

@@ -1,9 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:gap/gap.dart';
+import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/component/vocab_info_card.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
@@ -78,6 +80,8 @@ class _VocabPageState extends State<VocabPage>
 
   String? meaningVi;
 
+  bool showReadingInKata = appData.showReadingInKata;
+
   @override
   void initState() {
     super.initState();
@@ -144,115 +148,160 @@ class _VocabPageState extends State<VocabPage>
             )
           : null,
       backgroundColor: Colors.grey.shade300,
-      body: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              child: Column(
                 children: [
-                  Text("Wanikani lv${vocab.data?.level}"),
-                  Text(vocab.srsData?.data?.getSrs().label ?? ""),
-                  futureWidget(getLevelTaught(), false, false),
-                ],
-              ),
-              GestureDetector(
-                onDoubleTap: () async {
-                  bool launched = await openWebsite(
-                      "https://www.wanikani.com/vocabulary/${vocab.data?.characters}");
-                  if (!launched) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Failed to open site")));
-                  }
-                },
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.shade800,
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        vocab.data?.characters ?? "N/A",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 72,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text("Wanikani lv${vocab.data?.level}"),
+                      Text(vocab.srsData?.data?.getSrs().label ?? ""),
+                      futureWidget(getLevelTaught(), false, false),
+                    ],
+                  ),
+                  GestureDetector(
+                    onDoubleTap: () async {
+                      bool launched = await openWebsite(
+                          "https://www.wanikani.com/vocabulary/${vocab.data?.characters}");
+                      if (!launched) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Failed to open site")));
+                      }
+                    },
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade800,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            vocab.data?.characters ?? "N/A",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 72,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              if (!widget.hideMeaning)
-                getMeaning()
-              else
-                Container(
-                  alignment: Alignment.center,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
-                  ),
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "Click to show",
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              setState(() {
-                                widget.hideMeaning = !widget.hideMeaning;
-                              });
-                            },
+                  if (!widget.hideMeaning)
+                    getMeaning()
+                  else
+                    Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                      ),
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "Click to show",
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    widget.hideMeaning = !widget.hideMeaning;
+                                  });
+                                },
+                            ),
+                            TextSpan(
+                              text: " meaning",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  setState(() {
+                                    widget.hideMeaning = !widget.hideMeaning;
+                                  });
+                                },
+                            ),
+                          ],
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontSize: 18,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
-                        TextSpan(
-                          text: " meaning",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              setState(() {
-                                widget.hideMeaning = !widget.hideMeaning;
-                              });
-                            },
+                      ),
+                    ),
+                  const Divider(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          "${vocab.data?.partsOfSpeech?.join(", ")}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  getTextOfVocab(),
+                  getUsedKanji(),
+                  futureWidget(getExample(), true, true),
+                  getWkInfo(),
+                  mnemonic(),
+                ],
+              ),
+            ),
+          ),
+          if (!widget.hideReading)
+            Positioned(
+              top: MediaQuery.of(context).size.height / 3,
+              right: 5,
+              child: Material(
+                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade400,
+                borderRadius: BorderRadius.circular(50),
+                child: InkWell(
+                  onTap: () {
+                    // Scroll to top animation
+                    setState(() {
+                      showReadingInKata = !showReadingInKata;
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          right: 9,
+                          child: Text(
+                          !showReadingInKata ? "あ" : "ア",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12),
+                        )),
+                        Text(
+                          "⇌",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
-                      style: TextStyle(
-                        color: Colors.grey.shade800,
-                        fontSize: 18,
-                        fontStyle: FontStyle.italic,
-                      ),
                     ),
                   ),
                 ),
-              const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      "${vocab.data?.partsOfSpeech?.join(", ")}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
               ),
-              getTextOfVocab(),
-              getUsedKanji(),
-              futureWidget(getExample(), true, true),
-              getWkInfo(),
-              mnemonic(),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -309,7 +358,9 @@ class _VocabPageState extends State<VocabPage>
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: reading.reading,
+                          text: !showReadingInKata
+                              ? reading.reading
+                              : KanaKit().toKatakana(reading.reading ?? ""),
                           style: const TextStyle(
                             color: Colors.black,
                           ),
@@ -435,9 +486,11 @@ class _VocabPageState extends State<VocabPage>
 
     var smallKanaCount = smallKana
         .split("")
-        .map((e) => e.allMatches(reading).length)
+        .map((e) => e.allMatches(reading!).length)
         .toList()
         .sum;
+
+    if (showReadingInKata) reading = KanaKit().toKatakana(reading);
 
     List<Widget> widgetList = [];
     for (var pitch in pitchData.pitches!) {
@@ -571,6 +624,13 @@ class _VocabPageState extends State<VocabPage>
     var gridList = <Widget>[];
 
     for (var kanji in similarKanji) {
+      var mainReading = kanji.data?.readings
+              ?.firstWhereOrNull((item) => item.primary == true)!
+              .reading ??
+          "N/A";
+
+      if (showReadingInKata) mainReading = KanaKit().toKatakana(mainReading);
+
       gridList.add(
         GestureDetector(
           onTap: () {
@@ -601,10 +661,7 @@ class _VocabPageState extends State<VocabPage>
                   ),
                 ),
                 Text(
-                  kanji.data?.readings
-                          ?.firstWhereOrNull((item) => item.primary == true)!
-                          .reading ??
-                      "N/A",
+                  mainReading,
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:my_kanji_app/service/api.dart';
 import 'package:my_kanji_app/utility/ult_func.dart';
 
@@ -14,6 +15,7 @@ class _SettingPageState extends State<SettingPage> {
   late int lessonBatchSize;
   late Map<String, bool> reviewSetting;
   late int reviewDraftSize;
+  late bool showReadingInKata;
 
   @override
   void initState() {
@@ -24,6 +26,7 @@ class _SettingPageState extends State<SettingPage> {
     reviewSetting = {...appData.reviewSetting};
     lessonBatchSize = appData.lessonBatchSize;
     reviewDraftSize = appData.reviewDraftSize;
+    showReadingInKata = appData.showReadingInKata;
   }
 
   @override
@@ -116,7 +119,7 @@ class _SettingPageState extends State<SettingPage> {
               margin: const EdgeInsets.fromLTRB(15, 0, 0, 0),
               child: Column(
                 children: [
-                  for (final entry in reviewSetting.entries)
+                  for (final entry in reviewSetting.entries.take(3))
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -168,6 +171,28 @@ class _SettingPageState extends State<SettingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Show reading in カタカナ',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+                Switch(
+                  value: showReadingInKata,
+                  onChanged: (value) {
+                    setState(() {
+                      showReadingInKata = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+
+            Gap(10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context, true);
@@ -191,9 +216,10 @@ class _SettingPageState extends State<SettingPage> {
                     appData.reviewSetting = reviewSetting;
                     appData.lessonBatchSize = lessonBatchSize;
                     appData.reviewDraftSize = reviewDraftSize;
+                    appData.showReadingInKata = showReadingInKata;
 
                     appData.saveSetting();
-                    
+
                     Navigator.pop(context, true);
                   },
                   style: ElevatedButton.styleFrom(

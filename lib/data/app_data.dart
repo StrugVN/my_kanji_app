@@ -57,6 +57,8 @@ class AppData extends ChangeNotifier {
     "vocab": true,
   };
 
+  bool showReadingInKata = false;
+
   int reviewDraftSize = 10;
 
   //  ----------------------------------------------
@@ -534,6 +536,7 @@ class AppData extends ChangeNotifier {
     await prefs.setBool('sReviewRadical', reviewSetting["radical"] ?? true);
     await prefs.setBool('sReviewKanji', reviewSetting["kanji"] ?? true);
     await prefs.setBool('sReviewVocab', reviewSetting["vocab"] ?? true);
+    await prefs.setBool('sShowReadingInKata', showReadingInKata);
   }
 
   Future<void> loadSetting() async {
@@ -549,6 +552,7 @@ class AppData extends ChangeNotifier {
     reviewSetting["radical"] = prefs.getBool('sReviewRadical') ?? true;
     reviewSetting["kanji"] = prefs.getBool('sReviewKanji') ?? true;
     reviewSetting["vocab"] = prefs.getBool('sReviewVocab') ?? true;
+    showReadingInKata = prefs.getBool('sShowReadingInKata') ?? true;
   }
 
   Future<void> saveApiKey() async {
