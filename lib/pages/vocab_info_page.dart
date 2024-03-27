@@ -266,7 +266,7 @@ class _VocabPageState extends State<VocabPage>
               top: MediaQuery.of(context).size.height / 3,
               right: 5,
               child: Material(
-                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade400,
+                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade600.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(50),
                 child: InkWell(
                   onTap: () {
@@ -281,19 +281,21 @@ class _VocabPageState extends State<VocabPage>
                       children: [
                         Positioned(
                           top: 0,
-                          right: 9,
+                          right: 10.2,
                           child: Text(
                           !showReadingInKata ? "あ" : "ア",
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12),
+                              fontSize: 11.5,
+                          ),
                         )),
                         Text(
                           "⇌",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
-                              fontWeight: FontWeight.bold),
+                              // fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),

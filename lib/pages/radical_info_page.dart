@@ -76,6 +76,7 @@ class _RadicalPageState extends State<RadicalPage> {
               backgroundColor: Colors.blue,
             )
           : null,
+      backgroundColor: Colors.grey.shade300,
       body: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

@@ -321,9 +321,7 @@ class _KanjiPageState extends State<KanjiPage>
               top: MediaQuery.of(context).size.height / 3,
               right: 5,
               child: Material(
-                color: showReadingInKata
-                    ? Colors.purple.shade400
-                    : Colors.blue.shade400,
+                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade400,
                 borderRadius: BorderRadius.circular(50),
                 child: InkWell(
                   onTap: () {
@@ -337,19 +335,22 @@ class _KanjiPageState extends State<KanjiPage>
                     child: Stack(
                       children: [
                         Positioned(
-                            top: 0,
-                            right: 9,
-                            child: Text(
-                              !showReadingInKata ? "あ" : "ア",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 12),
-                            )),
+                          top: 0,
+                          right: 10.2,
+                          child: Text(
+                          !showReadingInKata ? "あ" : "ア",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                          ),
+                        )),
                         Text(
                           "⇌",
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
-                              fontWeight: FontWeight.bold),
+                              // fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),

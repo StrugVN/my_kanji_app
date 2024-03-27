@@ -552,7 +552,7 @@ class AppData extends ChangeNotifier {
     reviewSetting["radical"] = prefs.getBool('sReviewRadical') ?? true;
     reviewSetting["kanji"] = prefs.getBool('sReviewKanji') ?? true;
     reviewSetting["vocab"] = prefs.getBool('sReviewVocab') ?? true;
-    showReadingInKata = prefs.getBool('sShowReadingInKata') ?? true;
+    showReadingInKata = prefs.getBool('sShowReadingInKata') ?? false;
   }
 
   Future<void> saveApiKey() async {
