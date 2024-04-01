@@ -412,6 +412,7 @@ class _KanjiPageState extends State<KanjiPage>
   }
 
   Widget getReading() {
+    print(kanji.data?.readings?.map((e) => e.toJson().toString() + "\n").toList() ?? []);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,13 +428,14 @@ class _KanjiPageState extends State<KanjiPage>
               TextSpan(
                 text: kanji.data?.readings
                     ?.map((e) =>
-                        e.type == "onyomi" && !(e.acceptedAnswer ?? false)
+                        e.type == "onyomi" && (e.acceptedAnswer ?? false)
                             ? (!showReadingInKata
                                 ? e.reading
                                 : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               if ((kanji.data!.readings
                           ?.where((element) => element.type == "onyomi")
@@ -447,14 +449,13 @@ class _KanjiPageState extends State<KanjiPage>
               TextSpan(
                 text: kanji.data?.readings
                     ?.map((e) =>
-                        e.type == "onyomi" && (e.acceptedAnswer ?? false)
+                        e.type == "onyomi" && !(e.acceptedAnswer ?? false)
                             ? (!showReadingInKata
                                 ? e.reading
                                 : KanaKit().toKatakana(e.reading ?? ""))
                             : null)
                     .whereNotNull()
                     .join(", "),
-                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
             style: const TextStyle(
@@ -471,6 +472,18 @@ class _KanjiPageState extends State<KanjiPage>
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              TextSpan(
+                text: kanji.data?.readings
+                    ?.map((e) =>
+                        e.type == "kunyomi" && (e.acceptedAnswer ?? false)
+                            ? (!showReadingInKata
+                                ? e.reading
+                                : KanaKit().toKatakana(e.reading ?? ""))
+                            : null)
+                    .whereNotNull()
+                    .join(", "),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               if ((kanji.data!.readings
                           ?.where((element) => element.type == "kunyomi")
@@ -491,18 +504,6 @@ class _KanjiPageState extends State<KanjiPage>
                             : null)
                     .whereNotNull()
                     .join(", "),
-              ),
-              TextSpan(
-                text: kanji.data?.readings
-                    ?.map((e) =>
-                        e.type == "kunyomi" && (e.acceptedAnswer ?? false)
-                            ? (!showReadingInKata
-                                ? e.reading
-                                : KanaKit().toKatakana(e.reading ?? ""))
-                            : null)
-                    .whereNotNull()
-                    .join(", "),
-                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
             style: const TextStyle(
