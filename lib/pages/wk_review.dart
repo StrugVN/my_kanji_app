@@ -117,9 +117,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
           if (!Platform.isWindows && !Platform.isLinux) return;
           if (event.runtimeType != KeyDownEvent ||
               (event.logicalKey != LogicalKeyboardKey.enter &&
-                  event.logicalKey != LogicalKeyboardKey.equal &&
+                  // event.logicalKey != LogicalKeyboardKey.equal &&
                   event.logicalKey != LogicalKeyboardKey.period &&
-                  event.logicalKey != LogicalKeyboardKey.minus &&
+                  // event.logicalKey != LogicalKeyboardKey.minus &&
                   event.logicalKey != LogicalKeyboardKey.comma)) return;
 
           if (event.logicalKey == LogicalKeyboardKey.enter &&
@@ -131,7 +131,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
             } else {
               await recordAnswer();
             }
-          } else if (event.logicalKey == LogicalKeyboardKey.equal ||
+          } else if ( // event.logicalKey == LogicalKeyboardKey.equal ||
               event.logicalKey == LogicalKeyboardKey.period) {
             meaningInput.text = "";
             readingInput.text = "";
@@ -142,7 +142,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
               showInfo = true;
               result = true;
             });
-          } else if (event.logicalKey == LogicalKeyboardKey.minus ||
+          } else if ( // event.logicalKey == LogicalKeyboardKey.minus ||
               event.logicalKey == LogicalKeyboardKey.comma) {
             meaningInput.text = "";
             readingInput.text = "";
@@ -312,9 +312,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
               }
             },
             child: ElevatedButton.icon(
-              onPressed: ()  {
-                
-              },
+              onPressed: () {},
               icon: result != null
                   ? result!
                       ? const Icon(
@@ -512,13 +510,19 @@ class _WkReviewPageState extends State<WkReviewPage> {
             controller: readingInput,
             onChanged: (String value) {
               int cursorPosition = readingInput.selection.baseOffset;
-
               String? latin = extractLatinPart(value);
 
-              if (latin == null || latin == "n" || latin == "ny") return;
+              if (latin == null || latin == "n" || latin == "ny") {
+                readingInput.text = readingInput.text.replaceAll('-', 'ー');
+                readingInput.selection = TextSelection.fromPosition(
+                  TextPosition(offset: cursorPosition),
+                );
+                return;
+              }
 
               String higa = kanaKit.toHiragana(latin.replaceAll("nn", "n"));
-              readingInput.text = value.replaceAll(latin, higa);
+              readingInput.text =
+                  value.replaceAll(latin, higa).replaceAll('-', 'ー');
 
               if (value.length != readingInput.text.length) {
                 cursorPosition =
@@ -898,7 +902,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                     text: TextSpan(
                       children: <TextSpan>[
                         TextSpan(
-                          text: item.data?.slug,
+                          text: item.data?.characters ?? "Radical  ${item.data?.slug.toUpperCase()} ",
                           style: const TextStyle(fontSize: 20),
                         ),
                         const TextSpan(

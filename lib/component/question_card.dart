@@ -319,7 +319,8 @@ class _QuestionCardState extends State<QuestionCard> {
     }
 
     if ((kanjiOnFront && widget.item.getData().data.readings != null) ||
-        widget.isAudio || !widget.isToEN) {
+        widget.isAudio ||
+        !widget.isToEN) {
       widgets = widgets +
           [
             SizedBox(
@@ -358,20 +359,30 @@ class _QuestionCardState extends State<QuestionCard> {
 
                     String? latin = extractLatinPart(value);
 
-                    if (latin == null || latin == "n" || latin == "ny") return;
+                    if (latin == null || latin == "n" || latin == "ny") {
+                      readingInput.text =
+                          readingInput.text.replaceAll('-', 'ー');
+                      readingInput.selection = TextSelection.fromPosition(
+                        TextPosition(offset: cursorPosition),
+                      );
+                      return;
+                    }
 
                     String higa =
                         kanaKit.toHiragana(latin.replaceAll("nn", "n"));
-                    readingInput.text = value.replaceAll(latin, higa);
+                    readingInput.text =
+                        value.replaceAll(latin, higa).replaceAll('-', 'ー');
 
-                    if (value.length != readingInput.text.length) {
+                    if (value.length > readingInput.text.length) {
                       cursorPosition = cursorPosition -
                           (value.length - readingInput.text.length);
+
+                      readingInput.selection = TextSelection.fromPosition(
+                        TextPosition(offset: cursorPosition),
+                      );
                     }
 
-                    readingInput.selection = TextSelection.fromPosition(
-                      TextPosition(offset: cursorPosition),
-                    );
+                    
                   },
                   onSubmitted: (value) {},
                   decoration: InputDecoration(
