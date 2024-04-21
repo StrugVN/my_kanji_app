@@ -199,16 +199,16 @@ class _ResultPageState extends State<ResultPage> {
               ),
             ),
           );
-        } // else if (radical != null) {
-        //   Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (context) => RadicalPage(
-        //         radical: radical!,
-        //       ),
-        //     ),
-        //   );
-        // }
+        } else if (radical != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RadicalPage(
+                radical: radical!,
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),

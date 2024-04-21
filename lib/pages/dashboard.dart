@@ -1156,7 +1156,7 @@ class _DashboardState extends State<Dashboard>
 
     var result = appData.allSrsData!
         .where((element) =>
-            element.data != null && element.data!.getSrs() != SrsStage.burned)
+            element.data != null )
         .map((e) => {
               "srs": e.data!.getSrs(),
               "id": e.data!.subjectId,
@@ -1341,7 +1341,8 @@ class _DashboardState extends State<Dashboard>
         .where((element) =>
             element.data != null &&
             element.data!.unlockedAt != null &&
-            element.data!.availableAt == null)
+            element.data!.availableAt == null && 
+            (element.data!.srsStage ?? -2) < 1)
         .toList();
 
     var newItemsList = appData.allKanjiData!
