@@ -1155,8 +1155,7 @@ class _DashboardState extends State<Dashboard>
     var combineMap = {...kanjiMap, ...vocabMap};
 
     var result = appData.allSrsData!
-        .where((element) =>
-            element.data != null )
+        .where((element) => element.data != null)
         .map((e) => {
               "srs": e.data!.getSrs(),
               "id": e.data!.subjectId,
@@ -1341,7 +1340,7 @@ class _DashboardState extends State<Dashboard>
         .where((element) =>
             element.data != null &&
             element.data!.unlockedAt != null &&
-            element.data!.availableAt == null && 
+            element.data!.availableAt == null &&
             (element.data!.srsStage ?? -2) < 1)
         .toList();
 
@@ -1628,7 +1627,8 @@ class _DashboardState extends State<Dashboard>
         .where((element) =>
             element.data != null &&
             element.data!.unlockedAt != null &&
-            element.data!.availableAt == null)
+            element.data!.availableAt == null &&
+            (element.data!.srsStage ?? 0) < 1)
         .toList();
 
     List<Map<String, Object?>> newItemsList = [];
