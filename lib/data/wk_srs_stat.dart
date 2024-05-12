@@ -179,7 +179,7 @@ enum SrsStage {
   apprenticeI(1, "Apprentice I", Color.fromARGB(255, 249, 193, 211), Colors.black),
   apprenticeII(2, "Apprentice II", Color.fromARGB(255, 255, 148, 184), Colors.black),
   apprenticeIII(3, "Apprentice III", Color.fromRGBO(255, 55, 122, 1), Colors.black),
-  apprenticeIV(4, "Apprentice IV", Colors.red, Colors.black),
+  apprenticeIV(4, "Apprentice IV", Color.fromARGB(255, 247, 20, 4), Colors.black),
   guru(5, "Guru", Color.fromARGB(255, 217, 104, 236), Colors.black),
   guruII(6, "Guru II", Color.fromARGB(255, 153, 21, 177), Colors.black),
   master(7, "Master", Color.fromARGB(255, 95, 208, 99), Colors.black),

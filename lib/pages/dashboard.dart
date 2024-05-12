@@ -380,7 +380,8 @@ class _DashboardState extends State<Dashboard>
         .where((element) =>
             element.data != null &&
             element.data!.unlockedAt != null &&
-            element.data!.availableAt == null)
+            element.data!.availableAt == null &&
+            (element.data!.srsStage ?? 0) < 1)
         .toList()
         .length;
 
@@ -1341,7 +1342,7 @@ class _DashboardState extends State<Dashboard>
             element.data != null &&
             element.data!.unlockedAt != null &&
             element.data!.availableAt == null &&
-            (element.data!.srsStage ?? -2) < 1)
+            (element.data!.srsStage ?? 0) < 1)
         .toList();
 
     var newItemsList = appData.allKanjiData!

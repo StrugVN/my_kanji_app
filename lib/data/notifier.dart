@@ -61,7 +61,8 @@ class Notifier {
           .where((element) =>
               element.data != null &&
               element.data!.unlockedAt != null &&
-              element.data!.availableAt == null)
+              element.data!.availableAt == null &&
+              (element.data!.srsStage ?? 0) < 1)
           .toList()
           .length;
 
