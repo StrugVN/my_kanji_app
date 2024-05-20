@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "WakiDroid"
-#define MyAppVersion "1.0.2"
-#define MyAppPublisher "Me, lol"
+#define MyAppVersion "1.0.3"
+#define MyAppPublisher "Me"
 #define MyAppURL "https://github.com/StrugVN/"
 #define MyAppExeName "WakiDroid.exe"
 

@@ -9,6 +9,7 @@ import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/component/vocab_info_card.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/mazii_data.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
@@ -82,6 +83,8 @@ class _VocabPageState extends State<VocabPage>
 
   bool showReadingInKata = appData.showReadingInKata;
 
+  late Future<MaziiWordResponse?> maziiData;
+
   @override
   void initState() {
     super.initState();
@@ -95,6 +98,27 @@ class _VocabPageState extends State<VocabPage>
     String exampleSearchText = vocab.data!.characters!.replaceAll('〜', '');
     example = jisho.searchForExamples(exampleSearchText);
     print(vocab.data!.characters! + " / " + exampleSearchText);
+    maziiData = maziiSearchWord(exampleSearchText).then((value) {
+      if (value == null || value.found == false) return null;
+
+      if (value.data != null && value.data!.isNotEmpty) {
+        if (value.data![0].shortMean != null) {
+          // meaningVi = value.data![0].shortMean;
+
+          meaningVi = "";
+
+          value.data![0].means?.forEach((element) {
+            meaningVi = meaningVi! + (element.mean != null  ? element.mean! + '\n' : "");
+          });
+
+          meaningVi = meaningVi!.trim();
+        }
+      }
+
+      setState(() {});
+
+      return value;
+    });
 
     List<VocabPronunciationAudios>? audioData = vocab.data?.pronunciationAudios;
 
@@ -266,7 +290,9 @@ class _VocabPageState extends State<VocabPage>
               top: MediaQuery.of(context).size.height / 3,
               right: 5,
               child: Material(
-                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade600.withOpacity(0.9),
+                color: showReadingInKata
+                    ? Colors.purple.shade400
+                    : Colors.blue.shade600.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(50),
                 child: InkWell(
                   onTap: () {
@@ -280,22 +306,22 @@ class _VocabPageState extends State<VocabPage>
                     child: Stack(
                       children: [
                         Positioned(
-                          top: 0,
-                          right: 10.2,
-                          child: Text(
-                          !showReadingInKata ? "あ" : "ア",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.5,
-                          ),
-                        )),
+                            top: 0,
+                            right: 10.2,
+                            child: Text(
+                              !showReadingInKata ? "あ" : "ア",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11.5,
+                              ),
+                            )),
                         Text(
                           "⇌",
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              // fontWeight: FontWeight.bold,
-                              ),
+                            color: Colors.white,
+                            fontSize: 28,
+                            // fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -326,7 +352,7 @@ class _VocabPageState extends State<VocabPage>
         Text(
           meaningVi ?? "",
           style: const TextStyle(
-            fontSize: 19,
+            fontSize: 18,
           ),
           textAlign: TextAlign.center,
         ),
@@ -1084,6 +1110,10 @@ class _VocabPageState extends State<VocabPage>
   }
 
   Future genViMeaning() async {
+    await maziiData;
+
+    if (meaningVi != null) return;
+
     meaningVi = toCamelCase((await translator
             .translate(vocab.data?.characters ?? "", from: 'ja', to: 'vi'))
         .text);

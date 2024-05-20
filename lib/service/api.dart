@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/mazii_data.dart';
 import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
@@ -306,4 +307,48 @@ Future<String?> getSvgString(String url) async {
   } else {
     return null;
   }
+}
+
+
+// -------- Mazii
+
+
+Future<MaziiWordResponse?> maziiSearchWord(String word) async {
+  final uri = Uri.parse('https://mazii.net/api/search');
+
+  var body = jsonEncode({
+    "dict": "javi",
+    "type": "word",
+    "query": word,
+    "limit": 1,
+    "page": 1
+  });
+
+  var response = await http.post(uri, headers: {'Content-Type': 'application/json '}, body: body);
+
+  final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
+
+  var data = MaziiWordResponse.fromJson(jsonResponse);
+
+  return data;
+}
+
+Future<MaziiKanjiResponse?> maziiSearchKanji(String kanji) async {
+  final uri = Uri.parse('https://mazii.net/api/search');
+
+  var body = jsonEncode({
+    "dict": "javi",
+    "type": "kanji",
+    "query": kanji,
+    "limit": 1,
+    "page": 1
+  });
+
+  var response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+
+  final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
+
+  var data = MaziiKanjiResponse.fromJson(jsonResponse);
+
+  return data;
 }

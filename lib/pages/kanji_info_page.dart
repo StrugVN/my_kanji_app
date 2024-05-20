@@ -11,6 +11,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/kanji_set.dart';
+import 'package:my_kanji_app/data/mazii_data.dart';
 import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
@@ -77,7 +78,13 @@ class _KanjiPageState extends State<KanjiPage>
   WkSrsStatData? srsStat;
   HanViet? hanViet;
 
+  String hanVietMeaning = "";
+
+  String hanVietDetail = "";
+
   bool showReadingInKata = appData.showReadingInKata;
+
+  late Future<MaziiKanjiResponse?> maziiData;
 
   @override
   void initState() {
@@ -100,6 +107,33 @@ class _KanjiPageState extends State<KanjiPage>
         ?.firstWhereOrNull((element) => element.data?.subjectId == kanji.id);
     hanViet = appData.allHanVietData!
         .firstWhereOrNull((element) => element.kanji == kanji.data?.characters);
+
+    maziiData = maziiSearchKanji(kanji.data!.characters!).then((value) {
+      if (value == null) return;
+
+      if (value.results != null && value.results!.isNotEmpty) {
+        if (value.results![0].detail != null)
+          hanVietDetail = value.results![0].detail!.replaceAll("##", "\n");
+        if (value.results![0].mean != null) {
+          hanVietMeaning = value.results![0].mean!;
+          hanVietMeaning = toCamelCase(hanVietMeaning);
+        }
+      }
+
+      setState(() {
+        if (hanVietMeaning.isEmpty) {
+          hanVietMeaning =
+              hanViet?.meanings?.split(' ').map(toCamelCase).join(', ') ?? "";
+        }
+
+        if (hanVietDetail.isEmpty) {
+          hanVietDetail = hanViet?.examples
+                  ?.map((e) => capitalizeAfterBracket(e))
+                  .join("\n") ??
+              "N/A";
+        }
+      });
+    });
   }
 
   @override
@@ -321,7 +355,9 @@ class _KanjiPageState extends State<KanjiPage>
               top: MediaQuery.of(context).size.height / 3,
               right: 5,
               child: Material(
-                color: showReadingInKata ? Colors.purple.shade400 : Colors.blue.shade400,
+                color: showReadingInKata
+                    ? Colors.purple.shade400
+                    : Colors.blue.shade400,
                 borderRadius: BorderRadius.circular(50),
                 child: InkWell(
                   onTap: () {
@@ -335,22 +371,22 @@ class _KanjiPageState extends State<KanjiPage>
                     child: Stack(
                       children: [
                         Positioned(
-                          top: 0,
-                          right: 10.2,
-                          child: Text(
-                          !showReadingInKata ? "あ" : "ア",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11.5,
-                          ),
-                        )),
+                            top: 0,
+                            right: 10.2,
+                            child: Text(
+                              !showReadingInKata ? "あ" : "ア",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11.5,
+                              ),
+                            )),
                         Text(
                           "⇌",
                           style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              // fontWeight: FontWeight.bold,
-                              ),
+                            color: Colors.white,
+                            fontSize: 28,
+                            // fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -378,18 +414,16 @@ class _KanjiPageState extends State<KanjiPage>
           Tooltip(
             richMessage: TextSpan(
               children: [
-                TextSpan(
-                  text: hanViet!.examples
-                          ?.map((e) => capitalizeAfterBracket(e))
-                          .join("\n") ??
-                      "N/A",
-                  style: TextStyle(fontSize: 16),
+                WidgetSpan(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.7),
+                    child: Text(
+                      hanVietDetail,
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
                 ),
-                // for (var item in hanViet?.examples ?? [])
-                //   TextSpan(
-                //     text: capitalizeAfterBracket(item),
-                //     style: TextStyle(),
-                //   ),
               ],
             ),
             showDuration: Duration(seconds: 10),
@@ -398,21 +432,20 @@ class _KanjiPageState extends State<KanjiPage>
               child: Column(
                 children: [
                   Text(
-                    hanViet?.meanings?.split(' ').map(toCamelCase).join(', ') ??
-                        "",
+                    hanVietMeaning,
                     style: const TextStyle(fontSize: 21),
                     textAlign: TextAlign.left,
                   ),
                 ],
               ),
             ),
-          ),
+          )
       ],
     );
   }
 
   Widget getReading() {
-    print(kanji.data?.readings?.map((e) => e.toJson().toString() + "\n").toList() ?? []);
+    // print(kanji.data?.readings?.map((e) => e.toJson().toString() + "\n").toList() ?? []);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,7 +614,7 @@ class _KanjiPageState extends State<KanjiPage>
   }
 
   Future<Widget> getExample() async {
-    // var info = await kanjiInfo;
+    var info = await kanjiInfo;
     var exampleResults = await example;
 
     exampleResults.results.sort((a, b) => a.kanji.length - b.kanji.length);
