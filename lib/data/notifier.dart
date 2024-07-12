@@ -57,7 +57,7 @@ class Notifier {
       var srsData = await appData.getSrsData();
       // print("SRS data loaded: ${srsData.length} items @ ${DateTime.now()}");
 
-      var lessonCount = appData.allSrsData!
+      var lessonCount = srsData
           .where((element) =>
               element.data != null &&
               element.data!.unlockedAt != null &&
@@ -66,7 +66,7 @@ class Notifier {
           .toList()
           .length;
 
-      var reviewData = appData.allSrsData!.where((element) {
+      var reviewData = srsData.where((element) {
         var nextReview = element.data?.getNextReviewAsDateTime();
         return nextReview == null
             ? false
