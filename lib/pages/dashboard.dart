@@ -736,7 +736,8 @@ class _DashboardState extends State<Dashboard>
     int learnedN5 = (srsCountsN5[SrsStage.guru] ?? 0) +
         (srsCountsN5[SrsStage.guruII] ?? 0) +
         (srsCountsN5[SrsStage.master] ?? 0) +
-        (srsCountsN5[SrsStage.enlighted] ?? 0);
+        (srsCountsN5[SrsStage.enlightened] ?? 0) +
+        (srsCountsN5[SrsStage.burned] ?? 0);
 
     var totalCountN4 = getSrsCounts(srsList
         .where((element) =>
@@ -749,7 +750,8 @@ class _DashboardState extends State<Dashboard>
     int learnedN4 = (srsCountsN4[SrsStage.guru] ?? 0) +
         (srsCountsN4[SrsStage.guruII] ?? 0) +
         (srsCountsN4[SrsStage.master] ?? 0) +
-        (srsCountsN4[SrsStage.enlighted] ?? 0);
+        (srsCountsN4[SrsStage.enlightened] ?? 0) +
+        (srsCountsN4[SrsStage.burned] ?? 0);
 
     var totalCountN3 = getSrsCounts(srsList
         .where((element) =>
@@ -762,7 +764,8 @@ class _DashboardState extends State<Dashboard>
     int learnedN3 = (srsCountsN3[SrsStage.guru] ?? 0) +
         (srsCountsN3[SrsStage.guruII] ?? 0) +
         (srsCountsN3[SrsStage.master] ?? 0) +
-        (srsCountsN3[SrsStage.enlighted] ?? 0);
+        (srsCountsN3[SrsStage.enlightened] ?? 0) +
+        (srsCountsN3[SrsStage.burned] ?? 0);
 
     var totalCountN2 = getSrsCounts(srsList
         .where((element) =>
@@ -775,7 +778,8 @@ class _DashboardState extends State<Dashboard>
     int learnedN2 = (srsCountsN2[SrsStage.guru] ?? 0) +
         (srsCountsN2[SrsStage.guruII] ?? 0) +
         (srsCountsN2[SrsStage.master] ?? 0) +
-        (srsCountsN2[SrsStage.enlighted] ?? 0);
+        (srsCountsN2[SrsStage.enlightened] ?? 0) +
+        (srsCountsN2[SrsStage.burned] ?? 0);
 
     var totalCountN1 = getSrsCounts(srsList
         .where((element) =>
@@ -788,7 +792,8 @@ class _DashboardState extends State<Dashboard>
     int learnedN1 = (srsCountsN1[SrsStage.guru] ?? 0) +
         (srsCountsN1[SrsStage.guruII] ?? 0) +
         (srsCountsN1[SrsStage.master] ?? 0) +
-        (srsCountsN1[SrsStage.enlighted] ?? 0);
+        (srsCountsN1[SrsStage.enlightened] ?? 0) +
+        (srsCountsN1[SrsStage.burned] ?? 0);
 
     return Container(
       width: double.infinity,
@@ -875,19 +880,19 @@ class _DashboardState extends State<Dashboard>
                 data: appData.allKanjiData!
                         .where((element) {
                           var srs = element.srsData?.data?.getSrs();
-                          return srs == SrsStage.enlighted;
+                          return srs == SrsStage.enlightened;
                         })
                         .map((e) => e as dynamic)
                         .toList() +
                     appData.allVocabData!
                         .where((element) {
                           var srs = element.srsData?.data?.getSrs();
-                          return srs == SrsStage.enlighted;
+                          return srs == SrsStage.enlightened;
                         })
                         .map((e) => e as dynamic)
                         .toList(),
                 dataLabel: 'Retained',
-                themeColor: SrsStage.enlighted.color,
+                themeColor: SrsStage.enlightened.color,
               );
 
               ResultData burnedItems = ResultData(
@@ -938,8 +943,10 @@ class _DashboardState extends State<Dashboard>
                     SrsStage.guru.color),
                 progressionCells("Memorized", srsCounts[SrsStage.master] ?? 0,
                     SrsStage.master.color),
-                progressionCells("Retained", srsCounts[SrsStage.enlighted] ?? 0,
-                    SrsStage.enlighted.color),
+                progressionCells(
+                    "Retained",
+                    srsCounts[SrsStage.enlightened] ?? 0,
+                    SrsStage.enlightened.color),
                 progressionCells("Burned", srsCounts[SrsStage.burned] ?? 0,
                     SrsStage.burned.color),
               ],
@@ -1000,17 +1007,72 @@ class _DashboardState extends State<Dashboard>
                     ),
                     Column(
                       children: [
-                        const Text("Not studied"),
-                        Text(
-                            "${jlptN5.replaceAll(",", "").length - learnedN5}"),
-                        Text(
-                            "${jlptN4.replaceAll(",", "").length - learnedN4}"),
-                        Text(
-                            "${jlptN3.replaceAll(",", "").length - learnedN3}"),
-                        Text(
-                            "${jlptN2.replaceAll(",", "").length - learnedN2}"),
-                        Text(
-                            "${jlptN1.replaceAll(",", "").length - learnedN1}"),
+                        const Text("Total"),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(calculateOpacity(
+                                jlptN5.replaceAll(",", "").length, learnedN5)),
+                          ),
+                          child: Text(
+                            "${jlptN5.replaceAll(",", "").length}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(calculateOpacity(
+                                jlptN4.replaceAll(",", "").length, learnedN4)),
+                          ),
+                          child: Text(
+                            "${jlptN4.replaceAll(",", "").length}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(calculateOpacity(
+                                jlptN3.replaceAll(",", "").length, learnedN3)),
+                          ),
+                          child: Text(
+                            "${jlptN3.replaceAll(",", "").length}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(calculateOpacity(
+                                jlptN2.replaceAll(",", "").length, learnedN2)),
+                          ),
+                          child: Text(
+                            "${jlptN2.replaceAll(",", "").length}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(calculateOpacity(
+                                jlptN1.replaceAll(",", "").length, learnedN1)),
+                          ),
+                          child: Text(
+                            "${jlptN1.replaceAll(",", "").length}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     Column(
@@ -1810,6 +1872,14 @@ class _DashboardState extends State<Dashboard>
     } else {
       return appData.formatMap[s]!;
     }
+  }
+
+  double calculateOpacity(int length, int learned) {
+    if (learned == length) {
+      return 1.0; // Full opacity for exact matches
+    }
+    return (learned / length * 0.7)
+        .clamp(0.0, 1.0); // Reduce opacity by 30% for others
   }
 }
 

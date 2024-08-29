@@ -183,7 +183,7 @@ enum SrsStage {
   guru(5, "Guru", Color.fromARGB(255, 217, 104, 236), Colors.black),
   guruII(6, "Guru II", Color.fromARGB(255, 153, 21, 177), Colors.black),
   master(7, "Master", Color.fromARGB(255, 95, 208, 99), Colors.black),
-  enlighted(8, "Enlightened", Colors.blue, Colors.black),
+  enlightened (8, "Enlightened", Colors.blue, Colors.black),
   burned(9, "Burned", Colors.black54, Colors.white70),
   ;
 
