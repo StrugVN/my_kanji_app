@@ -65,6 +65,10 @@ class MyApp extends StatelessWidget {
         '/homePage': (context) => const Home(),
         '/login': (context) => const Login(),
       },
+      theme: ThemeData(
+        fontFamily: 'KyoukashoICA',
+        // Other theme properties
+      ),
       home: const Home(),
     );
   }
@@ -111,7 +115,4 @@ void createReminderTask() async {
     initialDelay: initialDelay,
     // frequency: const Duration(hours: 1),
   );
-
-  print(
-      "Created periodic task: $TASK_REVIEW_REMINDER_ID - $TASK_REVIEW_REMINDER_NAME - $TASK_REVIEW_REMINDER_TAG - ${initialDelay.inMinutes} minutes - 1 hour frequency");
 }
