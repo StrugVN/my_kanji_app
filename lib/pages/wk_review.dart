@@ -388,13 +388,39 @@ class _WkReviewPageState extends State<WkReviewPage> {
                   vocab != null ||
                   question != null ||
                   (radical != null && svgString == null))
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    question ?? "N/A",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 72,
+                GestureDetector(
+                  onLongPress: () {
+                    // Show tooltip on long press
+                    final dynamic tooltip = Tooltip(
+                      message: question ?? "N/A",
+                      textStyle: TextStyle(
+                        fontSize: 48.0, // Increase the text size
+                        color: Colors.white,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      showDuration: Duration(
+                          seconds: 5,
+                      ), // Set the duration for the tooltip to be visible
+                      child: Container(),
+                    );
+                    final dynamic tooltipState = tooltip.createState();
+                    tooltipState.ensureTooltipVisible();
+                  },
+                  child: Tooltip(
+                    message: question ?? "N/A",
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        question ?? "N/A",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 72,
+                          fontFamily: 'KyoukashoICA',
+                        ),
+                      ),
                     ),
                   ),
                 )
@@ -554,9 +580,13 @@ class _WkReviewPageState extends State<WkReviewPage> {
               hintStyle: const TextStyle(
                 color: Colors.grey,
                 fontSize: 18,
+                fontFamily: "KyoukashoICA",
               ),
             ),
-            style: const TextStyle(fontSize: 20.0),
+            style: const TextStyle(
+              fontSize: 20.0,
+              fontFamily: "KyoukashoICA",
+            ),
           ),
         ),
       );
@@ -902,7 +932,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
                     text: TextSpan(
                       children: <TextSpan>[
                         TextSpan(
-                          text: item.data?.characters ?? "Radical  ${item.data?.slug.toUpperCase()} ",
+                          text: item.data?.characters ??
+                              "Radical  ${item.data?.slug.toUpperCase()} ",
                           style: const TextStyle(fontSize: 20),
                         ),
                         const TextSpan(
@@ -974,8 +1005,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
                         children: <TextSpan>[
                           TextSpan(
                             text: char,
-                            style:
-                                TextStyle(color: srs?.textColor, fontSize: 20),
+                            style: TextStyle(
+                                color: srs?.textColor,
+                                fontSize: 20,
+                                fontFamily: "KyoukashoICA"),
                           ),
                           TextSpan(
                             text: "   SRS level: ${srs?.label}",

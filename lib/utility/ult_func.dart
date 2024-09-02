@@ -191,6 +191,7 @@ Widget kanjiBar(Kanji item, BuildContext context) {
               style: const TextStyle(
                 fontSize: 26,
                 color: Colors.black,
+                fontFamily: "KyoukashoICA",
               ),
               textAlign: TextAlign.left,
             ),
@@ -208,6 +209,7 @@ Widget kanjiBar(Kanji item, BuildContext context) {
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black,
+                    fontFamily: "KyoukashoICA",
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -261,6 +263,7 @@ Widget vocabBar(Vocab item, BuildContext context) {
               style: const TextStyle(
                 fontSize: 26,
                 color: Colors.black,
+                fontFamily: "KyoukashoICA",
               ),
               textAlign: TextAlign.left,
             ),
@@ -278,6 +281,7 @@ Widget vocabBar(Vocab item, BuildContext context) {
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black,
+                    fontFamily: "KyoukashoICA",
                   ),
                   textAlign: TextAlign.center,
                 ),

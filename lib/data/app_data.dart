@@ -60,7 +60,6 @@ class AppData extends ChangeNotifier {
   bool showReadingInKata = false;
 
   int reviewDraftSize = 10;
-
   //  ----------------------------------------------
 
   factory AppData() {

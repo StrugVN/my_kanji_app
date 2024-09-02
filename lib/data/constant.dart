@@ -1,4 +1,3 @@
-
 const String NOTIFICATIONS_CHANNEL_ID = 'wkdrd_channel_id';
 const String NOTIFICATIONS_CHANNEL_DESCRIPTION = 'Wakidroid Notification Channel Description';
 const int REVIEW_REMINDER_NOTIFICATION_ID = 0;

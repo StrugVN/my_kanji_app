@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/component/setting.dart';
 import 'package:my_kanji_app/data/app_data.dart';
+import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
@@ -129,7 +130,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("頑張ってよ、私")),
+          title: const Center(child: Text("頑張って", style: TextStyle(fontFamily: 'KyoukashoICA',))),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [

@@ -164,6 +164,7 @@ class _DashboardState extends State<Dashboard>
                   style: const TextStyle(
                     fontSize: 24,
                     color: Colors.black,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(
@@ -1353,7 +1354,7 @@ class _DashboardState extends State<Dashboard>
                             child: Text(
                               item["char"]?.toString() ?? "",
                               style: const TextStyle(
-                                  fontSize: 28, color: Colors.white),
+                                  fontSize: 28, color: Colors.white, fontFamily: 'KyoukashoICA',),
                             ),
                           ),
                         ),
@@ -1388,7 +1389,7 @@ class _DashboardState extends State<Dashboard>
             else
               const Text(
                 'No mistake! 凄いですよ！',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
               ),
           ],
         ),
@@ -1541,7 +1542,7 @@ class _DashboardState extends State<Dashboard>
                   children: [
                     Text(
                       (item["char"] ?? "ERR") as String,
-                      style: const TextStyle(fontSize: 24, color: Colors.white),
+                      style: const TextStyle(fontSize: 26, color: Colors.white, fontFamily: 'KyoukashoICA',),
                     ),
                     Text(
                       (item["unlockedDate"] != null
@@ -1803,7 +1804,7 @@ class _DashboardState extends State<Dashboard>
             child: Text(
               '    WK Level ${appData.userData.data?.level ?? "?"}',
               style:
-                  const TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold),
+                  const TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold,),
             ),
           ),
           children: [
@@ -1860,6 +1861,7 @@ class _DashboardState extends State<Dashboard>
           style: TextStyle(
             color: format.textColor,
             fontSize: 26,
+            fontFamily: 'KyoukashoICA',
           ),
         ),
       ),

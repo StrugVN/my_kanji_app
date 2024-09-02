@@ -65,10 +65,6 @@ class MyApp extends StatelessWidget {
         '/homePage': (context) => const Home(),
         '/login': (context) => const Login(),
       },
-      theme: ThemeData(
-        fontFamily: 'KyoukashoICA',
-        // Other theme properties
-      ),
       home: const Home(),
     );
   }

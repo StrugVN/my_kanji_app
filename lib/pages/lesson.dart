@@ -277,10 +277,20 @@ class _LessonPageState extends State<LessonPage> {
                         ),
                         child: const Icon(Icons.arrow_back),
                       ),
-                      Text(
-                        "${index + 1}/${lessonList.length}",
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.black),
+                      Column(
+                        children: [
+                          Text(
+                            "${lessonList[index]["data"].data!.characters}",
+                            style:
+                                const TextStyle(fontSize: 16, color: Colors.black),
+                          ),
+                          Text(
+                            "${index + 1}/${lessonList.length}",
+                            style:
+                                const TextStyle(fontSize: 16, color: Colors.black),
+                          ),
+                          
+                        ],
                       ),
                       ElevatedButton(
                         onPressed: () {

@@ -337,14 +337,15 @@ class _ArchiveState extends State<Archive> with AutomaticKeepAliveClientMixin {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-        margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 3, ),
+        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         decoration: BoxDecoration(color: format.color),
         child: Text(
           s,
           style: TextStyle(
             color: format.textColor,
-            fontSize: 21,
+            fontSize: 28,
+            fontFamily: 'KyoukashoICA',
           ),
         ),
       ),

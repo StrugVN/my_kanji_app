@@ -206,6 +206,7 @@ class _KanjiPageState extends State<KanjiPage>
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 96,
+                              fontFamily: 'KyoukashoICA',
                             ),
                           ),
                         ),
@@ -372,12 +373,13 @@ class _KanjiPageState extends State<KanjiPage>
                       children: [
                         Positioned(
                             top: 0,
-                            right: 10.2,
+                            right: 10,
                             child: Text(
                               !showReadingInKata ? "あ" : "ア",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11.5,
+                                fontSize: 12,
+                                fontFamily: 'KyoukashoICA',
                               ),
                             )),
                         Text(
@@ -468,7 +470,7 @@ class _KanjiPageState extends State<KanjiPage>
                             : null)
                     .whereNotNull()
                     .join(", "),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'KyoukashoICA',),
               ),
               if ((kanji.data!.readings
                           ?.where((element) => element.type == "onyomi")
@@ -489,6 +491,7 @@ class _KanjiPageState extends State<KanjiPage>
                             : null)
                     .whereNotNull()
                     .join(", "),
+                style: const TextStyle(fontFamily: 'KyoukashoICA',),
               ),
             ],
             style: const TextStyle(
@@ -516,7 +519,7 @@ class _KanjiPageState extends State<KanjiPage>
                             : null)
                     .whereNotNull()
                     .join(", "),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'KyoukashoICA',),
               ),
               if ((kanji.data!.readings
                           ?.where((element) => element.type == "kunyomi")
@@ -537,6 +540,7 @@ class _KanjiPageState extends State<KanjiPage>
                             : null)
                     .whereNotNull()
                     .join(", "),
+                style: TextStyle(fontFamily: 'KyoukashoICA',),
               ),
             ],
             style: const TextStyle(
@@ -660,13 +664,13 @@ class _KanjiPageState extends State<KanjiPage>
                                     ?.replaceAll(" ", "")
                                     .replaceAll("\n", "") ??
                                 "",
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
                           ),
                           Text(
                             item.unlifted
                                 .replaceAll(" ", "")
                                 .replaceAll("\n", ""),
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
                           ),
                         ],
                       ),
@@ -792,6 +796,7 @@ class _KanjiPageState extends State<KanjiPage>
                       style: const TextStyle(
                         fontSize: 32,
                         color: Colors.white,
+                        fontFamily: 'KyoukashoICA',
                       ),
                       textAlign: TextAlign.left,
                     ),
@@ -806,6 +811,7 @@ class _KanjiPageState extends State<KanjiPage>
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,
+                            fontFamily: 'KyoukashoICA',
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -909,6 +915,7 @@ class _KanjiPageState extends State<KanjiPage>
                   style: const TextStyle(
                     fontSize: 42,
                     color: Colors.white,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(
@@ -916,6 +923,7 @@ class _KanjiPageState extends State<KanjiPage>
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,
+                    fontFamily: 'KyoukashoICA',
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

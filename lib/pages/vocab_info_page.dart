@@ -213,6 +213,7 @@ class _VocabPageState extends State<VocabPage>
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 72,
+                              fontFamily: 'KyoukashoICA',
                             ),
                           ),
                         ),
@@ -307,12 +308,13 @@ class _VocabPageState extends State<VocabPage>
                       children: [
                         Positioned(
                             top: 0,
-                            right: 10.2,
+                            right: 10,
                             child: Text(
                               !showReadingInKata ? "あ" : "ア",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11.5,
+                                fontSize: 12,
+                                fontFamily: 'KyoukashoICA',
                               ),
                             )),
                         Text(
@@ -391,6 +393,7 @@ class _VocabPageState extends State<VocabPage>
                               : KanaKit().toKatakana(reading.reading ?? ""),
                           style: const TextStyle(
                             color: Colors.black,
+                            fontFamily: 'KyoukashoICA',
                           ),
                         )
                       ],
@@ -686,6 +689,7 @@ class _VocabPageState extends State<VocabPage>
                   style: const TextStyle(
                     fontSize: 42,
                     color: Colors.white,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(
@@ -694,6 +698,7 @@ class _VocabPageState extends State<VocabPage>
                     fontSize: 16,
                     color: Colors.white,
                     overflow: TextOverflow.ellipsis,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(
@@ -798,7 +803,7 @@ class _VocabPageState extends State<VocabPage>
               children: [
                 Text(
                   item.ja ?? "",
-                  style: const TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
                 ),
                 Text(
                   " - ${item.en}",
@@ -829,13 +834,13 @@ class _VocabPageState extends State<VocabPage>
                                     ?.replaceAll(" ", "")
                                     .replaceAll("\n", "") ??
                                 "",
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
                           ),
                           Text(
                             item.unlifted
                                 .replaceAll(" ", "")
                                 .replaceAll("\n", ""),
-                            style: const TextStyle(fontSize: 18),
+                            style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
                           ),
                         ],
                       ),

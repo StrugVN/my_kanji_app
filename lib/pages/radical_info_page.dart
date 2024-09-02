@@ -236,6 +236,7 @@ class _RadicalPageState extends State<RadicalPage> {
                   style: const TextStyle(
                     fontSize: 42,
                     color: Colors.white,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(
@@ -247,6 +248,7 @@ class _RadicalPageState extends State<RadicalPage> {
                     fontSize: 16,
                     color: Colors.white,
                     overflow: TextOverflow.ellipsis,
+                    fontFamily: 'KyoukashoICA',
                   ),
                 ),
                 Text(

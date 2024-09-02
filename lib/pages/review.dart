@@ -207,7 +207,7 @@ class _ReviewState extends State<Review> with AutomaticKeepAliveClientMixin {
 
       setState(() {
         dataList = temp
-            ?.map((e) => SubjectItem<Kanji>(subjectItem: e, isRevealed: false))
+            .map((e) => SubjectItem<Kanji>(subjectItem: e, isRevealed: false))
             .toList();
 
         isToEN = toEn;

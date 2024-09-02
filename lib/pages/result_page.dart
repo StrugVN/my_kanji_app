@@ -238,7 +238,7 @@ class _ResultPageState extends State<ResultPage> {
                               ? (radical.data?.characters ?? radical.data?.slug)
                               : "N/A")) ??
                   "N/A",
-              style: const TextStyle(fontSize: 28, color: Colors.white),
+              style: const TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'KyoukashoICA',),
             )
             else
               futureSingleWidget(getSvg(svgString), true, true),
