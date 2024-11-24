@@ -99,50 +99,53 @@ class AppData extends ChangeNotifier {
       loadSetting(),
     ]);
 
-    for (var element in allKanjiData!) {
-      var srs =
-          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
-      var review = allReviewData!
-          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+    if (allKanjiData != null)
+      for (var element in allKanjiData!) {
+        var srs = allSrsData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+        var review = allReviewData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
 
-      if (srs != null) {
-        element.srsData = srs;
+        if (srs != null) {
+          element.srsData = srs;
+        }
+
+        if (review != null) {
+          element.reviewData = review;
+        }
       }
 
-      if (review != null) {
-        element.reviewData = review;
-      }
-    }
+    if (allVocabData != null)
+      for (var element in allVocabData!) {
+        var srs = allSrsData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+        var review = allReviewData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
 
-    for (var element in allVocabData!) {
-      var srs =
-          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
-      var review = allReviewData!
-          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+        if (srs != null) {
+          element.srsData = srs;
+        }
 
-      if (srs != null) {
-        element.srsData = srs;
-      }
-
-      if (review != null) {
-        element.reviewData = review;
-      }
-    }
-
-    for (var element in allRadicalData!) {
-      var srs =
-          allSrsData!.firstWhereOrNull((e) => e.data?.subjectId == element.id);
-      var review = allReviewData!
-          .firstWhereOrNull((e) => e.data?.subjectId == element.id);
-
-      if (srs != null) {
-        element.srsData = srs;
+        if (review != null) {
+          element.reviewData = review;
+        }
       }
 
-      if (review != null) {
-        element.reviewData = review;
+    if (allRadicalData != null)
+      for (var element in allRadicalData!) {
+        var srs = allSrsData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+        var review = allReviewData!
+            .firstWhereOrNull((e) => e.data?.subjectId == element.id);
+
+        if (srs != null) {
+          element.srsData = srs;
+        }
+
+        if (review != null) {
+          element.reviewData = review;
+        }
       }
-    }
 
     if (!Platform.isWindows) {
       saveCache(null);
@@ -159,6 +162,11 @@ class AppData extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     await prefs.remove("dateOfCache");
+    await prefs.remove("kanjiCache");
+    await prefs.remove("vocabCache");
+    await prefs.remove("radicalCache");
+    await prefs.remove("srsCache");
+    await prefs.remove("reviewCache");
 
     await getData();
   }
@@ -189,7 +197,7 @@ class AppData extends ChangeNotifier {
       allKanjiData!.add(Kanji.fromJson(json));
     }
 
-    print("  Kanji count: ${allKanjiData!.length}");
+    print("  Kanji count: ${allKanjiData?.length}");
   }
 
   Future<void> loadKanjiApi() async {
@@ -237,7 +245,7 @@ class AppData extends ChangeNotifier {
       }
     }
 
-    print("  Kanji count: ${allKanjiData!.length}");
+    print("  Kanji count: ${allKanjiData?.length}");
   }
 
   @Deprecated("Use the api one")
@@ -249,7 +257,7 @@ class AppData extends ChangeNotifier {
       allVocabData!.add(Vocab.fromJson(json));
     }
 
-    print("  Vocab count: ${allVocabData!.length}");
+    print("  Vocab count: ${allVocabData?.length}");
   }
 
   Future<void> loadVocabApi() async {
@@ -298,7 +306,7 @@ class AppData extends ChangeNotifier {
       }
     }
 
-    print("  Vocab count: ${allVocabData!.length}");
+    print("  Vocab count: ${allVocabData?.length}");
   }
 
   Future<void> loadVocabPitchData() async {
@@ -309,13 +317,13 @@ class AppData extends ChangeNotifier {
       pitchData!.add(PitchData.fromJson(json));
     }
 
-    print("  Pitch count: ${pitchData!.length}");
+    print("  Pitch count: ${pitchData?.length}");
   }
 
   Future<void> loadHanVietData() async {
     allHanVietData = await appData.loadHanVietFromParts();
 
-    print("  HanViet count: ${allHanVietData!.length}");
+    print("  HanViet count: ${allHanVietData?.length}");
   }
 
   // For WK user only
@@ -395,7 +403,7 @@ class AppData extends ChangeNotifier {
       }
     }
 
-    print("  Review data count: ${allReviewData!.length}");
+    print("  Review data count: ${allReviewData?.length}");
   }
 
   Future<void> getUserData() async {
@@ -611,7 +619,7 @@ class AppData extends ChangeNotifier {
       }
     }
 
-    print("  Radical count: ${allRadicalData!.length}");
+    print("  Radical count: ${allRadicalData?.length}");
   }
 
   Future<void> saveUserData() async {

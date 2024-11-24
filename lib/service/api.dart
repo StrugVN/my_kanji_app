@@ -58,7 +58,7 @@ Future getAllSubjectAfterUpdate(types, updateAfter) async {
   try {
     Map<String, String> header = {
       "Wanikani-Revision": "20170710",
-      "Authorization": "Bearer $freeApiKey",
+      "Authorization": appData.apiKey ?? "Bearer $freeApiKey",
     };
 
     final uri = Uri.https(wkAuthority, wkSubjectPath, {

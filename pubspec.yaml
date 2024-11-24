@@ -66,6 +66,7 @@ dependencies:
   translator: ^0.1.7
   flutter_local_notifications: ^17.0.0
   workmanager: ^0.5.2
+  file_picker: ^5.2.2
 
 dev_dependencies:
   flutter_test:

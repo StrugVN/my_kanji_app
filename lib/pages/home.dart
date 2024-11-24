@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kana_kit/kana_kit.dart';
@@ -8,6 +10,7 @@ import 'package:my_kanji_app/component/setting.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/data/kanji.dart';
+import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
@@ -130,7 +133,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Center(child: Text("頑張って", style: TextStyle(fontFamily: 'KyoukashoICA',))),
+          title: const Center(
+              child: Text("頑張って",
+                  style: TextStyle(
+                    fontFamily: 'KyoukashoICA',
+                  ))),
           automaticallyImplyLeading: false,
           backgroundColor: Colors.blue,
           actions: [
@@ -336,16 +343,26 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             });
           },
         ),
-        if(Platform.isWindows)
-        PopupMenuItem<int>(
-          value: 3,
-          child: const Text('Save cache'),
-          onTap: () async {
-            showLoaderDialog(context, "Saving cache...");
-            await appData.saveCache(null);
-            Navigator.pop(context);
-          },
-        ),
+        if (Platform.isWindows)
+          PopupMenuItem<int>(
+            value: 3,
+            child: const Text('Save cache'),
+            onTap: () async {
+              showLoaderDialog(context, "Saving cache...");
+              await appData.saveCache(null);
+              Navigator.pop(context);
+            },
+          ),
+        if (Platform.isWindows)
+          PopupMenuItem<int>(
+            value: 4,
+            child: const Text('Dump data'),
+            onTap: () async {
+              showLoaderDialog(context, "Exporting...");
+              await exportDataToFiles();
+              Navigator.pop(context);
+            },
+          ),
         PopupMenuItem<int>(
           value: 0,
           child: const Text('Log out'),
@@ -622,5 +639,91 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     _timer?.cancel();
     // TODO: implement dispose
     super.dispose();
+  }
+
+// Function to generate heatmap data
+  Map<String, int> generateHeatMapData(
+      List<Map<String, String?>> dataList, String key) {
+    Map<String, int> heatMapData = {};
+
+    // Date format to be used (YYYY-MM-DD)
+    DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+
+    // Loop through each item and extract the date
+    for (var data in dataList) {
+      String? dateString = data[key];
+      if (dateString == null) continue; // Skip if the date is null
+
+      DateTime dateTime = DateTime.parse(dateString);
+      String formattedDate = dateFormat.format(dateTime);
+
+      // Count occurrences of each date
+      if (heatMapData.containsKey(formattedDate)) {
+        heatMapData[formattedDate] = heatMapData[formattedDate]! + 1;
+      } else {
+        heatMapData[formattedDate] = 1;
+      }
+    }
+
+    // Sort the heatmap data by date (keys) in increasing order
+    var sortedKeys = heatMapData.keys.toList()..sort((a, b) => a.compareTo(b));
+    Map<String, int> sortedHeatMapData = {
+      for (var key in sortedKeys) key: heatMapData[key]!
+    };
+
+    return sortedHeatMapData;
+  }
+
+  Future<void> writeToFile(
+      String directory, String fileName, String jsonData) async {
+    final file = File('$directory/$fileName');
+    await file.writeAsString(jsonData);
+  }
+
+  Future<void> exportDataToFiles() async {
+    // Let the user select a directory to export the files
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory == null) {
+      // User canceled the picker
+      print("No folder selected.");
+      return;
+    }
+
+    // Collect all items into a common structure
+    List<Map<String, String?>> combinedDataList = [];
+
+    // Combine Kanji, Vocab, and Radical into one list with both created_at and data_updated_at
+    appData.allSrsData?.forEach((srs) {
+      combinedDataList.add({
+        'started_at': srs.data?.startedAt,
+        'data_updated_at': srs.dataUpdatedAt,
+      });
+    });
+
+    // Generate heatmap data for created_at and data_updated_at
+    Map<String, int> createdAtHeatMap =
+        generateHeatMapData(combinedDataList, 'started_at');
+    Map<String, int> updatedAtHeatMap =
+        generateHeatMapData(combinedDataList, 'data_updated_at');
+
+    // Convert each list to JSON
+    String kanjiJson = jsonEncode(
+        appData.allKanjiData?.map((kanji) => kanji.toJson()).toList());
+    String vocabJson = jsonEncode(
+        appData.allVocabData?.map((vocab) => vocab.toJson()).toList());
+    String radicalJson = jsonEncode(
+        appData.allRadicalData?.map((radical) => radical.toJson()).toList());
+
+    // Write the data to separate files
+    await writeToFile(selectedDirectory, 'kanji_data.json', kanjiJson);
+    await writeToFile(selectedDirectory, 'vocab_data.json', vocabJson);
+    await writeToFile(selectedDirectory, 'radical_data.json', radicalJson);
+
+    await writeToFile(selectedDirectory, 'created_at_heatmap.json',
+        jsonEncode(createdAtHeatMap));
+    await writeToFile(selectedDirectory, 'data_updated_at_heatmap.json',
+        jsonEncode(updatedAtHeatMap));
+
+    print("Data exported successfully.");
   }
 }
