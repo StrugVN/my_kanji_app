@@ -651,36 +651,61 @@ class _KanjiPageState extends State<KanjiPage>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  alignment: WrapAlignment.start,
-                  crossAxisAlignment: WrapCrossAlignment.start,
+                Tooltip(
+                  richMessage: TextSpan(
                   children: [
-                    for (var item in fixFurigana(sentence.pieces))
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.lifted
-                                    ?.replaceAll(" ", "")
-                                    .replaceAll("\n", "") ??
-                                "",
-                            style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
-                          ),
-                          Text(
-                            item.unlifted
-                                .replaceAll(" ", "")
-                                .replaceAll("\n", ""),
-                            style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
-                          ),
-                        ],
+                    WidgetSpan(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7),
+                        child: Text(
+                          sentence.english,
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       ),
+                    ),
                   ],
                 ),
-                Text(
-                  " - ${sentence.english}",
-                  style: const TextStyle(fontSize: 17),
+                showDuration: Duration(seconds: 10),
+                  child: Wrap(
+                    alignment: WrapAlignment.start,
+                    crossAxisAlignment: WrapCrossAlignment.start,
+                    children: [
+                      for (var item in fixFurigana(sentence.pieces))
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.lifted
+                                      ?.replaceAll(" ", "")
+                                      .replaceAll("\n", "") ??
+                                  "",
+                              style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
+                            ),
+                            Text(
+                              item.unlifted
+                                  .replaceAll(" ", "")
+                                  .replaceAll("\n", ""),
+                              style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-                const Gap(5),
+                // add a small thin line center middle
+                const Gap(3),
+                const Divider(
+                  color: Colors.black,
+                  thickness: 0.2,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                const Gap(3),
+                // Text(
+                //   " - ${sentence.english}",
+                //   style: const TextStyle(fontSize: 17),
+                // ),
               ],
             ),
           ),

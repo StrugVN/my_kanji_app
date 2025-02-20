@@ -801,15 +801,40 @@ class _VocabPageState extends State<VocabPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  item.ja ?? "",
-                  style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
+                Tooltip(
+                  richMessage: TextSpan(
+                    children: [
+                      WidgetSpan(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7),
+                          child: Text(
+                            "${item.en}",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  showDuration: Duration(seconds: 10),
+                  child: Text(
+                    item.ja ?? "",
+                    style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
+                  ),
                 ),
-                Text(
-                  " - ${item.en}",
-                  style: const TextStyle(fontSize: 17),
+                const Gap(3),
+                const Divider(
+                  color: Colors.black,
+                  thickness: 0.2,
+                  indent: 20,
+                  endIndent: 20,
                 ),
-                const Gap(5),
+                const Gap(3),
+                // Text(
+                //   " - ${item.en}",
+                //   style: const TextStyle(fontSize: 17),
+                // ),
+                // const Gap(5),
               ],
             ),
           ),
@@ -821,36 +846,60 @@ class _VocabPageState extends State<VocabPage>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  alignment: WrapAlignment.start,
-                  crossAxisAlignment: WrapCrossAlignment.start,
-                  children: [
-                    for (var item in fixFurigana(sentence.pieces))
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.lifted
-                                    ?.replaceAll(" ", "")
-                                    .replaceAll("\n", "") ??
-                                "",
-                            style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
+                Tooltip(
+                  richMessage: TextSpan(
+                    children: [
+                      WidgetSpan(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7),
+                          child: Text(
+                            sentence.english,
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
-                          Text(
-                            item.unlifted
-                                .replaceAll(" ", "")
-                                .replaceAll("\n", ""),
-                            style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
-                          ),
-                        ],
+                        ),
                       ),
-                  ],
+                    ],
+                  ),
+                  showDuration: Duration(seconds: 10),
+                  child: Wrap(
+                    alignment: WrapAlignment.start,
+                    crossAxisAlignment: WrapCrossAlignment.start,
+                    children: [
+                      for (var item in fixFurigana(sentence.pieces))
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.lifted
+                                      ?.replaceAll(" ", "")
+                                      .replaceAll("\n", "") ??
+                                  "",
+                              style: const TextStyle(fontSize: 12, fontFamily: 'KyoukashoICA',),
+                            ),
+                            Text(
+                              item.unlifted
+                                  .replaceAll(" ", "")
+                                  .replaceAll("\n", ""),
+                              style: const TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
-                Text(
-                  " - ${sentence.english}",
-                  style: const TextStyle(fontSize: 17),
+                const Gap(3),
+                const Divider(
+                  color: Colors.black,
+                  thickness: 0.2,
+                  indent: 20,
+                  endIndent: 20,
                 ),
-                const Gap(5),
+                const Gap(3),
+                // Text(
+                //   " - ${sentence.english}",
+                //   style: const TextStyle(fontSize: 17),
+                // ),
               ],
             ),
           ),
