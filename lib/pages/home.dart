@@ -94,6 +94,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       // Load data
       appData.apiKey = "Bearer $apiKey";
       await appData.getData();
+      appData.sentenceReviewFuture = appData.getSentenceReview();
     } else {
       Navigator.pop(context, true);
       Navigator.push(
@@ -361,6 +362,27 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               showLoaderDialog(context, "Exporting...");
               await exportDataToFiles();
               Navigator.pop(context);
+            },
+          ),
+        PopupMenuItem<int>(
+            value: 5,
+            child: 
+            FutureBuilder<bool>(
+              future: appData.sentenceReviewFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text('Running...');
+                } else if (snapshot.hasError) {
+                  return const Text('Error. Retry?');
+                } else if (snapshot.data == true) {
+                  return const Text('Available! Retry?');
+                } else {
+                  return const Text('No response. Retry?');
+                }
+              },
+            ),
+            onTap: () async {
+              appData.sentenceReviewFuture = appData.getSentenceReview();
             },
           ),
         PopupMenuItem<int>(

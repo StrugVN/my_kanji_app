@@ -1513,10 +1513,11 @@ class _DashboardState extends State<Dashboard>
                   ResultData(
                       data: newItemsList.map((e) => e["data"]).toList(),
                       dataLabel: "Available Items",
-                      themeColor: Colors.black)
+                      themeColor: Colors.black,)
                 ],
                 title: 'Lessons',
                 titleTheme: Colors.pink,
+                selectable: true,
               ),
             ),
           );

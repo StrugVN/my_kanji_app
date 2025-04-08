@@ -14,9 +14,10 @@ import 'package:collection/collection.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
 class LessonPage extends StatefulWidget {
-  const LessonPage({super.key, this.newItemsList});
+  const LessonPage({super.key, this.newItemsList, this.ignoreLimit = false});
 
   final List<Map<String, Object?>>? newItemsList;
+  final bool ignoreLimit;
 
   @override
   State<LessonPage> createState() => _LessonPageState();
@@ -153,7 +154,7 @@ class _LessonPageState extends State<LessonPage> {
           .compareTo(b["unlockedDate"] as DateTime);
     });
 
-    lessonList = newItemsList.take(appData.lessonBatchSize).toList();
+    lessonList = newItemsList.take(widget.ignoreLimit ? newItemsList.length : appData.lessonBatchSize).toList();
 
     for (int ind = 0; ind < lessonList.length; ind++) {
       lessonPages.add(getInfoPage(lessonList[ind]["data"]));

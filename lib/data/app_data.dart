@@ -4,10 +4,12 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:my_kanji_app/component/selector.dart';
+import 'package:my_kanji_app/data/gemini_data.dart';
 import 'package:my_kanji_app/data/hanviet_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/pitch_data.dart';
 import 'package:my_kanji_app/data/radical.dart';
+import 'package:my_kanji_app/data/sentence_data.dart';
 import 'package:my_kanji_app/data/userdata.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_stat.dart';
@@ -42,6 +44,10 @@ class AppData extends ChangeNotifier {
   Map<String, Widget> characterCells = {};
 
   SourceTypeLabel stuffSourceLabel = SourceTypeLabel.Wanikani;
+
+  late Future<bool> sentenceReviewFuture;
+  List<Sentence> sentenceReviewList = [];
+
   // App setting ===========================================
   Map<String, bool> lessonSetting = {
     "radical": true,
@@ -74,7 +80,7 @@ class AppData extends ChangeNotifier {
 
   Future<void> assertDataIsLoaded() async {
     while (dataIsLoaded == false) {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 200));
     }
   }
 
@@ -667,5 +673,61 @@ class AppData extends ChangeNotifier {
   Future<void> offloadSaveCacheOperation() async {
     // ReceivePort receivePort = ReceivePort();
     Isolate.spawn(saveCache, null);
+  }
+
+  Future<bool> getSentenceReview() async {
+    await assertDataIsLoaded();
+
+    var vocabReviewList = appData.allVocabData
+            ?.where((element) {
+              var nextReview = element.srsData?.data?.getNextReviewAsDateTime();
+              return nextReview == null
+                  ? false
+                  : nextReview.toLocal().isBefore(DateTime.now());
+            })
+            .map((e) => e.data?.characters)
+            .whereNotNull()
+            .where((element) => !element.contains('〜'))
+            .toList() ??
+        [];
+    GeminiResponse? response = await geminiBatchSearchWords(vocabReviewList);
+
+    if (response == null ||
+        response.candidates?.length == 0 ||
+        response.candidates?[0].content?.parts?.length == 0) {
+      return false;
+    }
+
+    String? rawJson =
+        response.candidates?[0].content?.parts?[0]['text'] ?? null;
+
+    if (rawJson == null || rawJson.isEmpty) {
+      return false;
+    }
+
+    String jsonString = rawJson.replaceAll('```', '').replaceAll('json', '');
+
+    List<Sentence> tempSentenceList = (jsonDecode(jsonString) as List)
+        .map((e) => Sentence.fromJson(e))
+        .toList();
+    sentenceReviewList = tempSentenceList;
+
+    sentenceReviewList.forEach((element) {
+      element.generatePartsAndReadings();
+    });
+    
+    print("-----------------------------");
+    print(sentenceReviewList[0].toJson());
+    print("-----------------------------");
+    print(sentenceReviewList[1].toJson());
+    print("-----------------------------");
+    print(sentenceReviewList[2].toJson());
+
+    return true;
+  }
+
+  Sentence? getSentenceReviewByWord(String word) {
+    return sentenceReviewList
+        .firstWhereOrNull((element) => element.word == word);
   }
 }

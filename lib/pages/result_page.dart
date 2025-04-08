@@ -4,6 +4,7 @@ import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/radical.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
+import 'package:my_kanji_app/pages/lesson.dart';
 import 'package:my_kanji_app/pages/radical_info_page.dart';
 import 'package:my_kanji_app/pages/vocab_info_page.dart';
 import 'package:collection/collection.dart';
@@ -15,17 +16,20 @@ class ResultPage extends StatefulWidget {
       {super.key,
       required this.listData,
       required this.title,
-      required this.titleTheme});
+      required this.titleTheme,
+      this.selectable = false});
 
   final List<ResultData> listData;
   final String title;
   final Color titleTheme;
+  final bool selectable;
 
   @override
   State<ResultPage> createState() => _ResultPageState(
         listData: listData,
         title: title,
         titleTheme: titleTheme,
+        selectable: selectable,
       );
 }
 
@@ -33,9 +37,15 @@ class _ResultPageState extends State<ResultPage> {
   final List<ResultData> listData;
   final String title;
   final Color titleTheme;
+  final bool selectable;
+
+  List<int> selectedIds = [];
 
   _ResultPageState(
-      {required this.listData, required this.title, required this.titleTheme});
+      {required this.listData,
+      required this.title,
+      required this.titleTheme,
+      required this.selectable});
 
   @override
   Widget build(BuildContext context) {
@@ -71,52 +81,94 @@ class _ResultPageState extends State<ResultPage> {
           backgroundColor: titleTheme,
         ),
         backgroundColor: Colors.blueGrey.shade100,
-        body: SingleChildScrollView(
-          child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                // color: Colors.blueGrey.shade200,
-                // image: DecorationImage(
-                //   image: AssetImage('assets/images/white_with_border.jpg'),
-                //   fit: BoxFit.fill,
-                // ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: titleTheme,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0.0),
+        body: Stack(children: [
+          SingleChildScrollView(
+            child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                // margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                    // color: Colors.blueGrey.shade200,
+                    // image: DecorationImage(
+                    //   image: AssetImage('assets/images/white_with_border.jpg'),
+                    //   fit: BoxFit.fill,
+                    // ),
+                    ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: titleTheme,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0.0),
+                          ),
                         ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: SizedBox(
-                        child: RichText(
-                          text: const TextSpan(
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: ' Close ',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: SizedBox(
+                          child: RichText(
+                            text: const TextSpan(
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: ' Close ',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
+                    for (var group in widget.listData) groupContainer(group),
+                  ],
+                )),
+          ),
+          if (widget.selectable)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.shade200,
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  for (var group in widget.listData) groupContainer(group),
-                ],
-              )),
-        ));
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.titleTheme,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(0.0),
+                      ),
+                    ),
+                    onPressed: () {
+                      openLessons();
+                    },
+                    child: SizedBox(
+                      child: RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text:
+                                  ' Start lesson${selectedIds.length > 1 ? 's' : ''} (${selectedIds.length}) ',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )),
+            )
+        ]));
   }
 
   Widget groupContainer(ResultData data) {
@@ -181,6 +233,17 @@ class _ResultPageState extends State<ResultPage> {
 
     return GestureDetector(
       onTap: () {
+        if (selectable) {
+          if (selectedIds.contains(item?.id)) {
+            selectedIds.remove(item?.id);
+          } else {
+            selectedIds.add(item?.id);
+          }
+          setState(() {});
+
+          return;
+        }
+        // -----------------------------------------------------------
         if (kanji != null) {
           Navigator.push(
             context,
@@ -210,41 +273,65 @@ class _ResultPageState extends State<ResultPage> {
           );
         }
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-        decoration: BoxDecoration(
-          // color: kanji != null ? Colors.pink.shade600 : Colors.purple.shade800,
-          color: (kanji != null
-              ? Colors.pink.shade600
-              : (vocab != null
-                  ? Colors.purple.shade800
-                  : radical != null
-                      ? Colors.lightBlue
-                      : Colors.grey)),
+      child: Stack(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+          margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+          decoration: BoxDecoration(
+            // color: kanji != null ? Colors.pink.shade600 : Colors.purple.shade800,
+            color: (kanji != null
+                ? Colors.pink.shade600
+                : (vocab != null
+                    ? Colors.purple.shade800
+                    : radical != null
+                        ? Colors.lightBlue
+                        : Colors.grey)),
+          ),
+          child: Column(
+            children: [
+              if (kanji != null ||
+                  vocab != null ||
+                  radical?.data?.characters != null ||
+                  (radical != null && svgString == null))
+                Text(
+                  ((kanji != null
+                          ? kanji.data?.characters
+                          : (vocab != null
+                              ? vocab.data?.characters
+                              : radical != null
+                                  ? (radical.data?.characters ??
+                                      radical.data?.slug)
+                                  : "N/A")) ??
+                      "N/A"),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.white,
+                    fontFamily: 'KyoukashoICA',
+                  ),
+                )
+              else
+                futureSingleWidget(getSvg(svgString), true, true),
+            ],
+          ),
         ),
-        child: Column(
-          children: [
-            if (kanji != null ||
-                vocab != null ||
-                radical?.data?.characters != null ||
-                (radical != null && svgString == null))
-            Text(
-              (kanji != null
-                      ? kanji.data?.characters
-                      : (vocab != null
-                          ? vocab.data?.characters
-                          : radical != null
-                              ? (radical.data?.characters ?? radical.data?.slug)
-                              : "N/A")) ??
-                  "N/A",
-              style: const TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'KyoukashoICA',),
-            )
-            else
-              futureSingleWidget(getSvg(svgString), true, true),
-          ],
-        ),
-      ),
+        if (isSelected(item?.id))
+          Positioned(
+            top: -8,
+            right: -8,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(50),
+              child: Text(
+                " ✓ ",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.green.shade400,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ]),
     );
   }
 
@@ -265,6 +352,107 @@ class _ResultPageState extends State<ResultPage> {
     } else {
       return const SizedBox.shrink();
     }
+  }
+
+  bool isSelected(int? id) {
+    return selectable && id != null && selectedIds.contains(id);
+  }
+
+  void openLessons() {
+    List<Map<String, Object?>> newItemsList = getLessonReview();
+
+    Navigator.pop(context, true);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LessonPage(
+          newItemsList: newItemsList,
+          ignoreLimit: true,
+        ),
+        settings: const RouteSettings(name: "lessonPage"),
+      ),
+    );
+  }
+
+  List<Map<String, Object?>> getLessonReview() {
+    var lessonItem = appData.allSrsData!
+        .where((element) =>
+            element.data != null &&
+            element.data!.unlockedAt != null &&
+            element.data!.availableAt == null &&
+            (element.data!.srsStage ?? 0) < 1 &&
+            isSelected(element.data?.subjectId))
+        .toList();
+
+    List<Map<String, Object?>> newItemsList = [];
+
+    newItemsList = newItemsList +
+        appData.allKanjiData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": true,
+            "level": element.data?.level,
+            "data": element,
+          };
+        }).toList();
+
+    newItemsList = newItemsList +
+        appData.allVocabData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "level": element.data?.level,
+            "data": element,
+          };
+        }).toList();
+
+    newItemsList = newItemsList +
+        appData.allRadicalData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "level": element.data?.level,
+            "data": element,
+          };
+        }).toList();
+
+    return newItemsList;
   }
 }
 

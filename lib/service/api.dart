@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:my_kanji_app/data/gemini_data.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/mazii_data.dart';
@@ -16,6 +17,8 @@ import 'package:html/parser.dart' as parser;
 final appData = AppData();
 
 const String freeApiKey = "4bd7a48c-681f-4aad-9039-04556b53bc90";
+
+const String GeminiApiKey = "";
 
 Future<Response> getUser(String apiKey) {
   Map<String, String> header = {
@@ -309,22 +312,16 @@ Future<String?> getSvgString(String url) async {
   }
 }
 
-
 // -------- Mazii
-
 
 Future<MaziiWordResponse?> maziiSearchWord(String word) async {
   final uri = Uri.parse('https://mazii.net/api/search');
 
-  var body = jsonEncode({
-    "dict": "javi",
-    "type": "word",
-    "query": word,
-    "limit": 1,
-    "page": 1
-  });
+  var body = jsonEncode(
+      {"dict": "javi", "type": "word", "query": word, "limit": 1, "page": 1});
 
-  var response = await http.post(uri, headers: {'Content-Type': 'application/json '}, body: body);
+  var response = await http.post(uri,
+      headers: {'Content-Type': 'application/json '}, body: body);
 
   final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
 
@@ -336,19 +333,53 @@ Future<MaziiWordResponse?> maziiSearchWord(String word) async {
 Future<MaziiKanjiResponse?> maziiSearchKanji(String kanji) async {
   final uri = Uri.parse('https://mazii.net/api/search');
 
-  var body = jsonEncode({
-    "dict": "javi",
-    "type": "kanji",
-    "query": kanji,
-    "limit": 1,
-    "page": 1
-  });
+  var body = jsonEncode(
+      {"dict": "javi", "type": "kanji", "query": kanji, "limit": 1, "page": 1});
 
-  var response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+  var response = await http.post(uri,
+      headers: {'Content-Type': 'application/json'}, body: body);
 
   final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
 
   var data = MaziiKanjiResponse.fromJson(jsonResponse);
+
+  return data;
+}
+
+Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
+  final uri = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GeminiApiKey');
+
+  var body = jsonEncode({
+    "system_instruction": {
+      "parts": [
+        {
+          "text":
+             "You are a Japanese learning assistant API. Each response is a JSON containing a list of sentences. Each sentence must include: 'word' (the prompted word), 'sentence' (a natural, original sentence), 'reading' contain the sentence written in only hiragana, and 'meaning' (the meaning in English). Do not include any reading guide in the 'sentence'. If the given word is a single kanji, use its standalone reading and meaning, not in a compound word.\n\nMake sure each sentence is different from any typical or previously generated ones. Add variation by changing context, speaker, tone, or setting. Prioritize uniqueness.\n\nIf the given word is a verb or adjective, prioritize using a conjugated or て-form version of the word rather than its dictionary form when building the sentence."
+        }
+      ]
+    },
+    "contents": [
+      {
+        "parts": [
+          {
+            "text":
+                "Make Japanese sentences using each of these word [${words.map((e) => "'" + e + "'").join(",")}] (1 for each word)"
+          }
+        ]
+      }
+    ]
+  });
+
+  print("----------------GEMINI API---------------------");
+  print(words.map((e) => "'" + e + "'").join(","));
+
+  var response = await http.post(uri,
+      headers: {'Content-Type': 'application/json'}, body: body);
+
+  final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
+
+  var data = GeminiResponse.fromJson(jsonResponse);
 
   return data;
 }

@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 import 'package:kana_kit/kana_kit.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/radical.dart';
+import 'package:my_kanji_app/data/sentence_data.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/data/wk_review_respone.dart';
@@ -363,6 +364,13 @@ class _WkReviewPageState extends State<WkReviewPage> {
             ? vocab.data?.characters
             : radical?.data?.characters;
 
+    Sentence? sentence = vocab != null && question != null
+        ? appData.getSentenceReviewByWord(question)
+        : null;
+
+    print(sentence?.sentence);
+    print("Hiragana: ${kanaKit.toHiragana(sentence?.sentence ?? "")}");
+
     var svg = radical?.data!.characterImages
         ?.firstWhereOrNull((element) => element.contentType == "image/svg+xml");
 
@@ -402,7 +410,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       showDuration: Duration(
-                          seconds: 5,
+                        seconds: 5,
                       ), // Set the duration for the tooltip to be visible
                       child: Container(),
                     );
@@ -411,16 +419,43 @@ class _WkReviewPageState extends State<WkReviewPage> {
                   },
                   child: Tooltip(
                     message: question ?? "N/A",
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        question ?? "N/A",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 72,
-                          fontFamily: 'KyoukashoICA',
+                    child: Column(
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            question ?? "N/A",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 64,
+                              fontFamily: 'KyoukashoICA',
+                            ),
+                          ),
                         ),
-                      ),
+                        if (sentence != null && sentence.sentence != null)
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              sentence.sentence!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontFamily: 'KyoukashoICA',
+                              ),
+                            ),
+                          ),
+                        if (sentence != null && sentence.meaning != null && !isReadingAsked && (result == true || showInfo))
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              sentence.meaning!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 )
