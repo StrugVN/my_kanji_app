@@ -371,7 +371,6 @@ class _VocabPageState extends State<VocabPage>
   getTextOfVocab() {
     String char = vocab.data!.characters ?? "N/A";
     var readings = vocab.data!.readings;
-
     if (readings != null) {
       if (!widget.hideReading)
         return Center(

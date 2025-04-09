@@ -369,7 +369,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
         : null;
 
     print(sentence?.sentence);
-    print("Hiragana: ${kanaKit.toHiragana(sentence?.sentence ?? "")}");
+    print("Parts: ");
+    print(sentence?.reading);
+    print(sentence?.parts);
+    print(sentence?.partsReading);
 
     var svg = radical?.data!.characterImages
         ?.firstWhereOrNull((element) => element.contentType == "image/svg+xml");
@@ -432,11 +435,55 @@ class _WkReviewPageState extends State<WkReviewPage> {
                             ),
                           ),
                         ),
-                        if (sentence != null && sentence.sentence != null)
+                        if (sentence != null &&
+                            sentence.sentence != null &&
+                            sentence.isPartsAvailable())
+                          Align(
+                            // alignment: Alignment.centerLeft,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Wrap(
+                                alignment: WrapAlignment.start,
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                children: [
+                                  for (var i = 0;
+                                      i < sentence.parts!.length;
+                                      i++)
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        if (isReadingAsked &&
+                                            (result == true || showInfo))
+                                          Text(
+                                            sentence.partsReading![i],
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontFamily: 'KyoukashoICA',
+                                            ),
+                                          ),
+                                        Text(
+                                          sentence.parts![i],
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontFamily: 'KyoukashoICA',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (sentence != null &&
+                            sentence.sentence != null &&
+                            !sentence.isPartsAvailable())
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              sentence.sentence!,
+                              "・" + (sentence.sentence ?? ""),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 24,
@@ -444,7 +491,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
                               ),
                             ),
                           ),
-                        if (sentence != null && sentence.meaning != null && !isReadingAsked && (result == true || showInfo))
+                        if (sentence != null &&
+                            sentence.meaning != null &&
+                            !isReadingAsked &&
+                            (result == true || showInfo))
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(

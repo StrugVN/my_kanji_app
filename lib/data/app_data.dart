@@ -707,21 +707,19 @@ class AppData extends ChangeNotifier {
 
     String jsonString = rawJson.replaceAll('```', '').replaceAll('json', '');
 
-    List<Sentence> tempSentenceList = (jsonDecode(jsonString) as List)
+    sentenceReviewList = (jsonDecode(jsonString) as List)
         .map((e) => Sentence.fromJson(e))
         .toList();
-    sentenceReviewList = tempSentenceList;
 
     sentenceReviewList.forEach((element) {
       element.generatePartsAndReadings();
+
+      if (element.sentence?.contains("(") ?? false){
+        print("  Warning: ${element.toJson()}");
+      }
     });
-    
-    print("-----------------------------");
-    print(sentenceReviewList[0].toJson());
-    print("-----------------------------");
-    print(sentenceReviewList[1].toJson());
-    print("-----------------------------");
-    print(sentenceReviewList[2].toJson());
+
+    print("  Sentence review count: ${sentenceReviewList.length}");
 
     return true;
   }

@@ -1,3 +1,5 @@
+import 'package:kana_kit/kana_kit.dart';
+
 class Sentence {
   String? sentence;
   String? meaning;
@@ -26,52 +28,98 @@ class Sentence {
     return data;
   }
 
-  void generatePartsAndReadings() {
-    // Simple manual tokenizer (replace this with proper tokenizer in real app)
-    List<String> tempParts = _mockTokenize(sentence!);
-    List<String> tempReadings = _mockTokenize(reading!);
+  bool isPartsAvailable() {
+    return parts != null &&
+        parts!.isNotEmpty &&
+        partsReading != null &&
+        partsReading!.isNotEmpty &&
+        parts!.length == partsReading!.length;
+  }
 
-    parts = tempParts;
+  /// Processes the [reading] string and splits it into [parts] and [partsReading].
+  ///
+  /// The method detects segments that follow the pattern "休憩(きゅうけい)".
+  /// - For a segment like "休憩(きゅうけい)", it extracts "休憩" as the annotated token
+  ///   and "きゅうけい" as its reading.
+  /// - Any non-annotated text (typically hiragana) is added as a segment with an empty reading.
+  ///
+  /// For example, the string:
+  ///   "その辺(あた)りで休憩(きゅうけい)しませんか。"
+  /// is split into:
+  ///   parts: ["その", "辺", "りで", "休憩", "しませんか。"]
+  ///   partsReading: ["", "あた", "", "きゅうけい", ""]
+  void generatePartsAndReadings() {
+    if (reading == null || reading!.isEmpty) return;
+
+    parts = [];
     partsReading = [];
 
-    print(tempParts);
-    print(tempReadings);
+    int cursor = 0;
+    String input = reading!;
 
-    for (int i = 0; i < tempParts.length; i++) {
-      final part = tempParts[i];
-      final readingPart = tempReadings[i];
+    while (cursor < input.length) {
+      // Find the next opening parenthesis
+      int indexOpen = input.indexOf('(', cursor);
+      if (indexOpen == -1) {
+        // No annotated token remaining; add the rest of the text as plain segment.
+        String remainder = input.substring(cursor);
+        if (remainder.isNotEmpty) {
+          parts!.add(remainder);
+          partsReading!.add("");
+        }
+        break;
+      }
 
-      // Only keep reading if it's not already visible in the part (i.e., not pure kana)
-      final kanaOnly = RegExp(r'^[ぁ-んァ-ンー]+$');
-      if (kanaOnly.hasMatch(part)) {
-        partsReading!.add('');
-      } else {
-        // Compare visible Hiragana and remove
-        partsReading!.add(_extractKanjiReading(part, readingPart));
+      // The segment before the opening parenthesis.
+      String segment = input.substring(cursor, indexOpen);
+
+      // Determine the boundary between plain text and Kanji token.
+      int splitIndex = segment.length;
+      while (splitIndex > 0) {
+        String character = segment.substring(splitIndex - 1, splitIndex);
+        // Use KanaKit's isKanji method to check if the character is Kanji.
+        if (KanaKit().isKanji(character)) {
+          splitIndex--;
+        } else {
+          break;
+        }
+      }
+
+      // plainPrefix holds non-annotated text preceding the annotated Kanji.
+      String plainPrefix = segment.substring(0, splitIndex);
+      // annotatedToken holds the Kanji that is being annotated.
+      String annotatedToken = segment.substring(splitIndex);
+
+      // If there is any plain text, add it with an empty reading.
+      if (plainPrefix.isNotEmpty) {
+        parts!.add(plainPrefix);
+        partsReading!.add("");
+      }
+
+      // Find the closing parenthesis for the annotated token.
+      int indexClose = input.indexOf(')', indexOpen);
+      if (indexClose == -1) {
+        // If a closing parenthesis isn't found, exit the loop.
+        break;
+      }
+      // Extract the text inside the parentheses as the reading.
+      String readingAnnotation = input.substring(indexOpen + 1, indexClose);
+
+      // Add the annotated Kanji and its corresponding reading.
+      parts!.add(annotatedToken);
+      partsReading!.add(readingAnnotation);
+
+      // Continue after the closing parenthesis.
+      cursor = indexClose + 1;
+    }
+
+    // Append any remaining text after the last annotation.
+    if (cursor < input.length) {
+      String remaining = input.substring(cursor);
+      if (remaining.isNotEmpty) {
+        parts!.add(remaining);
+        partsReading!.add("");
       }
     }
-  }
-
-  List<String> _mockTokenize(String input) {
-    // VERY simple mock: split by punctuation or particles
-    // Replace this with MeCab or a better tokenizer in production
-    return input
-        .replaceAll('、', '')
-        .replaceAll('。', '')
-        .split(RegExp(r'(?<=[をがにでてはも])|(?=[をがにでてはも])|\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-  }
-
-  String _extractKanjiReading(String word, String reading) {
-    // Remove kana from word to isolate Kanji portion
-    final hiragana = RegExp(r'[ぁ-んァ-ンー]');
-    final kanjiOnly = word.replaceAll(hiragana, '');
-
-    // If no Kanji, no need for reading
-    if (kanjiOnly.isEmpty) return '';
-
-    // Assume full reading for now
-    return reading;
   }
 }
