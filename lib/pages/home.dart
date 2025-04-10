@@ -11,6 +11,7 @@ import 'package:my_kanji_app/data/app_data.dart';
 import 'package:my_kanji_app/data/constant.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/radical.dart';
+import 'package:my_kanji_app/data/sentence_data.dart';
 import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/dashboard.dart';
@@ -365,26 +366,32 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             },
           ),
         PopupMenuItem<int>(
-            value: 5,
-            child: 
-            FutureBuilder<bool>(
-              future: appData.sentenceReviewFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('Running...');
-                } else if (snapshot.hasError) {
-                  return const Text('Error. Retry?');
-                } else if (snapshot.data == true) {
-                  return const Text('Available! Retry?');
-                } else {
-                  return const Text('No response. Retry?');
-                }
-              },
-            ),
-            onTap: () async {
-              appData.sentenceReviewFuture = appData.getSentenceReview();
+          value: 5,
+          child: FutureBuilder<bool>(
+            future: appData.sentenceReviewFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Text('Running...');
+              } else if (snapshot.hasError) {
+                return const Text('Error. Retry?');
+              } else if (snapshot.data == true) {
+                return const Text('Available! Retry?');
+              } else {
+                return const Text('No response. Retry?');
+              }
             },
           ),
+          onTap: () async {
+            appData.sentenceReviewFuture = appData.getSentenceReview();
+          },
+        ),
+        //   PopupMenuItem<int>(
+        //   value: 6,
+        //   child: const Text('Test'),
+        //   onTap: () async {
+
+        //   },
+        // ),
         PopupMenuItem<int>(
           value: 0,
           child: const Text('Log out'),

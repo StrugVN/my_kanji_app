@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -56,6 +57,9 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
   bool showInfo = false;
   bool? result;
+  bool forceShowSentenceReading = false;
+  bool forceShowSentenceFullReading = false;
+  bool forceShowSentenceMeaning = false;
 
   // ----
   final meaningInput = TextEditingController();
@@ -368,11 +372,11 @@ class _WkReviewPageState extends State<WkReviewPage> {
         ? appData.getSentenceReviewByWord(question)
         : null;
 
-    print(sentence?.sentence);
-    print("Parts: ");
-    print(sentence?.reading);
-    print(sentence?.parts);
-    print(sentence?.partsReading);
+    // print(sentence?.sentence);
+    // print("Parts: ");
+    // print(sentence?.reading);
+    // print(sentence?.parts);
+    // print(sentence?.partsReading);
 
     var svg = radical?.data!.characterImages
         ?.firstWhereOrNull((element) => element.contentType == "image/svg+xml");
@@ -399,115 +403,147 @@ class _WkReviewPageState extends State<WkReviewPage> {
                   vocab != null ||
                   question != null ||
                   (radical != null && svgString == null))
-                GestureDetector(
-                  onLongPress: () {
-                    // Show tooltip on long press
-                    final dynamic tooltip = Tooltip(
-                      message: question ?? "N/A",
-                      textStyle: TextStyle(
-                        fontSize: 48.0, // Increase the text size
-                        color: Colors.white,
+                Column(
+                  children: [
+                    GestureDetector(
+                      onLongPress: () {
+                        // Show tooltip on long press
+                        final dynamic tooltip = Tooltip(
+                          message: question ?? "N/A",
+                          textStyle: TextStyle(
+                            fontSize: 48.0, // Increase the text size
+                            color: Colors.white,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          showDuration: Duration(
+                            seconds: 5,
+                          ), // Set the duration for the tooltip to be visible
+                          child: Container(),
+                        );
+                        final dynamic tooltipState = tooltip.createState();
+                        tooltipState.ensureTooltipVisible();
+                      },
+                      child: Tooltip(
+                        message: question ?? "N/A",
+                        child: Column(
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                question ?? "N/A",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 64,
+                                  fontFamily: 'KyoukashoICA',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(4),
+                    ),
+                    if (sentence != null &&
+                        sentence.sentence != null &&
+                        sentence.isPartsAvailable())
+                      Align(
+                        // alignment: Alignment.centerLeft,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Wrap(
+                            alignment: WrapAlignment.start,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            children: [
+                              for (var i = 0; i < sentence.parts!.length; i++)
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    if ((isReadingAsked &&
+                                            (result == true || showInfo) ||
+                                        forceShowSentenceReading))
+                                      Text(
+                                        !appData.isLearnt(sentence.parts![i]) ||
+                                                forceShowSentenceFullReading
+                                            ? sentence.partsReading![i]
+                                            : "",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontFamily: 'KyoukashoICA',
+                                        ),
+                                      ),
+                                    GestureDetector(
+                                      onLongPress: () {
+                                        print("Sentence long press.");
+                                        setState(() {
+                                          if (forceShowSentenceFullReading) {
+                                            forceShowSentenceFullReading =
+                                                false;
+                                            forceShowSentenceMeaning = false;
+                                            forceShowSentenceReading = false;
+                                            return;
+                                          }
+                                          if (forceShowSentenceReading) {
+                                            forceShowSentenceFullReading = true;
+                                          }
+                                          forceShowSentenceMeaning = true;
+                                          forceShowSentenceReading = true;
+                                        });
+                                      },
+                                      child: Text(
+                                        sentence.parts![i],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontFamily: 'KyoukashoICA',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                      showDuration: Duration(
-                        seconds: 5,
-                      ), // Set the duration for the tooltip to be visible
-                      child: Container(),
-                    );
-                    final dynamic tooltipState = tooltip.createState();
-                    tooltipState.ensureTooltipVisible();
-                  },
-                  child: Tooltip(
-                    message: question ?? "N/A",
-                    child: Column(
-                      children: [
-                        FittedBox(
+                    if (sentence != null &&
+                        sentence.sentence != null &&
+                        !sentence.isPartsAvailable())
+                      GestureDetector(
+                        onLongPress: () {
+                          print("Sentence long press.");
+                          setState(() {
+                            forceShowSentenceMeaning = true;
+                          });
+                        },
+                        child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            question ?? "N/A",
+                            "・" + (sentence.sentence ?? ""),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 64,
+                              fontSize: 24,
                               fontFamily: 'KyoukashoICA',
                             ),
                           ),
                         ),
-                        if (sentence != null &&
-                            sentence.sentence != null &&
-                            sentence.isPartsAvailable())
-                          Align(
-                            // alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Wrap(
-                                alignment: WrapAlignment.start,
-                                crossAxisAlignment: WrapCrossAlignment.start,
-                                children: [
-                                  for (var i = 0;
-                                      i < sentence.parts!.length;
-                                      i++)
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        if (isReadingAsked &&
-                                            (result == true || showInfo))
-                                          Text(
-                                            sentence.partsReading![i],
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontFamily: 'KyoukashoICA',
-                                            ),
-                                          ),
-                                        Text(
-                                          sentence.parts![i],
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 24,
-                                            fontFamily: 'KyoukashoICA',
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                            ),
+                      ),
+                    if (sentence != null &&
+                        sentence.meaning != null &&
+                        ((!isReadingAsked && (result == true || showInfo)) ||
+                            forceShowSentenceMeaning))
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          sentence.meaning!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
                           ),
-                        if (sentence != null &&
-                            sentence.sentence != null &&
-                            !sentence.isPartsAvailable())
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              "・" + (sentence.sentence ?? ""),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontFamily: 'KyoukashoICA',
-                              ),
-                            ),
-                          ),
-                        if (sentence != null &&
-                            sentence.meaning != null &&
-                            !isReadingAsked &&
-                            (result == true || showInfo))
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              sentence.meaning!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                        ),
+                      ),
+                  ],
                 )
               else
                 futureSingleWidget(getSvg(svgString), true, true),
@@ -805,6 +841,10 @@ class _WkReviewPageState extends State<WkReviewPage> {
     isMeaningCorrect = true;
     isMeaningSlightlyWrong = false;
     isReadingCorrect = true;
+
+    forceShowSentenceMeaning = false;
+    forceShowSentenceReading = false;
+    forceShowSentenceFullReading = false;
 
     // -- Pick new review
     pickFromDraft();

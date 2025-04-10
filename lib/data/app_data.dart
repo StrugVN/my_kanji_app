@@ -728,4 +728,28 @@ class AppData extends ChangeNotifier {
     return sentenceReviewList
         .firstWhereOrNull((element) => element.word == word);
   }
+
+  bool isLearnt(String? character){
+    if(character == null || character.isEmpty) {
+      return false;
+    }
+
+    for(int i = 0; i < character.length; i++){
+      String? char = character[i];
+
+      Kanji? kanji = allKanjiData?.firstWhereOrNull((element) => element.data?.characters == char);
+      
+      var srsData = allSrsData!
+          .firstWhereOrNull((element) =>
+              element.data != null 
+              && element.data?.subjectId == kanji?.id
+          );
+      
+      if(!(srsData == null || srsData.data?.startedAt == null)){
+        return true;
+      }
+    }
+
+    return false;
+  }
 }

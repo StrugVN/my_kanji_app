@@ -67,7 +67,6 @@ dependencies:
   flutter_local_notifications: ^17.0.0
   workmanager: ^0.5.2
   file_picker: ^5.2.2
-  mecab_dart: ^0.1.6
 
 dev_dependencies:
   flutter_test:
