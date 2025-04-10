@@ -734,6 +734,22 @@ class AppData extends ChangeNotifier {
       return false;
     }
 
+    character = character.replaceAll("々", "");
+
+    if (character.length > 1){
+      Vocab? vocab = allVocabData?.firstWhereOrNull((element) => element.data?.characters == character);
+      
+      var srsData = allSrsData!
+          .firstWhereOrNull((element) =>
+              element.data != null 
+              && element.data?.subjectId == vocab?.id
+          );
+      
+      if(srsData != null && srsData.data?.startedAt != null){
+        return true;
+      }
+    }
+
     for(int i = 0; i < character.length; i++){
       String? char = character[i];
 
@@ -745,11 +761,11 @@ class AppData extends ChangeNotifier {
               && element.data?.subjectId == kanji?.id
           );
       
-      if(!(srsData == null || srsData.data?.startedAt == null)){
-        return true;
+      if(srsData == null || srsData.data?.startedAt == null){
+        return false;
       }
     }
 
-    return false;
+    return true;
   }
 }
