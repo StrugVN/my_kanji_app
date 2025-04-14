@@ -690,38 +690,73 @@ class AppData extends ChangeNotifier {
             .where((element) => !element.contains('〜'))
             .toList() ??
         [];
-    GeminiResponse? response = await geminiBatchSearchWords(vocabReviewList);
 
-    if (response == null ||
-        response.candidates?.length == 0 ||
-        response.candidates?[0].content?.parts?.length == 0) {
-      return false;
+    print("  Vocab review count: ${vocabReviewList.length}");
+
+    // split vocabReviewList into chunks of 50
+    List<List<String>> chunks = [];
+    for (int i = 0; i < vocabReviewList.length; i += 50) {
+      chunks.add(vocabReviewList.sublist(i,
+          i + 50 > vocabReviewList.length ? vocabReviewList.length : i + 50));
     }
 
-    String? rawJson =
-        response.candidates?[0].content?.parts?[0]['text'] ?? null;
+    int errorCount = 0;
 
-    if (rawJson == null || rawJson.isEmpty) {
-      return false;
+    int readingInSentenceWarningCount = 0;
+
+    List<Future<GeminiResponse?>> geminiResponseList = [];
+
+    for (var list in chunks){
+      geminiResponseList.add(geminiBatchSearchWords(list));
     }
 
-    String jsonString = rawJson.replaceAll('```', '').replaceAll('json', '');
+    List<GeminiResponse?> responseList = await Future.wait(geminiResponseList);
 
-    sentenceReviewList = (jsonDecode(jsonString) as List)
-        .map((e) => Sentence.fromJson(e))
-        .toList();
+    for (var response in responseList) {
+      try {
+        if (response == null ||
+            response.candidates?.length == 0 ||
+            response.candidates?[0].content?.parts?.length == 0) {
+          errorCount++;
+          break;
+        }
 
-    sentenceReviewList.forEach((element) {
-      element.generatePartsAndReadings();
+        String? rawJson =
+            response.candidates?[0].content?.parts?[0]['text'] ?? null;
 
-      if (element.sentence?.contains("(") ?? false){
-        print("  Warning: ${element.toJson()}");
+        if (rawJson == null || rawJson.isEmpty) {
+          errorCount++;
+          break;
+        }
+
+        String jsonString =
+            rawJson.replaceAll('```', '').replaceAll('json', '');
+
+        List<Sentence> sentenceReviewListTemp = (jsonDecode(jsonString) as List)
+            .map((e) => Sentence.fromJson(e))
+            .toList();
+
+        sentenceReviewListTemp.forEach((element) {
+          element.generatePartsAndReadings();
+
+          if (element.sentence?.contains("(") ?? false) {
+            print("  Warning: ${element.toJson()}");
+            readingInSentenceWarningCount++;
+          }
+        });
+
+        sentenceReviewList.addAll(sentenceReviewListTemp);
+      } catch (e) {
+        print("  Error: $e");
+        errorCount++;
       }
-    });
+    }
 
     print("  Sentence review count: ${sentenceReviewList.length}");
+    print("  Reading in sentence warning count: $readingInSentenceWarningCount");
+    print("  Error count: $errorCount");
 
-    return true;
+    return errorCount == 0;
   }
 
   Sentence? getSentenceReviewByWord(String word) {
@@ -729,39 +764,35 @@ class AppData extends ChangeNotifier {
         .firstWhereOrNull((element) => element.word == word);
   }
 
-  bool isLearnt(String? character){
-    if(character == null || character.isEmpty) {
+  bool isLearnt(String? character) {
+    if (character == null || character.isEmpty) {
       return false;
     }
 
     character = character.replaceAll("々", "");
 
-    if (character.length > 1){
-      Vocab? vocab = allVocabData?.firstWhereOrNull((element) => element.data?.characters == character);
-      
-      var srsData = allSrsData!
-          .firstWhereOrNull((element) =>
-              element.data != null 
-              && element.data?.subjectId == vocab?.id
-          );
-      
-      if(srsData != null && srsData.data?.startedAt != null){
+    if (character.length > 1) {
+      Vocab? vocab = allVocabData?.firstWhereOrNull(
+          (element) => element.data?.characters == character);
+
+      var srsData = allSrsData!.firstWhereOrNull((element) =>
+          element.data != null && element.data?.subjectId == vocab?.id);
+
+      if (srsData != null && srsData.data?.startedAt != null) {
         return true;
       }
     }
 
-    for(int i = 0; i < character.length; i++){
+    for (int i = 0; i < character.length; i++) {
       String? char = character[i];
 
-      Kanji? kanji = allKanjiData?.firstWhereOrNull((element) => element.data?.characters == char);
-      
-      var srsData = allSrsData!
-          .firstWhereOrNull((element) =>
-              element.data != null 
-              && element.data?.subjectId == kanji?.id
-          );
-      
-      if(srsData == null || srsData.data?.startedAt == null){
+      Kanji? kanji = allKanjiData
+          ?.firstWhereOrNull((element) => element.data?.characters == char);
+
+      var srsData = allSrsData!.firstWhereOrNull((element) =>
+          element.data != null && element.data?.subjectId == kanji?.id);
+
+      if (srsData == null || srsData.data?.startedAt == null) {
         return false;
       }
     }
