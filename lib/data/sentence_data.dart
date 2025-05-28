@@ -55,7 +55,9 @@ class Sentence {
   /// Note: We use a helper function [isKanjiChar] that calls [KanaKit().isKanji]
   /// and also falls back on a regex check.
   void generatePartsAndReadings() {
-    if (reading == null || reading!.isEmpty) return;
+    if (reading == null || reading!.isEmpty) {
+      reading = sentence;
+    };
     parts = [];
     partsReading = [];
 

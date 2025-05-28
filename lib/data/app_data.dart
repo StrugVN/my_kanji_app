@@ -182,6 +182,8 @@ class AppData extends ChangeNotifier {
 
     if (now.hour - lastDataSync.hour >= 1) {
       await getData();
+      // check if appData.sentenceReviewFuture is on going, if it is cancel it
+      appData.sentenceReviewFuture = appData.getSentenceReview();
       lastDataSync = DateTime.now();
     }
   }
@@ -702,7 +704,7 @@ class AppData extends ChangeNotifier {
 
     int errorCount = 0;
 
-    int readingInSentenceWarningCount = 0;
+    int warningCount = 0;
 
     List<Future<GeminiResponse?>> geminiResponseList = [];
 
@@ -739,9 +741,9 @@ class AppData extends ChangeNotifier {
         sentenceReviewListTemp.forEach((element) {
           element.generatePartsAndReadings();
 
-          if (element.sentence?.contains("(") ?? false) {
+          if (element.word?.contains("(") ?? false) {
             print("  Warning: ${element.toJson()}");
-            readingInSentenceWarningCount++;
+            warningCount++;
           }
         });
 
@@ -753,7 +755,7 @@ class AppData extends ChangeNotifier {
     }
 
     print("  Sentence review count: ${sentenceReviewList.length}");
-    print("  Reading in sentence warning count: $readingInSentenceWarningCount");
+    print("  Warning count: $warningCount");
     print("  Error count: $errorCount");
 
     return errorCount == 0;
