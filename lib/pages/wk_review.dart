@@ -85,10 +85,6 @@ class _WkReviewPageState extends State<WkReviewPage> {
     reviewItems = widget.reviewItems;
     isReview = widget.isReview;
 
-    // TODO: REMOVE
-    // reviewItems = appData.allRadicalData!.where((element) => element.data?.level == 9).map((e) => e as dynamic).toList();
-    //
-
     standByList = reviewItems.map((e) => ReviewItem(data: e)).toList();
 
     standByList.shuffle();
@@ -307,7 +303,7 @@ class _WkReviewPageState extends State<WkReviewPage> {
           ),
           Listener(
             onPointerDown: (details) {
-              print(details);
+              // print(details);
               focusNodeMeaning.unfocus();
               focusNodeReading.unfocus();
               if (result == null) {

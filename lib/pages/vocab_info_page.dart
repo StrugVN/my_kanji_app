@@ -97,7 +97,7 @@ class _VocabPageState extends State<VocabPage>
 
     String exampleSearchText = vocab.data!.characters!.replaceAll('〜', '');
     example = jisho.searchForExamples(exampleSearchText);
-    print(vocab.data!.characters! + " / " + exampleSearchText);
+    // print(vocab.data!.characters! + " / " + exampleSearchText);
     maziiData = maziiSearchWord(exampleSearchText).then((value) {
       if (value == null || value.found == false) return null;
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:my_kanji_app/data/kanji.dart';
 import 'package:my_kanji_app/data/radical.dart';
+import 'package:my_kanji_app/data/shared.dart';
 import 'package:my_kanji_app/data/vocab.dart';
 import 'package:my_kanji_app/pages/kanji_info_page.dart';
 import 'package:my_kanji_app/pages/radical_info_page.dart';
@@ -154,7 +155,10 @@ class _LessonPageState extends State<LessonPage> {
           .compareTo(b["unlockedDate"] as DateTime);
     });
 
-    lessonList = newItemsList.take(widget.ignoreLimit ? newItemsList.length : appData.lessonBatchSize).toList();
+    lessonList = newItemsList
+        .take(
+            widget.ignoreLimit ? newItemsList.length : appData.lessonBatchSize)
+        .toList();
 
     for (int ind = 0; ind < lessonList.length; ind++) {
       lessonPages.add(getInfoPage(lessonList[ind]["data"]));
@@ -282,19 +286,18 @@ class _LessonPageState extends State<LessonPage> {
                         children: [
                           Text(
                             "${lessonList[index]["data"].data!.characters}",
-                            style:
-                                const TextStyle(fontSize: 16, color: Colors.black),
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black),
                           ),
                           Text(
                             "${index + 1}/${lessonList.length}",
-                            style:
-                                const TextStyle(fontSize: 16, color: Colors.black),
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black),
                           ),
-                          
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (index + 1 < lessonList.length) {
                             index = index + 1;
                             setState(() {
@@ -305,6 +308,19 @@ class _LessonPageState extends State<LessonPage> {
                               );
                             });
                           } else {
+                            List<String> vocabList = lessonList
+                                .map((e) => e["data"])
+                                .whereType<Vocab>()
+                                .toList()
+                                .map((e) => e.data?.characters)
+                                .whereNotNull()
+                                .where((element) => !element.contains('〜'))
+                                .toList();
+                            
+                            showLoaderDialog(context, "Creating review...");
+                            await appData.addSentenceReview(vocabList);
+                            Navigator.pop(context, true);
+
                             Navigator.pop(context, true);
                             Navigator.push(
                               context,

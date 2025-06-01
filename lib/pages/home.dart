@@ -300,6 +300,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     );
   }
 
+  
+
   void showAppBarMenu(BuildContext context) {
     showMenu<int>(
       context: context,
@@ -365,26 +367,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               Navigator.pop(context);
             },
           ),
-        PopupMenuItem<int>(
-          value: 5,
-          child: FutureBuilder<bool>(
-            future: appData.sentenceReviewFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Text('Running...');
-              } else if (snapshot.hasError) {
-                return const Text('Error. Retry?');
-              } else if (snapshot.data == true) {
-                return const Text('Available! Retry?');
-              } else {
-                return const Text('No response. Retry?');
-              }
-            },
-          ),
-          onTap: () async {
-            appData.sentenceReviewFuture = appData.getSentenceReview();
-          },
-        ),
         //   PopupMenuItem<int>(
         //   value: 6,
         //   child: const Text('Test'),

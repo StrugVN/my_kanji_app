@@ -45,7 +45,7 @@ class AppData extends ChangeNotifier {
 
   SourceTypeLabel stuffSourceLabel = SourceTypeLabel.Wanikani;
 
-  late Future<bool> sentenceReviewFuture;
+  Future<bool>? sentenceReviewFuture;
   List<Sentence> sentenceReviewList = [];
 
   // App setting ===========================================
@@ -708,12 +708,12 @@ class AppData extends ChangeNotifier {
 
     List<Future<GeminiResponse?>> geminiResponseList = [];
 
-    for (var list in chunks){
+    for (var list in chunks) {
       geminiResponseList.add(geminiBatchSearchWords(list));
     }
 
     List<GeminiResponse?> responseList = await Future.wait(geminiResponseList);
-
+    List<Sentence> sentenceReviewListTotalTemp = [];
     for (var response in responseList) {
       try {
         if (response == null ||
@@ -747,18 +747,62 @@ class AppData extends ChangeNotifier {
           }
         });
 
-        sentenceReviewList.addAll(sentenceReviewListTemp);
+        sentenceReviewListTotalTemp.addAll(sentenceReviewListTemp);
       } catch (e) {
         print("  Error: $e");
         errorCount++;
       }
     }
 
+    sentenceReviewList = sentenceReviewListTotalTemp;
+
     print("  Sentence review count: ${sentenceReviewList.length}");
     print("  Warning count: $warningCount");
     print("  Error count: $errorCount");
 
+    notifyListeners();
+
     return errorCount == 0;
+  }
+
+  Future<bool> addSentenceReview(List<String> vocab) async {
+    GeminiResponse? responseList = await geminiBatchSearchWords(vocab);
+    try {
+      if (responseList == null ||
+          responseList.candidates?.length == 0 ||
+          responseList.candidates?[0].content?.parts?.length == 0) {
+        return false;
+      }
+
+      String? rawJson =
+          responseList.candidates?[0].content?.parts?[0]['text'] ?? null;
+
+      if (rawJson == null || rawJson.isEmpty) {
+        return false;
+      }
+
+      String jsonString = rawJson.replaceAll('```', '').replaceAll('json', '');
+
+      List<Sentence> sentenceReviewListTemp = (jsonDecode(jsonString) as List)
+          .map((e) => Sentence.fromJson(e))
+          .toList();
+
+      sentenceReviewListTemp.forEach((element) {
+        element.generatePartsAndReadings();
+
+        if (element.word?.contains("(") ?? false) {
+          print("  Warning: ${element.toJson()}");
+        }
+      });
+
+      sentenceReviewList.addAll(sentenceReviewListTemp);
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      print("  Error: $e");
+      return false;
+    }
   }
 
   Sentence? getSentenceReviewByWord(String word) {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:my_kanji_app/component/selector.dart';
@@ -460,43 +461,55 @@ class _DashboardState extends State<Dashboard>
                       style: TextStyle(fontSize: 22),
                     )),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  if (reviewCount > 0) {
-                    List<dynamic> reviewList = getReviewList();
+              Stack(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (reviewCount > 0) {
+                        List<dynamic> reviewList = getReviewList();
 
-                    if (reviewList.isEmpty) {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text("No review of current setting")));
-                      return;
-                    }
+                        if (reviewList.isEmpty) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("No review of current setting")));
+                          return;
+                        }
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => WkReviewPage(
-                          reviewItems: reviewList,
-                        ),
-                        settings: const RouteSettings(name: "reviewPage"),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      reviewCount > 0 ? Colors.blue : Colors.blue.shade200,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                ),
-                child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
-                    child: const Text(
-                      'Start reviews',
-                      style: TextStyle(fontSize: 22),
-                    )),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WkReviewPage(
+                              reviewItems: reviewList,
+                            ),
+                            settings: const RouteSettings(name: "reviewPage"),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          reviewCount > 0 ? Colors.blue : Colors.blue.shade200,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                    ),
+                    child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 2, vertical: 10),
+                        child: const Text(
+                          'Start reviews',
+                          style: TextStyle(fontSize: 22),
+                        )),
+                  ),
+                  if (appData.sentenceReviewFuture != null)
+                    Positioned(
+                      // allign middle left
+                      left: -8,
+                      child: getSentenceReviewIndicator(),
+                    ),
+                ],
               ),
             ],
           ),
@@ -1354,7 +1367,10 @@ class _DashboardState extends State<Dashboard>
                             child: Text(
                               item["char"]?.toString() ?? "",
                               style: const TextStyle(
-                                  fontSize: 28, color: Colors.white, fontFamily: 'KyoukashoICA',),
+                                fontSize: 28,
+                                color: Colors.white,
+                                fontFamily: 'KyoukashoICA',
+                              ),
                             ),
                           ),
                         ),
@@ -1389,7 +1405,10 @@ class _DashboardState extends State<Dashboard>
             else
               const Text(
                 'No mistake! 凄いですよ！',
-                style: TextStyle(fontSize: 18, fontFamily: 'KyoukashoICA',),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'KyoukashoICA',
+                ),
               ),
           ],
         ),
@@ -1511,9 +1530,10 @@ class _DashboardState extends State<Dashboard>
               builder: (context) => ResultPage(
                 listData: [
                   ResultData(
-                      data: newItemsList.map((e) => e["data"]).toList(),
-                      dataLabel: "Available Items",
-                      themeColor: Colors.black,)
+                    data: newItemsList.map((e) => e["data"]).toList(),
+                    dataLabel: "Available Items",
+                    themeColor: Colors.black,
+                  )
                 ],
                 title: 'Lessons',
                 titleTheme: Colors.pink,
@@ -1543,7 +1563,11 @@ class _DashboardState extends State<Dashboard>
                   children: [
                     Text(
                       (item["char"] ?? "ERR") as String,
-                      style: const TextStyle(fontSize: 26, color: Colors.white, fontFamily: 'KyoukashoICA',),
+                      style: const TextStyle(
+                        fontSize: 26,
+                        color: Colors.white,
+                        fontFamily: 'KyoukashoICA',
+                      ),
                     ),
                     Text(
                       (item["unlockedDate"] != null
@@ -1804,8 +1828,10 @@ class _DashboardState extends State<Dashboard>
           title: Center(
             child: Text(
               '    WK Level ${appData.userData.data?.level ?? "?"}',
-              style:
-                  const TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold,),
+              style: const TextStyle(
+                fontSize: 23.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           children: [
@@ -1883,6 +1909,99 @@ class _DashboardState extends State<Dashboard>
     }
     return (learned / length * 0.7)
         .clamp(0.0, 1.0); // Reduce opacity by 30% for others
+  }
+
+  FutureBuilder<bool> getSentenceReviewIndicator() {
+    return FutureBuilder<bool>(
+      future: appData.sentenceReviewFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return
+              // add padding to center the indicator
+              const Padding(
+            padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
+            child: Center(
+              child: SizedBox(
+                width: 15,
+                height: 15,
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return IconButton(
+            icon: const Icon(
+              Icons.error,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              await showReloadSentenceDialog(context).then((value) {
+                if (value != null && value) {
+                  setState(() {
+                    appData.sentenceReviewFuture = null;
+                  });
+                  appData.sentenceReviewFuture = appData.getSentenceReview();
+                }
+              });
+            },
+          );
+        } else if (snapshot.data == true) {
+          return IconButton(
+            icon: const Icon(
+              Icons.check_circle,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              await showReloadSentenceDialog(context).then((value) {
+                if (value != null && value) {
+                  setState(() {
+                    appData.sentenceReviewFuture = null;
+                  });
+                  appData.sentenceReviewFuture = appData.getSentenceReview();
+                }
+              });
+            },
+          );
+        } else {
+          return IconButton(
+            icon: const Icon(
+              Icons.not_interested,
+              color: Colors.black,
+            ),
+            onPressed: () async {
+              await showReloadSentenceDialog(context).then((value) {
+                if (value != null && value) {
+                  setState(() {
+                    appData.sentenceReviewFuture = null;
+                  });
+                  appData.sentenceReviewFuture = appData.getSentenceReview();
+                }
+              });
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<bool?> showReloadSentenceDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reload Sentence'),
+        content: const Text('Do you want to reload the sentence data?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reload'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
