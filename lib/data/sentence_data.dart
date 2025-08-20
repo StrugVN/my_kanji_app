@@ -67,8 +67,39 @@ class Sentence {
           RegExp(r'[\u4E00-\u9FFF々]').hasMatch(character);
     }
 
+    // Normalize full-width parens （ ） to ASCII ( ) only when they are
+    // likely "reading" markers (i.e., immediately preceded by a Kanji).
+    String normalizeReadingParens(String s) {
+      final buffer = StringBuffer();
+      bool inReading = false; // after we saw a kanji + （, we stay in until ）
+      for (int i = 0; i < s.length; i++) {
+        final ch = s[i];
+        if (ch == '（') {
+          final hasPrev = i > 0;
+          final prevChar = hasPrev ? s[i - 1] : '';
+          if (hasPrev && isKanjiChar(prevChar)) {
+            buffer.write('(');
+            inReading = true;
+          } else {
+            buffer.write(ch); // leave as-is if not after Kanji
+          }
+        } else if (ch == '）') {
+          if (inReading) {
+            buffer.write(')');
+            inReading = false;
+          } else {
+            buffer.write(ch); // leave as-is
+          }
+        } else {
+          buffer.write(ch);
+        }
+      }
+      return buffer.toString();
+    }
+
     int cursor = 0;
-    String input = reading!;
+    // Apply normalization so downstream logic only looks for ASCII '(' and ')'
+    String input = normalizeReadingParens(reading!);
 
     while (cursor < input.length) {
       int indexOpen = input.indexOf('(', cursor);

@@ -714,21 +714,26 @@ class AppData extends ChangeNotifier {
 
     List<GeminiResponse?> responseList = await Future.wait(geminiResponseList);
     List<Sentence> sentenceReviewListTotalTemp = [];
+    print(" Response count: ${responseList.length}");
     for (var response in responseList) {
       try {
         if (response == null ||
             response.candidates?.length == 0 ||
             response.candidates?[0].content?.parts?.length == 0) {
+          print("  Error: No response or empty response}");
+          print("  Response: ${response?.toJson()}");
           errorCount++;
-          break;
+          continue;
         }
 
         String? rawJson =
             response.candidates?[0].content?.parts?[0]['text'] ?? null;
 
         if (rawJson == null || rawJson.isEmpty) {
+          print("  Error: No response or empty response}");
+          print("  Response: ${response?.toJson()}");
           errorCount++;
-          break;
+          continue;
         }
 
         String jsonString =
