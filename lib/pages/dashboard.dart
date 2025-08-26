@@ -396,6 +396,8 @@ class _DashboardState extends State<Dashboard>
 
     var reviewCount = reviewData.length;
 
+    Widget? lessonSelector = getLessonSelector();
+
     return Column(
       children: [
         RichText(
@@ -423,43 +425,55 @@ class _DashboardState extends State<Dashboard>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  List<Map<String, Object?>> newItemsList = getLessonReview();
+              Stack(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      List<Map<String, Object?>> newItemsList =
+                          getLessonReview();
 
-                  if (newItemsList.isEmpty) {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("No lesson of current setting")));
-                    return;
-                  }
+                      if (newItemsList.isEmpty) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("No lesson of current setting")));
+                        return;
+                      }
 
-                  if (lessonCount > 0) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LessonPage(
-                          newItemsList: newItemsList,
-                        ),
-                        settings: const RouteSettings(name: "lessonPage"),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      lessonCount > 0 ? Colors.blue : Colors.blue.shade200,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                ),
-                child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                    child: const Text(
-                      'Start lessons',
-                      style: TextStyle(fontSize: 22),
-                    )),
+                      if (lessonCount > 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LessonPage(
+                              newItemsList: newItemsList,
+                            ),
+                            settings: const RouteSettings(name: "lessonPage"),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          lessonCount > 0 ? Colors.blue : Colors.blue.shade200,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
+                    ),
+                    child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 0, vertical: 10),
+                        child: const Text(
+                          'Start lessons',
+                          style: TextStyle(fontSize: 22),
+                        )),
+                  ),
+                  if (lessonSelector != null)
+                    Positioned(
+                      top: -8,
+                      right: -9,
+                      child: lessonSelector,
+                    ),
+                ],
               ),
               Stack(
                 children: [
@@ -506,7 +520,8 @@ class _DashboardState extends State<Dashboard>
                   if (appData.sentenceReviewFuture != null)
                     Positioned(
                       // allign middle left
-                      left: -8,
+                      top: -8,
+                      right: -9,
                       child: getSentenceReviewIndicator(),
                     ),
                 ],
@@ -1427,73 +1442,7 @@ class _DashboardState extends State<Dashboard>
             (element.data!.srsStage ?? 0) < 1)
         .toList();
 
-    var newItemsList = appData.allKanjiData!
-        .where((element) =>
-            lessonItem.firstWhereOrNull(
-              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-            ) !=
-            null)
-        .map((element) {
-      var lessonItemStat = lessonItem.firstWhereOrNull(
-        (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-      );
-      return {
-        "id": element.id,
-        "level": element.data?.level,
-        "char": element.data!.characters,
-        "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-        "isKanji": true,
-        "data": element,
-      };
-    }).toList();
-    newItemsList = newItemsList +
-        appData.allVocabData!
-            .where((element) =>
-                lessonItem.firstWhereOrNull(
-                  (e) =>
-                      e.data != null ? element.id == e.data!.subjectId! : false,
-                ) !=
-                null)
-            .map((element) {
-          var lessonItemStat = lessonItem.firstWhereOrNull(
-            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-          );
-          return {
-            "id": element.id,
-            "level": element.data?.level,
-            "char": element.data!.characters,
-            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-            "isKanji": false,
-            "data": element,
-          };
-        }).toList();
-
-    newItemsList = newItemsList +
-        appData.allRadicalData!
-            .where((element) =>
-                lessonItem.firstWhereOrNull(
-                  (e) =>
-                      e.data != null ? element.id == e.data!.subjectId! : false,
-                ) !=
-                null)
-            .map((element) {
-          var lessonItemStat = lessonItem.firstWhereOrNull(
-            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
-          );
-          return {
-            "id": element.id,
-            "level": element.data?.level,
-            "char": element.data!.characters,
-            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
-            "isKanji": false,
-            "data": element,
-          };
-        }).toList();
-
-    newItemsList.sort((a, b) {
-      return (b["unlockedDate"] as DateTime)
-          .compareTo(a["unlockedDate"] as DateTime);
-    });
+    List<Map<String, Object?>> newItemsList = getNewItemList(lessonItem);
 
     return Container(
       width: double.infinity,
@@ -1604,6 +1553,77 @@ class _DashboardState extends State<Dashboard>
         ),
       ),
     );
+  }
+
+  List<Map<String, Object?>> getNewItemList(List<WkSrsStatData> lessonItem) {
+    var newItemsList = appData.allKanjiData!
+        .where((element) =>
+            lessonItem.firstWhereOrNull(
+              (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+            ) !=
+            null)
+        .map((element) {
+      var lessonItemStat = lessonItem.firstWhereOrNull(
+        (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+      );
+      return {
+        "id": element.id,
+        "level": element.data?.level,
+        "char": element.data!.characters,
+        "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+        "isKanji": true,
+        "data": element,
+      };
+    }).toList();
+    newItemsList = newItemsList +
+        appData.allVocabData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "level": element.data?.level,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "data": element,
+          };
+        }).toList();
+
+    newItemsList = newItemsList +
+        appData.allRadicalData!
+            .where((element) =>
+                lessonItem.firstWhereOrNull(
+                  (e) =>
+                      e.data != null ? element.id == e.data!.subjectId! : false,
+                ) !=
+                null)
+            .map((element) {
+          var lessonItemStat = lessonItem.firstWhereOrNull(
+            (e) => e.data != null ? element.id == e.data!.subjectId! : false,
+          );
+          return {
+            "id": element.id,
+            "level": element.data?.level,
+            "char": element.data!.characters,
+            "unlockedDate": lessonItemStat!.data!.getUnlockededDateAsDateTime(),
+            "isKanji": false,
+            "data": element,
+          };
+        }).toList();
+
+    newItemsList.sort((a, b) {
+      return (b["unlockedDate"] as DateTime)
+          .compareTo(a["unlockedDate"] as DateTime);
+    });
+    return newItemsList;
   }
 
   createQuizFromItemDialog(List<Kanji> listKanji, List<Vocab> listVocab) {
@@ -1917,9 +1937,8 @@ class _DashboardState extends State<Dashboard>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return
-              // add padding to center the indicator
-              const Padding(
-            padding: EdgeInsets.fromLTRB(15, 15, 0, 0),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(0, 15, 15, 0),
             child: Center(
               child: SizedBox(
                 width: 15,
@@ -1980,6 +1999,67 @@ class _DashboardState extends State<Dashboard>
             },
           );
         }
+      },
+    );
+  }
+
+  Widget? getLessonSelector() {
+        var lessonItem = appData.allSrsData!
+        .where((element) =>
+            element.data != null &&
+            element.data!.unlockedAt != null &&
+            element.data!.availableAt == null &&
+            (element.data!.srsStage ?? 0) < 1)
+        .toList();
+
+    var newItemsList = getNewItemList(lessonItem);
+
+    if (newItemsList.isEmpty) {
+      return null;
+    }
+
+    return IconButton(
+      icon: const Icon(
+        Icons.bookmark_add_rounded,
+        color: Colors.black,
+      ),
+      onPressed: () {
+        var _newList = newItemsList;
+          _newList.sort((a, b) {
+            int levelCompare = (a["level"] as int) - (b["level"] as int);
+
+            if (levelCompare != 0) return levelCompare;
+
+            int typeCompare = (a["data"] is Radical ? 1 : 0) +
+                (a["data"] is Kanji ? 2 : 0) +
+                (a["data"] is Vocab ? 3 : 0) -
+                ((b["data"] is Radical ? 1 : 0) +
+                    (b["data"] is Kanji ? 2 : 0) +
+                    (b["data"] is Vocab ? 3 : 0));
+
+            if (typeCompare != 0) return typeCompare;
+
+            return (a["unlockedDate"] as DateTime)
+                .compareTo(b["unlockedDate"] as DateTime);
+          });
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultPage(
+                listData: [
+                  ResultData(
+                    data: newItemsList.map((e) => e["data"]).toList(),
+                    dataLabel: "Available Items",
+                    themeColor: Colors.black,
+                  )
+                ],
+                title: 'Lessons',
+                titleTheme: Colors.pink,
+                selectable: true,
+              ),
+            ),
+          );
       },
     );
   }
