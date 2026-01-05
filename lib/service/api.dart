@@ -348,7 +348,7 @@ Future<MaziiKanjiResponse?> maziiSearchKanji(String kanji) async {
 
 Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
   final uri = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GeminiApiKey');
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GeminiApiKey');
 
   var body = jsonEncode({
     "system_instruction": {

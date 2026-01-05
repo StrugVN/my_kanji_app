@@ -695,11 +695,20 @@ class AppData extends ChangeNotifier {
 
     print("  Vocab review count: ${vocabReviewList.length}");
 
+    // remove Vocab already in sentenceReviewList
+    vocabReviewList = vocabReviewList
+        .where((element) =>
+            !sentenceReviewList.any((sentence) => sentence.word == element))
+        .toList();
+
+    vocabReviewList.shuffle();
+
     // split vocabReviewList into chunks of 50
     List<List<String>> chunks = [];
     for (int i = 0; i < vocabReviewList.length; i += 50) {
       chunks.add(vocabReviewList.sublist(i,
           i + 50 > vocabReviewList.length ? vocabReviewList.length : i + 50));
+      break; // Only send 1 request because the rate limit is 20 requests per day, tks Google
     }
 
     int errorCount = 0;

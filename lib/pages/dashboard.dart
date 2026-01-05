@@ -2065,11 +2065,13 @@ class _DashboardState extends State<Dashboard>
   }
 
   Future<bool?> showReloadSentenceDialog(BuildContext context) {
+    var count = appData.sentenceReviewList.length;
+
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reload Sentence'),
-        content: const Text('Do you want to reload the sentence data?'),
+        title: const Text('Load Sentence'),
+        content: Text('Do you want to load sentence data? ($count)'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -2077,7 +2079,7 @@ class _DashboardState extends State<Dashboard>
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reload'),
+            child: const Text('Load'),
           ),
         ],
       ),

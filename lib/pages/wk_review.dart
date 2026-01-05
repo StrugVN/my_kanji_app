@@ -89,6 +89,43 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
     standByList.shuffle();
 
+    // sort if item is Vocab and has sentence review available
+    // push items with sentence to the top
+    standByList.sort((a, b) {
+      bool aHasSentence = false;
+      bool bHasSentence = false;
+
+      if (a.data is Vocab) {
+        var vocabA = a.data as Vocab;
+        var characters = vocabA.data?.characters;
+        if (characters != null) {
+          var sentenceA = appData.getSentenceReviewByWord(characters);
+          if (sentenceA != null && sentenceA.sentence != null) {
+            aHasSentence = true;
+          }
+        }
+      }
+
+      if (b.data is Vocab) {
+        var vocabB = b.data as Vocab;
+        var characters = vocabB.data?.characters;
+        if (characters != null) {
+          var sentenceB = appData.getSentenceReviewByWord(characters);
+          if (sentenceB != null && sentenceB.sentence != null) {
+            bHasSentence = true;
+          }
+        }
+      }
+
+      if (aHasSentence && !bHasSentence) {
+        return -1;
+      } else if (!aHasSentence && bHasSentence) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
     draftList = standByList.take(appData.reviewDraftSize).toList();
 
     standByList =
@@ -812,7 +849,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
       // Draft new item
       if (standByList.isNotEmpty) {
-        var ind = random.nextInt(standByList.length);
+        // going down the list instead
+        var ind = 0; // random.nextInt(standByList.length);
         draftList.add(standByList[ind]);
         standByList.removeAt(ind);
       }
