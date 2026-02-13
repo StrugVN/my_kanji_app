@@ -91,40 +91,8 @@ class _WkReviewPageState extends State<WkReviewPage> {
 
     // sort if item is Vocab and has sentence review available
     // push items with sentence to the top
-    standByList.sort((a, b) {
-      bool aHasSentence = false;
-      bool bHasSentence = false;
-
-      if (a.data is Vocab) {
-        var vocabA = a.data as Vocab;
-        var characters = vocabA.data?.characters;
-        if (characters != null) {
-          var sentenceA = appData.getSentenceReviewByWord(characters);
-          if (sentenceA != null && sentenceA.sentence != null) {
-            aHasSentence = true;
-          }
-        }
-      }
-
-      if (b.data is Vocab) {
-        var vocabB = b.data as Vocab;
-        var characters = vocabB.data?.characters;
-        if (characters != null) {
-          var sentenceB = appData.getSentenceReviewByWord(characters);
-          if (sentenceB != null && sentenceB.sentence != null) {
-            bHasSentence = true;
-          }
-        }
-      }
-
-      if (aHasSentence && !bHasSentence) {
-        return -1;
-      } else if (!aHasSentence && bHasSentence) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+    reorderVocabsSentenceFirstInPlace(standByList);
+    logStandbyList(standByList);
 
     draftList = standByList.take(appData.reviewDraftSize).toList();
 
@@ -493,20 +461,17 @@ class _WkReviewPageState extends State<WkReviewPage> {
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    if ((isReadingAsked &&
-                                            (result == true || showInfo) ||
-                                        forceShowSentenceReading))
-                                      Text(
-                                        !appData.isLearnt(sentence.parts![i]) ||
-                                                forceShowSentenceFullReading
-                                            ? sentence.partsReading![i]
-                                            : "",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontFamily: 'KyoukashoICA',
-                                        ),
+                                    Text(
+                                      !appData.isLearnt(sentence.parts![i]) ||
+                                              forceShowSentenceFullReading
+                                          ? sentence.partsReading![i]
+                                          : "",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontFamily: 'KyoukashoICA',
                                       ),
+                                    ),
                                     GestureDetector(
                                       onLongPress: () {
                                         print("Sentence long press.");
@@ -1411,6 +1376,68 @@ class _WkReviewPageState extends State<WkReviewPage> {
   //     }
   //   });
   // }
+
+  void reorderVocabsSentenceFirstInPlace(List<dynamic> standByList) {
+    // Collect vocab indices + vocab objects in their current order
+    final vocabSlots = <int>[];
+    final vocabs = <dynamic>[]; // or <Vocab> if your list is typed
+
+    for (int i = 0; i < standByList.length; i++) {
+      final item = standByList[i];
+      if (item.data is Vocab) {
+        vocabSlots.add(i);
+        vocabs.add(item);
+      }
+    }
+
+    bool hasSentence(dynamic learningItem) {
+      final vocab = learningItem.data as Vocab;
+      final characters = vocab.data?.characters;
+      if (characters == null) return false;
+      final sentenceReview = appData.getSentenceReviewByWord(characters);
+      return sentenceReview?.sentence != null;
+    }
+
+    // Stable sentence-first partition while keeping relative order inside each group
+    final withSentence = <dynamic>[];
+    final withoutSentence = <dynamic>[];
+
+    for (final v in vocabs) {
+      (hasSentence(v) ? withSentence : withoutSentence).add(v);
+    }
+
+    final reordered = [...withSentence, ...withoutSentence];
+
+    // Put vocabs back into the original vocab slots (non-vocab indices untouched)
+    for (int k = 0; k < vocabSlots.length; k++) {
+      standByList[vocabSlots[k]] = reordered[k];
+    }
+  }
+
+  void logStandbyList(List<dynamic> standByList, {int limit = 60}) {
+    for (int i = 0; i < standByList.length && i < limit; i++) {
+      final item = standByList[i];
+
+      if (item.data is Vocab) {
+        final vocab = item.data as Vocab;
+        final word = vocab.data?.characters ?? '(null)';
+        final sr = (word == '(null)')
+            ? null
+            : appData.getSentenceReviewByWord(word.trim());
+        final sentence = sr?.sentence;
+
+        final has = (sentence ?? '').trim().isNotEmpty;
+        debugPrint(
+          '#${i + 1} VOCAB word="$word" '
+          'srWord="${sr?.word}" '
+          'sentenceLen=${sentence?.length ?? 0} '
+          'hasSentence=$has',
+        );
+      } else {
+        debugPrint('#${i + 1} ${item.data.runtimeType}');
+      }
+    }
+  }
 }
 
 class ReviewItem {
