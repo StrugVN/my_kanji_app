@@ -364,7 +364,7 @@ Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
         "parts": [
           {
             "text":
-                "Make Japanese sentences using each of these word [${words.map((e) => "'" + e + "'").join(",")}] (1 for each word)"
+                "Find actual Japanese sentences (quote of real text, literature), short to medium length with maximum 40 words per sentence, using each of these words [${words.map((e) => "'" + e + "'").join(",")}] (1 for each word)"
           }
         ]
       }
