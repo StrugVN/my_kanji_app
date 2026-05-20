@@ -346,17 +346,66 @@ Future<MaziiKanjiResponse?> maziiSearchKanji(String kanji) async {
   return data;
 }
 
-Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
-  final uri = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GeminiApiKey');
+const String _geminiPrimaryModel = 'gemini-2.5-flash';
+const String _geminiBackupModel = 'gemini-2.5-flash-lite';
 
-  var body = jsonEncode({
+const String _geminiSystemPrompt = '''You are a Japanese learning assistant API.
+
+OUTPUT FORMAT
+Respond with a single JSON array. Each element has exactly these fields:
+- "word": the exact prompted word, unchanged.
+- "sentence": one natural Japanese sentence using the word. See FURIGANA RULES below.
+- "meaning": the English translation of the sentence.
+
+FURIGANA RULES (critical, follow exactly)
+- After every kanji character or kanji compound in the sentence, append its hiragana reading in parentheses immediately after.
+- Wrap a whole kanji compound once, NOT each kanji separately.
+- Never wrap hiragana or katakana. Particles like は, が, を, に, て get no parentheses.
+- Never use romaji anywhere.
+
+EXAMPLES
+Word: 権利
+Correct: 国民(こくみん)には自由(じゆう)に意見(いけん)を述(の)べる権利(けんり)がある。
+Wrong:   国民(こくみん)に(に)は(は)自由(じゆう)に...   ← hiragana wrapped
+Wrong:   国(こく)民(みん)には...                       ← compound split
+
+Word: 消す
+Correct: 部屋(へや)を出(で)る前(まえ)に、電気(でんき)を消(け)してください。
+
+CONTENT RULES
+- Sentences should be original and varied: change context, speaker, tone, or setting between calls.
+- Maximum 40 words per sentence; short to medium length.
+- If the prompted word is a verb or adjective, prefer a conjugated or て-form over the dictionary form.
+- If the prompted word is a single kanji, use it standalone (with its standalone reading and meaning), not inside a compound.''';
+
+Future<Response?> _callGemini(String model, String requestBody) async {
+  final uri = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$GeminiApiKey');
+  try {
+    return await http.post(uri,
+        headers: {'Content-Type': 'application/json'}, body: requestBody);
+  } catch (e) {
+    print('Gemini $model network error: $e');
+    return null;
+  }
+}
+
+String _extractGeminiErrorMessage(Response resp) {
+  try {
+    final j = jsonDecode(Utf8Decoder().convert(resp.bodyBytes));
+    if (j is Map && j['error'] is Map) {
+      final msg = (j['error'] as Map)['message'];
+      if (msg is String && msg.isNotEmpty) return msg;
+    }
+  } catch (_) {}
+  return resp.body;
+}
+
+Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
+  final body = jsonEncode({
     "system_instruction": {
       "parts": [
-        {
-          "text":
-             "You are a Japanese learning assistant API. Respond only with a JSON array of objects. Each object must contain: - 'word': The prompted word, exactly as provided (no furigana, no kanji readings, no romaji). - 'sentence': A natural, original Japanese sentence using the prompted word. After each kanji, include its hiragana reading in parentheses. Do not include any romaji (english alphabet) reading. - 'meaning': The English translation of the sentence. If the given word is a single kanji, use its standalone reading and meaning, not in a compound word.\n\nMake sure each sentence is different from any typical or previously generated ones. Add variation by changing context, speaker, tone, or setting. Prioritize uniqueness.\n\nIf the given word is a verb or adjective, prioritize using a conjugated or て-form version of the word rather than its dictionary form when building the sentence."
-        }
+        {"text": _geminiSystemPrompt}
       ]
     },
     "contents": [
@@ -368,18 +417,35 @@ Future<GeminiResponse?> geminiBatchSearchWords(List<String> words) async {
           }
         ]
       }
-    ]
+    ],
+    "generationConfig": {
+      "temperature": 0.3,
+      "responseMimeType": "application/json",
+    },
   });
 
   print("----------------GEMINI API---------------------");
   print(words.map((e) => "'" + e + "'").join(","));
 
-  var response = await http.post(uri,
-      headers: {'Content-Type': 'application/json'}, body: body);
+  // Try primary model
+  var response = await _callGemini(_geminiPrimaryModel, body);
+  if (response == null || response.statusCode != 200) {
+    final errMsg = response == null
+        ? 'network error'
+        : 'HTTP ${response.statusCode}: ${_extractGeminiErrorMessage(response)}';
+    print('Gemini $_geminiPrimaryModel failed ($errMsg); trying backup $_geminiBackupModel...');
+
+    response = await _callGemini(_geminiBackupModel, body);
+    if (response == null || response.statusCode != 200) {
+      final err2 = response == null
+          ? 'network error'
+          : 'HTTP ${response.statusCode}: ${_extractGeminiErrorMessage(response)}';
+      print('Gemini $_geminiBackupModel also failed ($err2)');
+      return null;
+    }
+  }
 
   final jsonResponse = jsonDecode(Utf8Decoder().convert(response.bodyBytes));
 
-  var data = GeminiResponse.fromJson(jsonResponse);
-
-  return data;
+  return GeminiResponse.fromJson(jsonResponse);
 }
